@@ -1,0 +1,3 @@
+-- MoneyBin: Migration 001 – Initial schema
+-- Database: SQLite
+-- Apply once to a new, empty database.
