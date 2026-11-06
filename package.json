@@ -8,5 +8,10 @@
     "name": "komed3 (Paul Köhler)",
     "email": "webmaster@komed3.de",
     "url": "https://komed3.de"
-  }
+  },
+  "homepage": "https://github.com/komed3/moneybin",
+  "engines": {
+    "node": ">=22.16.0"
+  },
+  "type": "module"
 }
