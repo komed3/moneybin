@@ -46,8 +46,7 @@ async function run () : Promise< void > {
   server = app.listen( port, host );
 
   await new Promise< void >( ( resolve, reject ) => {
-    server.once( 'listening', resolve );
-    server.once( 'error', reject );
+    server.once( 'listening', resolve ), server.once( 'error', reject );
   } );
 
   console.info( `[MoneyBin] Server listening on ${ host }:${ port }` );
