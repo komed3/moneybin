@@ -1,0 +1,12 @@
+{
+  "name": "moneybin",
+  "private": true,
+  "description": "Open-source net-worth tracking software",
+  "version": "1.0.0",
+  "license": "MIT",
+  "author": {
+    "name": "komed3 (Paul Köhler)",
+    "email": "webmaster@komed3.de",
+    "url": "https://komed3.de"
+  }
+}
