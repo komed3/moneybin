@@ -1,0 +1,15 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "lib": [ "ES2025", "DOM", "DOM.Iterable" ],
+    "types": [ "node", "vite/client" ],
+    "jsx": "react-jsx",
+    "moduleResolution": "bundler",
+    "moduleDetection": "force",
+    "allowImportingTsExtensions": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "paths": { "@/*": [ "./*" ] }
+  }
+}
