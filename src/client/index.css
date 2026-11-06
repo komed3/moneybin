@@ -16,4 +16,12 @@
   ::-webkit-scrollbar, *::-webkit-scrollbar {
     @apply hidden;
   }
+
+  input, textarea, button, select {
+    @apply font-sans;
+  }
+
+  button, select {
+    @apply cursor-pointer;
+  }
 }
