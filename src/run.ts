@@ -9,7 +9,10 @@ const __dirname = dirname( fileURLToPath( import.meta.url ) );
 
 
 async function run () : Promise< void > {
+  const host = process.env.HOST ?? '0.0.0.0', port = process.env.PORT ?? 3000;
   const app = express();
+
+  let server: Server | undefined, vite: ViteDevServer | undefined;
 
   app.disable( 'x-powered-by' );
   app.use( express.json( { limit: '32kb' } ) );
@@ -17,8 +20,6 @@ async function run () : Promise< void > {
 
 
   // --- react ---
-
-  let server: Server | undefined, vite: ViteDevServer | undefined;
 
   if ( process.env.NODE_ENV === 'dev' ) {
     const { createServer } = await import( 'vite' );
@@ -38,6 +39,18 @@ async function run () : Promise< void > {
       res.sendFile( join( clientDist, 'index.html' ) );
     } );
   }
+
+
+  // --- start ---
+
+  server = app.listen( port, host );
+
+  await new Promise< void >( ( resolve, reject ) => {
+    server.once( 'listening', resolve );
+    server.once( 'error', reject );
+  } );
+
+  console.info( `[MoneyBin] Server listening on ${ host }:${ port }` );
 }
 
 
