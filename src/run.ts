@@ -50,6 +50,33 @@ async function run () : Promise< void > {
   } );
 
   console.info( `[MoneyBin] Server listening on ${ host }:${ port }` );
+
+
+  // --- shutdown ---
+
+  let shuttingDown = false;
+
+  const shutdown = async () => {
+    if ( shuttingDown ) return;
+    shuttingDown = true;
+
+    console.info( '[MoneyBin] Shutting down...' );
+
+    try {
+      if ( server?.listening ) await new Promise< void >( ( resolve, reject ) => {
+        server.close( err => err ? reject( err ) : resolve() );
+      } );
+
+      await vite?.close();
+      console.info( '[MoneyBin] Server stopped.' );
+    } catch ( err ) {
+      console.error( '[MoneyBin] Shutdown failed:', err );
+      process.exitCode = 1;
+    }
+  };
+
+  process.once( 'SIGINT', () => void shutdown() );
+  process.once( 'SIGTERM', () => void shutdown() );
 }
 
 
