@@ -55,3 +55,20 @@ CREATE TABLE persons (
 );
 
 CREATE INDEX persons_created_by_idx ON persons ( created_by );
+
+CREATE TABLE portfolios (
+  id TEXT PRIMARY KEY NOT NULL,
+  person_id TEXT NOT NULL REFERENCES persons ( id ) ON DELETE RESTRICT,
+  created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  description TEXT,
+  base_currency TEXT NOT NULL DEFAULT 'EUR' CHECK ( length( base_currency ) = 3 ),
+  start_date TEXT NOT NULL,
+  end_date TEXT,
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+  updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  CHECK ( end_date IS NULL OR end_date >= start_date )
+);
+
+CREATE INDEX portfolios_person_idx ON portfolios ( person_id );
