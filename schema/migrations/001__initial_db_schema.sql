@@ -150,3 +150,43 @@ CREATE TABLE asset_conversion_factors (
 );
 
 CREATE INDEX asset_conversion_factors_lookup_idx ON asset_conversion_factors ( asset_id, effective_date DESC );
+
+
+-- ============================================================
+-- Transfers
+-- ============================================================
+
+CREATE TABLE transfers (
+  id TEXT PRIMARY KEY NOT NULL,
+  portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
+
+  source_asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE RESTRICT,
+  target_asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE RESTRICT,
+
+  effective_date TEXT NOT NULL,
+  booking_date TEXT,
+  value_date TEXT,
+
+  source_amount_minor INTEGER NOT NULL CHECK ( source_amount_minor > 0 ),
+  target_amount_minor INTEGER NOT NULL CHECK ( target_amount_minor > 0 ),
+
+  fee_asset_id TEXT REFERENCES assets ( id ) ON DELETE RESTRICT,
+  fee_amount_minor INTEGER NOT NULL DEFAULT 0 CHECK ( fee_amount_minor >= 0 ),
+
+  quality TEXT NOT NULL CHECK ( quality IN ( 'documented', 'estimated', 'speculative' ) ),
+
+  note TEXT,
+  created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+  updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  CHECK ( source_asset_id <> target_asset_id ),
+  CHECK (
+    ( fee_amount_minor = 0 AND fee_asset_id IS NULL ) OR
+    ( fee_amount_minor > 0 AND fee_asset_id IN ( source_asset_id, target_asset_id ) )
+  )
+);
+
+CREATE INDEX transfers_portfolio_date_idx ON transfers ( portfolio_id, effective_date );
+CREATE INDEX transfers_source_idx ON transfers ( source_asset_id, effective_date );
+CREATE INDEX transfers_target_idx ON transfers ( target_asset_id, effective_date );
