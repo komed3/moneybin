@@ -451,3 +451,34 @@ CREATE TABLE portfolio_value_points (
 );
 
 CREATE INDEX portfolio_value_points_date_idx ON portfolio_value_points ( effective_date );
+
+
+-- ============================================================
+-- Optional documents and evidence
+-- ============================================================
+
+CREATE TABLE documents (
+  id TEXT PRIMARY KEY NOT NULL,
+  uploaded_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
+
+  original_name TEXT NOT NULL,
+  storage_key TEXT NOT NULL UNIQUE,
+  mime_type TEXT,
+  size_bytes INTEGER NOT NULL CHECK ( size_bytes >= 0 ),
+  file_hash TEXT,
+
+  description TEXT,
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) )
+);
+
+CREATE INDEX documents_hash_idx ON documents ( file_hash );
+
+CREATE TABLE entry_documents (
+  entry_id TEXT NOT NULL REFERENCES asset_entries ( id ) ON DELETE CASCADE,
+  document_id TEXT NOT NULL REFERENCES documents ( id ) ON DELETE CASCADE,
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  PRIMARY KEY ( entry_id, document_id )
+);
+
+CREATE INDEX entry_documents_document_idx ON entry_documents ( document_id );
