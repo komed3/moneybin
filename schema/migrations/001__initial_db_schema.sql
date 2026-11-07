@@ -121,6 +121,125 @@ CREATE INDEX assets_start_date_idx ON assets ( start_date );
 
 
 -- ============================================================
+-- Entry types
+-- ============================================================
+
+CREATE TABLE entry_types (
+  id TEXT PRIMARY KEY NOT NULL
+);
+
+INSERT INTO entry_types ( id ) VALUES
+  ( 'bank_account.opening_balance' ), ( 'bank_account.statement_balance' ), ( 'bank_account.valuation' ),
+  ( 'bank_account.direct_debit' ), ( 'bank_account.standing_order' ), ( 'bank_account.bank_transfer' ),
+  ( 'bank_account.card_payment' ), ( 'bank_account.cash_deposit' ), ( 'bank_account.cash_withdrawal' ),
+  ( 'bank_account.incoming_payment' ), ( 'bank_account.outgoing_payment' ), ( 'bank_account.cheque' ),
+  ( 'bank_account.interest' ), ( 'bank_account.fee' ), ( 'bank_account.tax' ), ( 'bank_account.refund' ),
+  ( 'bank_account.transfer_in' ), ( 'bank_account.transfer_out' ),
+
+  ( 'cash.opening_balance' ), ( 'cash.statement_balance' ), ( 'cash.valuation' ), ( 'cash.cash_in' ),
+  ( 'cash.cash_out' ), ( 'cash.purchase' ), ( 'cash.sale' ), ( 'cash.exchange' ), ( 'cash.deposit' ),
+  ( 'cash.withdrawal' ), ( 'cash.transfer_in' ), ( 'cash.transfer_out' ), ( 'cash.fee' ),
+
+  ( 'brokerage_account.opening_balance' ), ( 'brokerage_account.statement_balance' ),
+  ( 'brokerage_account.valuation' ), ( 'brokerage_account.deposit' ), ( 'brokerage_account.withdrawal' ),
+  ( 'brokerage_account.buy' ), ( 'brokerage_account.sell' ), ( 'brokerage_account.dividend' ),
+  ( 'brokerage_account.interest' ), ( 'brokerage_account.distribution' ), ( 'brokerage_account.fee' ),
+  ( 'brokerage_account.tax' ), ( 'brokerage_account.refund' ), ( 'brokerage_account.corporate_action' ),
+  ( 'brokerage_account.transfer_in' ), ( 'brokerage_account.transfer_out' ),
+
+  ( 'stock.opening_balance' ), ( 'stock.statement_balance' ), ( 'stock.valuation' ), ( 'stock.buy' ),
+  ( 'stock.sell' ), ( 'stock.dividend' ), ( 'stock.distribution' ), ( 'stock.reinvestment' ),
+  ( 'stock.split' ), ( 'stock.subscription' ), ( 'stock.redemption' ), ( 'stock.fee' ), ( 'stock.tax' ),
+  ( 'stock.transfer_in' ), ( 'stock.transfer_out' ),
+
+  ( 'etf.opening_balance' ), ( 'etf.statement_balance' ), ( 'etf.valuation' ), ( 'etf.buy' ),
+  ( 'etf.sell' ), ( 'etf.dividend' ), ( 'etf.distribution' ), ( 'etf.reinvestment' ), ( 'etf.split' ),
+  ( 'etf.subscription' ), ( 'etf.redemption' ), ( 'etf.fee' ), ( 'etf.tax' ), ( 'etf.transfer_in' ),
+  ( 'etf.transfer_out' ),
+
+  ( 'investment_fund.opening_balance' ), ( 'investment_fund.statement_balance' ),
+  ( 'investment_fund.valuation' ), ( 'investment_fund.buy' ), ( 'investment_fund.sell' ),
+  ( 'investment_fund.distribution' ), ( 'investment_fund.subscription' ), ( 'investment_fund.redemption' ),
+  ( 'investment_fund.fee' ), ( 'investment_fund.tax' ), ( 'investment_fund.transfer_in' ),
+  ( 'investment_fund.transfer_out' ),
+
+  ( 'bond.opening_balance' ), ( 'bond.statement_balance' ), ( 'bond.valuation' ), ( 'bond.buy' ),
+  ( 'bond.sell' ), ( 'bond.coupon' ), ( 'bond.interest' ), ( 'bond.redemption' ), ( 'bond.fee' ),
+  ( 'bond.tax' ), ( 'bond.transfer_in' ), ( 'bond.transfer_out' ),
+
+  ( 'real_estate.opening_balance' ), ( 'real_estate.statement_balance' ), ( 'real_estate.valuation' ),
+  ( 'real_estate.purchase' ), ( 'real_estate.sale' ), ( 'real_estate.rent_income' ),
+  ( 'real_estate.operating_cost' ), ( 'real_estate.maintenance' ), ( 'real_estate.renovation' ),
+  ( 'real_estate.property_tax' ), ( 'real_estate.insurance' ), ( 'real_estate.transfer_in' ),
+  ( 'real_estate.transfer_out' ), ( 'real_estate.fee' ),
+
+  ( 'land.opening_balance' ), ( 'land.statement_balance' ), ( 'land.valuation' ), ( 'land.purchase' ),
+  ( 'land.sale' ), ( 'land.rent_income' ), ( 'land.operating_cost' ), ( 'land.maintenance' ),
+  ( 'land.renovation' ), ( 'land.property_tax' ), ( 'land.insurance' ), ( 'land.transfer_in' ),
+  ( 'land.transfer_out' ), ( 'land.fee' ),
+
+  ( 'vehicle.opening_balance' ), ( 'vehicle.statement_balance' ), ( 'vehicle.valuation' ),
+  ( 'vehicle.purchase' ), ( 'vehicle.sale' ), ( 'vehicle.fuel' ), ( 'vehicle.maintenance' ),
+  ( 'vehicle.repair' ), ( 'vehicle.insurance' ), ( 'vehicle.vehicle_tax' ), ( 'vehicle.registration' ),
+  ( 'vehicle.accessory' ), ( 'vehicle.transfer_in' ), ( 'vehicle.transfer_out' ), ( 'vehicle.fee' ),
+
+  ( 'collectible.opening_balance' ), ( 'collectible.statement_balance' ), ( 'collectible.valuation' ),
+  ( 'collectible.acquisition' ), ( 'collectible.sale' ), ( 'collectible.gift_in' ), ( 'collectible.gift_out' ),
+  ( 'collectible.auction_fee' ), ( 'collectible.appraisal' ), ( 'collectible.restoration' ),
+  ( 'collectible.storage' ), ( 'collectible.insurance' ), ( 'collectible.transfer_in' ),
+  ( 'collectible.transfer_out' ), ( 'collectible.fee' ),
+
+  ( 'precious_metal.opening_balance' ), ( 'precious_metal.statement_balance' ), ( 'precious_metal.valuation' ),
+  ( 'precious_metal.acquisition' ), ( 'precious_metal.sale' ), ( 'precious_metal.gift_in' ),
+  ( 'precious_metal.gift_out' ), ( 'precious_metal.auction_fee' ), ( 'precious_metal.appraisal' ),
+  ( 'precious_metal.restoration' ), ( 'precious_metal.storage' ), ( 'precious_metal.insurance' ),
+  ( 'precious_metal.transfer_in' ), ( 'precious_metal.transfer_out' ), ( 'precious_metal.fee' ),
+
+  ( 'intellectual_property.opening_balance' ), ( 'intellectual_property.statement_balance' ),
+  ( 'intellectual_property.valuation' ), ( 'intellectual_property.acquisition' ),
+  ( 'intellectual_property.sale' ), ( 'intellectual_property.license_income' ),
+  ( 'intellectual_property.royalty' ), ( 'intellectual_property.subscription' ),
+  ( 'intellectual_property.maintenance' ), ( 'intellectual_property.development_cost' ),
+  ( 'intellectual_property.transfer_in' ), ( 'intellectual_property.transfer_out' ),
+  ( 'intellectual_property.fee' ),
+
+  ( 'domain.opening_balance' ), ( 'domain.statement_balance' ), ( 'domain.valuation' ),
+  ( 'domain.acquisition' ), ( 'domain.sale' ), ( 'domain.license_income' ), ( 'domain.royalty' ),
+  ( 'domain.subscription' ), ( 'domain.maintenance' ), ( 'domain.development_cost' ),
+  ( 'domain.transfer_in' ), ( 'domain.transfer_out' ), ( 'domain.fee' ),
+
+  ( 'private_loan.opening_balance' ), ( 'private_loan.statement_balance' ), ( 'private_loan.valuation' ),
+  ( 'private_loan.loan_disbursement' ), ( 'private_loan.repayment' ), ( 'private_loan.interest_received' ),
+  ( 'private_loan.interest_paid' ), ( 'private_loan.default' ), ( 'private_loan.write_off' ),
+  ( 'private_loan.debt_adjustment' ),
+
+  ( 'receivable.opening_balance' ), ( 'receivable.statement_balance' ), ( 'receivable.valuation' ),
+  ( 'receivable.loan_disbursement' ), ( 'receivable.repayment' ), ( 'receivable.interest_received' ),
+  ( 'receivable.interest_paid' ), ( 'receivable.default' ), ( 'receivable.write_off' ),
+  ( 'receivable.debt_adjustment' ),
+
+  ( 'business_equity.opening_balance' ), ( 'business_equity.statement_balance' ),
+  ( 'business_equity.valuation' ), ( 'business_equity.investment' ), ( 'business_equity.distribution' ),
+  ( 'business_equity.capital_call' ), ( 'business_equity.dividend' ), ( 'business_equity.sale' ),
+  ( 'business_equity.fee' ), ( 'business_equity.transfer_in' ), ( 'business_equity.transfer_out' ),
+
+  ( 'private_equity.opening_balance' ), ( 'private_equity.statement_balance' ), ( 'private_equity.valuation' ),
+  ( 'private_equity.investment' ), ( 'private_equity.distribution' ), ( 'private_equity.capital_call' ),
+  ( 'private_equity.dividend' ), ( 'private_equity.sale' ), ( 'private_equity.fee' ),
+  ( 'private_equity.transfer_in' ), ( 'private_equity.transfer_out' ),
+
+  ( 'equipment.opening_balance' ), ( 'equipment.statement_balance' ), ( 'equipment.valuation' ),
+  ( 'equipment.purchase' ), ( 'equipment.sale' ), ( 'equipment.maintenance' ), ( 'equipment.repair' ),
+  ( 'equipment.insurance' ), ( 'equipment.income' ), ( 'equipment.expense' ), ( 'equipment.transfer_in' ),
+  ( 'equipment.transfer_out' ), ( 'equipment.fee' ),
+
+  ( 'other.opening_balance' ), ( 'other.statement_balance' ), ( 'other.valuation' ),
+  ( 'other.purchase' ), ( 'other.sale' ), ( 'other.maintenance' ), ( 'other.repair' ),
+  ( 'other.insurance' ), ( 'other.income' ), ( 'other.expense' ), ( 'other.transfer_in' ),
+  ( 'other.transfer_out' ), ( 'other.fee' );
+
+
+-- ============================================================
 -- Asset conversion factors
 -- ============================================================
 
@@ -153,31 +272,31 @@ CREATE TABLE transfers (
   effective_date TEXT NOT NULL,
   booking_date TEXT,
   value_date TEXT,
-  source_amount_minor INTEGER NOT NULL CHECK ( source_amount_minor > 0 ),
-  source_amount_min_minor INTEGER CHECK ( source_amount_min_minor IS NULL OR source_amount_min_minor > 0 ),
-  source_amount_max_minor INTEGER CHECK ( source_amount_max_minor IS NULL OR source_amount_max_minor > 0 ),
-  target_amount_minor INTEGER NOT NULL CHECK ( target_amount_minor > 0 ),
-  target_amount_min_minor INTEGER CHECK ( target_amount_min_minor IS NULL OR target_amount_min_minor > 0 ),
-  target_amount_max_minor INTEGER CHECK ( target_amount_max_minor IS NULL OR target_amount_max_minor > 0 ),
+  source_amount INTEGER NOT NULL CHECK ( source_amount > 0 ),
+  source_amount_min INTEGER CHECK ( source_amount_min IS NULL OR source_amount_min > 0 ),
+  source_amount_max INTEGER CHECK ( source_amount_max IS NULL OR source_amount_max > 0 ),
+  target_amount INTEGER NOT NULL CHECK ( target_amount > 0 ),
+  target_amount_min INTEGER CHECK ( target_amount_min IS NULL OR target_amount_min > 0 ),
+  target_amount_max INTEGER CHECK ( target_amount_max IS NULL OR target_amount_max > 0 ),
   fee_asset_id TEXT REFERENCES assets ( id ) ON DELETE CASCADE,
-  fee_amount_minor INTEGER NOT NULL DEFAULT 0 CHECK ( fee_amount_minor >= 0 ),
-  fee_amount_min_minor INTEGER CHECK ( fee_amount_min_minor IS NULL OR fee_amount_min_minor >= 0 ),
-  fee_amount_max_minor INTEGER CHECK ( fee_amount_max_minor IS NULL OR fee_amount_max_minor >= 0 ),
+  fee_amount INTEGER NOT NULL DEFAULT 0 CHECK ( fee_amount >= 0 ),
+  fee_amount_min INTEGER CHECK ( fee_amount_min IS NULL OR fee_amount_min >= 0 ),
+  fee_amount_max INTEGER CHECK ( fee_amount_max IS NULL OR fee_amount_max >= 0 ),
   note TEXT,
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
   updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
   CHECK ( source_asset_id <> target_asset_id ),
-  CHECK ( source_amount_min_minor IS NULL OR source_amount_min_minor <= source_amount_minor ),
-  CHECK ( source_amount_max_minor IS NULL OR source_amount_max_minor >= source_amount_minor ),
-  CHECK ( target_amount_min_minor IS NULL OR target_amount_min_minor <= target_amount_minor ),
-  CHECK ( target_amount_max_minor IS NULL OR target_amount_max_minor >= target_amount_minor ),
-  CHECK ( fee_amount_min_minor IS NULL OR fee_amount_min_minor <= fee_amount_minor ),
-  CHECK ( fee_amount_max_minor IS NULL OR fee_amount_max_minor >= fee_amount_minor ),
+  CHECK ( source_amount_min IS NULL OR source_amount_min <= source_amount ),
+  CHECK ( source_amount_max IS NULL OR source_amount_max >= source_amount ),
+  CHECK ( target_amount_min IS NULL OR target_amount_min <= target_amount ),
+  CHECK ( target_amount_max IS NULL OR target_amount_max >= target_amount ),
+  CHECK ( fee_amount_min IS NULL OR fee_amount_min <= fee_amount ),
+  CHECK ( fee_amount_max IS NULL OR fee_amount_max >= fee_amount ),
   CHECK (
-    ( fee_amount_minor = 0 AND fee_asset_id IS NULL ) OR
-    ( fee_amount_minor > 0 AND fee_asset_id IN ( source_asset_id, target_asset_id ) )
+    ( fee_amount = 0 AND fee_asset_id IS NULL ) OR
+    ( fee_amount > 0 AND fee_asset_id IN ( source_asset_id, target_asset_id ) )
   )
 );
 
@@ -195,49 +314,45 @@ CREATE TABLE asset_entries (
   asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
   transfer_id TEXT REFERENCES transfers ( id ) ON DELETE CASCADE,
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
-  entry_type TEXT NOT NULL CHECK ( entry_type IN ( 'absolute', 'relative' ) ),
-  amount_minor INTEGER NOT NULL,
-  amount_min_minor INTEGER,
-  amount_max_minor INTEGER,
+  mode TEXT NOT NULL CHECK ( mode IN ( 'absolute', 'relative' ) ),
+  type TEXT NOT NULL REFERENCES entry_types ( id ),
+  amount INTEGER NOT NULL,
+  amount_min INTEGER,
+  amount_max INTEGER,
   effective_date TEXT NOT NULL,
   booking_date TEXT,
   value_date TEXT,
   sequence INTEGER NOT NULL DEFAULT 0 CHECK ( sequence >= 0 ),
-  entry_kind TEXT NOT NULL CHECK ( entry_kind IN (
-    'opening_balance', 'valuation', 'statement_balance',
-    'deposit', 'withdrawal', 'transfer_in', 'transfer_out',
-    'purchase', 'sale', 'income', 'expense', 'interest', 'dividend',
-    'fee', 'tax', 'repayment', 'loan_disbursement', 'loan_repayment',
-    'contribution', 'distribution', 'adjustment', 'correction',
-    'revaluation', 'other'
-  ) ),
   quality TEXT NOT NULL CHECK ( quality IN ( 'documented', 'estimated', 'speculative' ) ),
   note TEXT,
   source TEXT,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
   updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
-  CHECK ( amount_min_minor IS NULL OR amount_min_minor <= amount_minor ),
-  CHECK ( amount_max_minor IS NULL OR amount_max_minor >= amount_minor ),
+  CHECK ( amount_min IS NULL OR amount_min <= amount ),
+  CHECK ( amount_max IS NULL OR amount_max >= amount ),
   CHECK (
-    ( entry_type = 'absolute' AND amount_minor >= 0 AND sequence = 0
-      AND entry_kind IN ( 'opening_balance', 'valuation', 'statement_balance' ) ) OR
-    ( entry_type = 'relative' AND amount_minor <> 0
-      AND entry_kind NOT IN ( 'opening_balance', 'valuation', 'statement_balance' ) )
+    ( mode = 'absolute' AND amount >= 0 AND sequence = 0 ) OR
+    ( mode = 'relative' AND amount <> 0 )
   ),
   CHECK (
-    ( transfer_id IS NULL AND entry_kind NOT IN ( 'transfer_in', 'transfer_out' ) ) OR
-    ( transfer_id IS NOT NULL AND entry_kind IN ( 'transfer_in', 'transfer_out', 'fee' ) )
+    ( transfer_id IS NULL AND type NOT LIKE '%.transfer_in'
+      AND type NOT LIKE '%.transfer_out' ) OR
+    ( transfer_id IS NOT NULL AND (
+      type LIKE '%.transfer_in' OR
+      type LIKE '%.transfer_out' OR
+      type LIKE '%.fee'
+    ) )
   ),
 
   UNIQUE ( asset_id, effective_date, sequence )
 );
 
-CREATE UNIQUE INDEX asset_entries_absolute_date_idx ON asset_entries ( asset_id, effective_date ) WHERE entry_type = 'absolute';
+CREATE UNIQUE INDEX asset_entries_absolute_date_idx ON asset_entries ( asset_id, effective_date ) WHERE mode = 'absolute';
 CREATE INDEX asset_entries_asset_date_idx ON asset_entries ( asset_id, effective_date, sequence );
 CREATE INDEX asset_entries_date_idx ON asset_entries ( effective_date );
 CREATE INDEX asset_entries_transfer_idx ON asset_entries ( transfer_id );
-CREATE INDEX asset_entries_kind_idx ON asset_entries ( entry_kind );
+CREATE INDEX asset_entries_type_idx ON asset_entries ( type );
 CREATE INDEX asset_entries_quality_idx ON asset_entries ( quality );
 
 
@@ -255,24 +370,51 @@ WHEN EXISTS (
   FROM asset_entries
   WHERE asset_id = NEW.asset_id
     AND effective_date = NEW.effective_date
-    AND entry_type <> NEW.entry_type
+    AND mode <> NEW.mode
 )
 BEGIN
   SELECT RAISE( ABORT, 'Absolute and relative entries cannot coexist on the same asset and date.' );
 END;
 
 CREATE TRIGGER asset_entries_date_type_update
-BEFORE UPDATE OF asset_id, effective_date, entry_type ON asset_entries
+BEFORE UPDATE OF asset_id, effective_date, mode ON asset_entries
 WHEN EXISTS (
   SELECT 1
   FROM asset_entries
   WHERE asset_id = NEW.asset_id
     AND effective_date = NEW.effective_date
-    AND entry_type <> NEW.entry_type
+    AND mode <> NEW.mode
     AND id <> NEW.id
 )
 BEGIN
   SELECT RAISE( ABORT, 'Absolute and relative entries cannot coexist on the same asset and date.' );
+END;
+
+
+-- Entry types must belong to the asset's class.
+
+CREATE TRIGGER asset_entries_class_insert
+BEFORE INSERT ON asset_entries
+WHEN NOT EXISTS (
+  SELECT 1
+  FROM assets
+  WHERE id = NEW.asset_id
+    AND NEW.type LIKE class || '.%'
+)
+BEGIN
+  SELECT RAISE( ABORT, 'Entry type does not belong to the asset class.' );
+END;
+
+CREATE TRIGGER asset_entries_class_update
+BEFORE UPDATE OF asset_id, type ON asset_entries
+WHEN NOT EXISTS (
+  SELECT 1
+  FROM assets
+  WHERE id = NEW.asset_id
+    AND NEW.type LIKE class || '.%'
+)
+BEGIN
+  SELECT RAISE( ABORT, 'Entry type does not belong to the asset class.' );
 END;
 
 
@@ -284,22 +426,23 @@ WHEN NEW.transfer_id IS NOT NULL
   AND NOT EXISTS (
     SELECT 1
     FROM transfers t
+    JOIN assets a ON a.id = NEW.asset_id
     WHERE t.id = NEW.transfer_id
-      AND NEW.entry_type = 'relative'
+      AND NEW.mode = 'relative'
       AND NEW.effective_date = t.effective_date
       AND ( (
         NEW.asset_id = t.source_asset_id
-        AND NEW.entry_kind = 'transfer_out'
-        AND NEW.amount_minor = -t.source_amount_minor
+        AND NEW.type = a.class || '.transfer_out'
+        AND NEW.amount = -t.source_amount
       ) OR (
         NEW.asset_id = t.target_asset_id
-        AND NEW.entry_kind = 'transfer_in'
-        AND NEW.amount_minor = t.target_amount_minor
+        AND NEW.type = a.class || '.transfer_in'
+        AND NEW.amount = t.target_amount
       ) OR (
         NEW.asset_id = t.fee_asset_id
-        AND NEW.entry_kind = 'fee'
-        AND NEW.amount_minor = -t.fee_amount_minor
-        AND t.fee_amount_minor > 0
+        AND NEW.type = a.class || '.fee'
+        AND NEW.amount = -t.fee_amount
+        AND t.fee_amount > 0
       ) )
   )
 BEGIN
@@ -307,27 +450,28 @@ BEGIN
 END;
 
 CREATE TRIGGER asset_entries_transfer_update
-BEFORE UPDATE OF asset_id, transfer_id, entry_type, effective_date, entry_kind, amount_minor ON asset_entries
+BEFORE UPDATE OF asset_id, transfer_id, mode, effective_date, type, amount ON asset_entries
 WHEN NEW.transfer_id IS NOT NULL
   AND NOT EXISTS (
     SELECT 1
     FROM transfers t
+    JOIN assets a ON a.id = NEW.asset_id
     WHERE t.id = NEW.transfer_id
-      AND NEW.entry_type = 'relative'
+      AND NEW.mode = 'relative'
       AND NEW.effective_date = t.effective_date
       AND ( (
         NEW.asset_id = t.source_asset_id
-        AND NEW.entry_kind = 'transfer_out'
-        AND NEW.amount_minor = -t.source_amount_minor
+        AND NEW.type = a.class || '.transfer_out'
+        AND NEW.amount = -t.source_amount
       ) OR (
         NEW.asset_id = t.target_asset_id
-        AND NEW.entry_kind = 'transfer_in'
-        AND NEW.amount_minor = t.target_amount_minor
+        AND NEW.type = a.class || '.transfer_in'
+        AND NEW.amount = t.target_amount
       ) OR (
         NEW.asset_id = t.fee_asset_id
-        AND NEW.entry_kind = 'fee'
-        AND NEW.amount_minor = -t.fee_amount_minor
-        AND t.fee_amount_minor > 0
+        AND NEW.type = a.class || '.fee'
+        AND NEW.amount = -t.fee_amount
+        AND t.fee_amount > 0
       ) )
   )
 BEGIN
@@ -400,12 +544,12 @@ CREATE TABLE asset_value_points (
   effective_date TEXT NOT NULL,
   class TEXT NOT NULL,
   kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
-  native_value_minor INTEGER NOT NULL,
-  native_value_min_minor INTEGER,
-  native_value_max_minor INTEGER,
-  portfolio_value_minor INTEGER,
-  portfolio_value_min_minor INTEGER,
-  portfolio_value_max_minor INTEGER,
+  native_value INTEGER,
+  native_value_min INTEGER,
+  native_value_max INTEGER,
+  portfolio_value INTEGER,
+  portfolio_value_min INTEGER,
+  portfolio_value_max INTEGER,
   quality TEXT CHECK ( quality IS NULL OR quality IN ( 'documented', 'estimated', 'speculative' ) ),
   conversion_factor_id TEXT REFERENCES asset_conversion_factors ( id ) ON DELETE SET NULL,
   last_anchor_entry_id TEXT REFERENCES asset_entries ( id ) ON DELETE SET NULL,
@@ -415,10 +559,10 @@ CREATE TABLE asset_value_points (
 
   PRIMARY KEY ( asset_id, effective_date ),
 
-  CHECK ( native_value_min_minor IS NULL OR native_value_min_minor <= native_value_minor ),
-  CHECK ( native_value_max_minor IS NULL OR native_value_max_minor >= native_value_minor ),
-  CHECK ( portfolio_value_min_minor IS NULL OR portfolio_value_minor IS NOT NULL AND portfolio_value_min_minor <= portfolio_value_minor ),
-  CHECK ( portfolio_value_max_minor IS NULL OR portfolio_value_minor IS NOT NULL AND portfolio_value_max_minor >= portfolio_value_minor )
+  CHECK ( native_value_min IS NULL OR native_value IS NOT NULL AND native_value_min <= native_value ),
+  CHECK ( native_value_max IS NULL OR native_value IS NOT NULL AND native_value_max >= native_value ),
+  CHECK ( portfolio_value_min IS NULL OR portfolio_value IS NOT NULL AND portfolio_value_min <= portfolio_value ),
+  CHECK ( portfolio_value_max IS NULL OR portfolio_value IS NOT NULL AND portfolio_value_max >= portfolio_value )
 );
 
 CREATE INDEX asset_value_points_portfolio_date_idx ON asset_value_points ( portfolio_id, effective_date );
@@ -435,9 +579,9 @@ CREATE TABLE asset_class_value_points (
   class TEXT NOT NULL,
   kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
   effective_date TEXT NOT NULL,
-  value_minor INTEGER NOT NULL,
-  value_min_minor INTEGER,
-  value_max_minor INTEGER,
+  value INTEGER NOT NULL,
+  value_min INTEGER,
+  value_max INTEGER,
   quality TEXT CHECK ( quality IS NULL OR quality IN ( 'documented', 'estimated', 'speculative' ) ),
   unconverted_assets INTEGER NOT NULL DEFAULT 0 CHECK ( unconverted_assets >= 0 ),
   calculation_version INTEGER NOT NULL DEFAULT 1 CHECK ( calculation_version > 0 ),
@@ -445,8 +589,8 @@ CREATE TABLE asset_class_value_points (
 
   PRIMARY KEY ( portfolio_id, class, kind, effective_date ),
 
-  CHECK ( value_min_minor IS NULL OR value_min_minor <= value_minor ),
-  CHECK ( value_max_minor IS NULL OR value_max_minor >= value_minor )
+  CHECK ( value_min IS NULL OR value_min <= value ),
+  CHECK ( value_max IS NULL OR value_max >= value )
 );
 
 CREATE INDEX asset_class_value_points_date_idx ON asset_class_value_points ( portfolio_id, effective_date );
@@ -460,15 +604,15 @@ CREATE INDEX asset_class_value_points_filter_idx ON asset_class_value_points ( p
 CREATE TABLE portfolio_value_points (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
   effective_date TEXT NOT NULL,
-  gross_assets_minor INTEGER NOT NULL CHECK ( gross_assets_minor >= 0 ),
-  gross_assets_min_minor INTEGER,
-  gross_assets_max_minor INTEGER,
-  liabilities_minor INTEGER NOT NULL CHECK ( liabilities_minor >= 0 ),
-  liabilities_min_minor INTEGER,
-  liabilities_max_minor INTEGER,
-  net_worth_minor INTEGER NOT NULL,
-  net_worth_min_minor INTEGER,
-  net_worth_max_minor INTEGER,
+  gross_assets INTEGER NOT NULL CHECK ( gross_assets >= 0 ),
+  gross_assets_min INTEGER,
+  gross_assets_max INTEGER,
+  liabilities INTEGER NOT NULL CHECK ( liabilities >= 0 ),
+  liabilities_min INTEGER,
+  liabilities_max INTEGER,
+  net_worth INTEGER NOT NULL,
+  net_worth_min INTEGER,
+  net_worth_max INTEGER,
   quality TEXT CHECK ( quality IS NULL OR quality IN ( 'documented', 'estimated', 'speculative' ) ),
   unconverted_assets INTEGER NOT NULL DEFAULT 0 CHECK ( unconverted_assets >= 0 ),
   is_complete INTEGER NOT NULL DEFAULT 1 CHECK ( is_complete IN ( 0, 1 ) ),
@@ -477,13 +621,13 @@ CREATE TABLE portfolio_value_points (
 
   PRIMARY KEY ( portfolio_id, effective_date ),
 
-  CHECK ( net_worth_minor = gross_assets_minor - liabilities_minor ),
-  CHECK ( gross_assets_min_minor IS NULL OR gross_assets_min_minor >= 0 AND gross_assets_min_minor <= gross_assets_minor ),
-  CHECK ( gross_assets_max_minor IS NULL OR gross_assets_max_minor >= gross_assets_minor ),
-  CHECK ( liabilities_min_minor IS NULL OR liabilities_min_minor >= 0 AND liabilities_min_minor <= liabilities_minor ),
-  CHECK ( liabilities_max_minor IS NULL OR liabilities_max_minor >= liabilities_minor ),
-  CHECK ( net_worth_min_minor IS NULL OR net_worth_min_minor <= net_worth_minor ),
-  CHECK ( net_worth_max_minor IS NULL OR net_worth_max_minor >= net_worth_minor ),
+  CHECK ( net_worth = gross_assets - liabilities ),
+  CHECK ( gross_assets_min IS NULL OR gross_assets_min >= 0 AND gross_assets_min <= gross_assets ),
+  CHECK ( gross_assets_max IS NULL OR gross_assets_max >= gross_assets ),
+  CHECK ( liabilities_min IS NULL OR liabilities_min >= 0 AND liabilities_min <= liabilities ),
+  CHECK ( liabilities_max IS NULL OR liabilities_max >= liabilities ),
+  CHECK ( net_worth_min IS NULL OR net_worth_min <= net_worth ),
+  CHECK ( net_worth_max IS NULL OR net_worth_max >= net_worth ),
   CHECK (
     ( is_complete = 1 AND unconverted_assets = 0 ) OR
     ( is_complete = 0 AND unconverted_assets > 0 )
@@ -503,15 +647,15 @@ CREATE TABLE asset_year_points (
   year INTEGER NOT NULL CHECK ( year BETWEEN 1 AND 9999 ),
   class TEXT NOT NULL,
   kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
-  opening_value_minor INTEGER NOT NULL,
-  opening_value_min_minor INTEGER,
-  opening_value_max_minor INTEGER,
-  closing_value_minor INTEGER NOT NULL,
-  closing_value_min_minor INTEGER,
-  closing_value_max_minor INTEGER,
-  change_minor INTEGER NOT NULL,
-  change_min_minor INTEGER,
-  change_max_minor INTEGER,
+  opening_value INTEGER NOT NULL,
+  opening_value_min INTEGER,
+  opening_value_max INTEGER,
+  closing_value INTEGER NOT NULL,
+  closing_value_min INTEGER,
+  closing_value_max INTEGER,
+  change INTEGER NOT NULL,
+  change_min INTEGER,
+  change_max INTEGER,
   change_basis_points INTEGER,
   share_basis_points INTEGER,
   share_min_basis_points INTEGER,
@@ -522,13 +666,13 @@ CREATE TABLE asset_year_points (
 
   PRIMARY KEY ( asset_id, year ),
 
-  CHECK ( change_minor = closing_value_minor - opening_value_minor ),
-  CHECK ( opening_value_min_minor IS NULL OR opening_value_min_minor <= opening_value_minor ),
-  CHECK ( opening_value_max_minor IS NULL OR opening_value_max_minor >= opening_value_minor ),
-  CHECK ( closing_value_min_minor IS NULL OR closing_value_min_minor <= closing_value_minor ),
-  CHECK ( closing_value_max_minor IS NULL OR closing_value_max_minor >= closing_value_minor ),
-  CHECK ( change_min_minor IS NULL OR change_min_minor <= change_minor ),
-  CHECK ( change_max_minor IS NULL OR change_max_minor >= change_minor ),
+  CHECK ( change = closing_value - opening_value ),
+  CHECK ( opening_value_min IS NULL OR opening_value_min <= opening_value ),
+  CHECK ( opening_value_max IS NULL OR opening_value_max >= opening_value ),
+  CHECK ( closing_value_min IS NULL OR closing_value_min <= closing_value ),
+  CHECK ( closing_value_max IS NULL OR closing_value_max >= closing_value ),
+  CHECK ( change_min IS NULL OR change_min <= change ),
+  CHECK ( change_max IS NULL OR change_max >= change ),
   CHECK ( share_min_basis_points IS NULL OR share_min_basis_points <= share_basis_points ),
   CHECK ( share_max_basis_points IS NULL OR share_max_basis_points >= share_basis_points )
 );
@@ -546,15 +690,15 @@ CREATE TABLE asset_class_year_points (
   class TEXT NOT NULL,
   kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
   year INTEGER NOT NULL CHECK ( year BETWEEN 1 AND 9999 ),
-  opening_value_minor INTEGER NOT NULL,
-  opening_value_min_minor INTEGER,
-  opening_value_max_minor INTEGER,
-  closing_value_minor INTEGER NOT NULL,
-  closing_value_min_minor INTEGER,
-  closing_value_max_minor INTEGER,
-  change_minor INTEGER NOT NULL,
-  change_min_minor INTEGER,
-  change_max_minor INTEGER,
+  opening_value INTEGER NOT NULL,
+  opening_value_min INTEGER,
+  opening_value_max INTEGER,
+  closing_value INTEGER NOT NULL,
+  closing_value_min INTEGER,
+  closing_value_max INTEGER,
+  change INTEGER NOT NULL,
+  change_min INTEGER,
+  change_max INTEGER,
   change_basis_points INTEGER,
   share_basis_points INTEGER,
   share_min_basis_points INTEGER,
@@ -566,13 +710,13 @@ CREATE TABLE asset_class_year_points (
 
   PRIMARY KEY ( portfolio_id, class, kind, year ),
 
-  CHECK ( change_minor = closing_value_minor - opening_value_minor ),
-  CHECK ( opening_value_min_minor IS NULL OR opening_value_min_minor <= opening_value_minor ),
-  CHECK ( opening_value_max_minor IS NULL OR opening_value_max_minor >= opening_value_minor ),
-  CHECK ( closing_value_min_minor IS NULL OR closing_value_min_minor <= closing_value_minor ),
-  CHECK ( closing_value_max_minor IS NULL OR closing_value_max_minor >= closing_value_minor ),
-  CHECK ( change_min_minor IS NULL OR change_min_minor <= change_minor ),
-  CHECK ( change_max_minor IS NULL OR change_max_minor >= change_minor ),
+  CHECK ( change = closing_value - opening_value ),
+  CHECK ( opening_value_min IS NULL OR opening_value_min <= opening_value ),
+  CHECK ( opening_value_max IS NULL OR opening_value_max >= opening_value ),
+  CHECK ( closing_value_min IS NULL OR closing_value_min <= closing_value ),
+  CHECK ( closing_value_max IS NULL OR closing_value_max >= closing_value ),
+  CHECK ( change_min IS NULL OR change_min <= change ),
+  CHECK ( change_max IS NULL OR change_max >= change ),
   CHECK ( share_min_basis_points IS NULL OR share_min_basis_points <= share_basis_points ),
   CHECK ( share_max_basis_points IS NULL OR share_max_basis_points >= share_basis_points )
 );
@@ -588,27 +732,27 @@ CREATE INDEX asset_class_year_points_filter_idx ON asset_class_year_points ( por
 CREATE TABLE portfolio_year_points (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
   year INTEGER NOT NULL CHECK ( year BETWEEN 1 AND 9999 ),
-  opening_gross_assets_minor INTEGER NOT NULL CHECK ( opening_gross_assets_minor >= 0 ),
-  opening_gross_assets_min_minor INTEGER,
-  opening_gross_assets_max_minor INTEGER,
-  closing_gross_assets_minor INTEGER NOT NULL CHECK ( closing_gross_assets_minor >= 0 ),
-  closing_gross_assets_min_minor INTEGER,
-  closing_gross_assets_max_minor INTEGER,
-  opening_liabilities_minor INTEGER NOT NULL CHECK ( opening_liabilities_minor >= 0 ),
-  opening_liabilities_min_minor INTEGER,
-  opening_liabilities_max_minor INTEGER,
-  closing_liabilities_minor INTEGER NOT NULL CHECK ( closing_liabilities_minor >= 0 ),
-  closing_liabilities_min_minor INTEGER,
-  closing_liabilities_max_minor INTEGER,
-  opening_net_worth_minor INTEGER NOT NULL,
-  opening_net_worth_min_minor INTEGER,
-  opening_net_worth_max_minor INTEGER,
-  closing_net_worth_minor INTEGER NOT NULL,
-  closing_net_worth_min_minor INTEGER,
-  closing_net_worth_max_minor INTEGER,
-  change_minor INTEGER NOT NULL,
-  change_min_minor INTEGER,
-  change_max_minor INTEGER,
+  opening_gross_assets INTEGER NOT NULL CHECK ( opening_gross_assets >= 0 ),
+  opening_gross_assets_min INTEGER,
+  opening_gross_assets_max INTEGER,
+  closing_gross_assets INTEGER NOT NULL CHECK ( closing_gross_assets >= 0 ),
+  closing_gross_assets_min INTEGER,
+  closing_gross_assets_max INTEGER,
+  opening_liabilities INTEGER NOT NULL CHECK ( opening_liabilities >= 0 ),
+  opening_liabilities_min INTEGER,
+  opening_liabilities_max INTEGER,
+  closing_liabilities INTEGER NOT NULL CHECK ( closing_liabilities >= 0 ),
+  closing_liabilities_min INTEGER,
+  closing_liabilities_max INTEGER,
+  opening_net_worth INTEGER NOT NULL,
+  opening_net_worth_min INTEGER,
+  opening_net_worth_max INTEGER,
+  closing_net_worth INTEGER NOT NULL,
+  closing_net_worth_min INTEGER,
+  closing_net_worth_max INTEGER,
+  change INTEGER NOT NULL,
+  change_min INTEGER,
+  change_max INTEGER,
   change_basis_points INTEGER,
   quality TEXT CHECK ( quality IS NULL OR quality IN ( 'documented', 'estimated', 'speculative' ) ),
   unconverted_assets INTEGER NOT NULL DEFAULT 0 CHECK ( unconverted_assets >= 0 ),
@@ -618,23 +762,23 @@ CREATE TABLE portfolio_year_points (
 
   PRIMARY KEY ( portfolio_id, year ),
 
-  CHECK ( opening_net_worth_minor = opening_gross_assets_minor - opening_liabilities_minor ),
-  CHECK ( closing_net_worth_minor = closing_gross_assets_minor - closing_liabilities_minor ),
-  CHECK ( change_minor = closing_net_worth_minor - opening_net_worth_minor ),
-  CHECK ( opening_gross_assets_min_minor IS NULL OR opening_gross_assets_min_minor <= opening_gross_assets_minor ),
-  CHECK ( opening_gross_assets_max_minor IS NULL OR opening_gross_assets_max_minor >= opening_gross_assets_minor ),
-  CHECK ( closing_gross_assets_min_minor IS NULL OR closing_gross_assets_min_minor <= closing_gross_assets_minor ),
-  CHECK ( closing_gross_assets_max_minor IS NULL OR closing_gross_assets_max_minor >= closing_gross_assets_minor ),
-  CHECK ( opening_liabilities_min_minor IS NULL OR opening_liabilities_min_minor <= opening_liabilities_minor ),
-  CHECK ( opening_liabilities_max_minor IS NULL OR opening_liabilities_max_minor >= opening_liabilities_minor ),
-  CHECK ( closing_liabilities_min_minor IS NULL OR closing_liabilities_min_minor <= closing_liabilities_minor ),
-  CHECK ( closing_liabilities_max_minor IS NULL OR closing_liabilities_max_minor >= closing_liabilities_minor ),
-  CHECK ( opening_net_worth_min_minor IS NULL OR opening_net_worth_min_minor <= opening_net_worth_minor ),
-  CHECK ( opening_net_worth_max_minor IS NULL OR opening_net_worth_max_minor >= opening_net_worth_minor ),
-  CHECK ( closing_net_worth_min_minor IS NULL OR closing_net_worth_min_minor <= closing_net_worth_minor ),
-  CHECK ( closing_net_worth_max_minor IS NULL OR closing_net_worth_max_minor >= closing_net_worth_minor ),
-  CHECK ( change_min_minor IS NULL OR change_min_minor <= change_minor ),
-  CHECK ( change_max_minor IS NULL OR change_max_minor >= change_minor ),
+  CHECK ( opening_net_worth = opening_gross_assets - opening_liabilities ),
+  CHECK ( closing_net_worth = closing_gross_assets - closing_liabilities ),
+  CHECK ( change = closing_net_worth - opening_net_worth ),
+  CHECK ( opening_gross_assets_min IS NULL OR opening_gross_assets_min <= opening_gross_assets ),
+  CHECK ( opening_gross_assets_max IS NULL OR opening_gross_assets_max >= opening_gross_assets ),
+  CHECK ( closing_gross_assets_min IS NULL OR closing_gross_assets_min <= closing_gross_assets ),
+  CHECK ( closing_gross_assets_max IS NULL OR closing_gross_assets_max >= closing_gross_assets ),
+  CHECK ( opening_liabilities_min IS NULL OR opening_liabilities_min <= opening_liabilities ),
+  CHECK ( opening_liabilities_max IS NULL OR opening_liabilities_max >= opening_liabilities ),
+  CHECK ( closing_liabilities_min IS NULL OR closing_liabilities_min <= closing_liabilities ),
+  CHECK ( closing_liabilities_max IS NULL OR closing_liabilities_max >= closing_liabilities ),
+  CHECK ( opening_net_worth_min IS NULL OR opening_net_worth_min <= opening_net_worth ),
+  CHECK ( opening_net_worth_max IS NULL OR opening_net_worth_max >= opening_net_worth ),
+  CHECK ( closing_net_worth_min IS NULL OR closing_net_worth_min <= closing_net_worth ),
+  CHECK ( closing_net_worth_max IS NULL OR closing_net_worth_max >= closing_net_worth ),
+  CHECK ( change_min IS NULL OR change_min <= change ),
+  CHECK ( change_max IS NULL OR change_max >= change ),
   CHECK (
     ( is_complete = 1 AND unconverted_assets = 0 ) OR
     ( is_complete = 0 AND unconverted_assets > 0 )
