@@ -96,9 +96,9 @@ CREATE TABLE asset_classes (
 );
 
 INSERT INTO asset_classes ( id ) VALUES
-  ( 'cash' ), ( 'bank_account' ), ( 'depot' ), ( 'security' ), ( 'real_estate' ), ( 'leasehold' ),
-  ( 'vehicle' ), ( 'valuables' ), ( 'collection' ), ( 'loan' ), ( 'participation' ), ( 'equipment' ),
-  ( 'contract' ), ( 'other' );
+  ( 'cash' ), ( 'account' ), ( 'depot' ), ( 'security' ), ( 'property' ), ( 'leasehold' ),
+  ( 'vehicle' ), ( 'valuables' ), ( 'collection' ), ( 'loan' ), ( 'participation' ),
+  ( 'equipment' ), ( 'contract' ), ( 'other' );
 
 
 -- ============================================================
@@ -144,58 +144,80 @@ CREATE TABLE entry_types (
 );
 
 INSERT INTO entry_types ( id ) VALUES
-  ( 'cash.opening' ), ( 'cash.closing' ), ( 'cash.valuation' ), ( 'cash.cash_in' ),
-  ( 'cash.cash_out' ), ( 'cash.purchase' ), ( 'cash.sale' ), ( 'cash.transfer_in' ),
-  ( 'cash.transfer_out' ),
+  ( 'opening' ), ( 'closing' ), ( 'valuation' ), ( 'deposit' ), ( 'withdrawal' ), ( 'purchase' ),
+  ( 'sale' ), ( 'transfer_in' ), ( 'transfer_out' ), ( 'payment_in' ), ( 'payment_out' ),
+  ( 'interest' ), ( 'fee' ), ( 'tax' ), ( 'refund' ), ( 'buy' ), ( 'sell' ), ( 'gift_in' ),
+  ( 'gift_out' ), ( 'disbursement' ), ( 'repayment' ), ( 'write_off' ), ( 'contribution' ),
+  ( 'distribution' ), ( 'acquisition' ), ( 'disposal' );
 
-  ( 'bank_account.opening' ), ( 'bank_account.closing' ), ( 'bank_account.valuation' ),
-  ( 'bank_account.payment_in' ), ( 'bank_account.payment_out' ), ( 'bank_account.interest' ),
-  ( 'bank_account.fee' ), ( 'bank_account.tax' ), ( 'bank_account.refund' ),
-  ( 'bank_account.transfer_in' ), ( 'bank_account.transfer_out' ),
 
-  ( 'depot.opening' ), ( 'depot.closing' ), ( 'depot.valuation' ), ( 'depot.buy' ),
-  ( 'depot.sell' ), ( 'depot.interest' ), ( 'depot.fee' ), ( 'depot.tax' ),
-  ( 'depot.transfer_in' ), ( 'depot.transfer_out' ),
+-- ============================================================
+-- Asset class entry types
+-- ============================================================
 
-  ( 'security.opening' ), ( 'security.closing' ), ( 'security.valuation' ), ( 'security.buy' ),
-  ( 'security.sell' ), ( 'security.transfer_in' ), ( 'security.transfer_out' ),
+CREATE TABLE asset_class_entry_types (
+  class_id TEXT NOT NULL REFERENCES asset_classes ( id ) ON DELETE CASCADE,
+  entry_type_id TEXT NOT NULL REFERENCES entry_types ( id ) ON DELETE CASCADE,
 
-  ( 'real_estate.opening' ), ( 'real_estate.closing' ), ( 'real_estate.valuation' ),
-  ( 'real_estate.purchase' ), ( 'real_estate.sale' ), ( 'real_estate.transfer_in' ),
-  ( 'real_estate.transfer_out' ),
+  PRIMARY KEY ( class_id, entry_type_id )
+);
 
-  ( 'leasehold.opening' ), ( 'leasehold.closing' ), ( 'leasehold.valuation' ),
-  ( 'leasehold.purchase' ), ( 'leasehold.sale' ), ( 'leasehold.transfer_in' ),
-  ( 'leasehold.transfer_out' ),
+INSERT INTO asset_class_entry_types ( class_id, entry_type_id ) VALUES
+  ( 'cash', 'opening' ), ( 'cash', 'closing' ), ( 'cash', 'valuation' ), ( 'cash', 'deposit' ),
+  ( 'cash', 'withdrawal' ), ( 'cash', 'purchase' ), ( 'cash', 'sale' ), ( 'cash', 'transfer_in' ),
+  ( 'cash', 'transfer_out' ),
 
-  ( 'vehicle.opening' ), ( 'vehicle.closing' ), ( 'vehicle.valuation' ), ( 'vehicle.purchase' ),
-  ( 'vehicle.sale' ), ( 'vehicle.transfer_in' ), ( 'vehicle.transfer_out' ),
+  ( 'account', 'opening' ), ( 'account', 'closing' ), ( 'account', 'valuation' ),
+  ( 'account', 'payment_in' ), ( 'account', 'payment_out' ), ( 'account', 'interest' ),
+  ( 'account', 'fee' ), ( 'account', 'tax' ), ( 'account', 'refund' ), ( 'account', 'transfer_in' ),
+  ( 'account', 'transfer_out' ),
 
-  ( 'valuables.opening' ), ( 'valuables.closing' ), ( 'valuables.valuation' ),
-  ( 'valuables.purchase' ), ( 'valuables.sale' ), ( 'valuables.gift_in' ), ( 'valuables.gift_out' ),
-  ( 'valuables.transfer_in' ), ( 'valuables.transfer_out' ),
+  ( 'depot', 'opening' ), ( 'depot', 'closing' ), ( 'depot', 'valuation' ), ( 'depot', 'buy' ),
+  ( 'depot', 'sell' ), ( 'depot', 'interest' ), ( 'depot', 'fee' ), ( 'depot', 'tax' ),
+  ( 'depot', 'transfer_in' ), ( 'depot', 'transfer_out' ),
 
-  ( 'collection.opening' ), ( 'collection.closing' ), ( 'collection.valuation' ),
-  ( 'collection.purchase' ), ( 'collection.sale' ), ( 'collection.gift_in' ),
-  ( 'collection.gift_out' ), ( 'collection.transfer_in' ), ( 'collection.transfer_out' ),
+  ( 'security', 'opening' ), ( 'security', 'closing' ), ( 'security', 'valuation' ),
+  ( 'security', 'buy' ), ( 'security', 'sell' ), ( 'security', 'transfer_in' ),
+  ( 'security', 'transfer_out' ),
 
-  ( 'loan.opening' ), ( 'loan.closing' ), ( 'loan.valuation' ), ( 'loan.disbursement' ),
-  ( 'loan.repayment' ), ( 'loan.interest_accrued' ), ( 'loan.write_off' ),
+  ( 'property', 'opening' ), ( 'property', 'closing' ), ( 'property', 'valuation' ),
+  ( 'property', 'purchase' ), ( 'property', 'sale' ), ( 'property', 'transfer_in' ),
+  ( 'property', 'transfer_out' ),
 
-  ( 'participation.opening' ), ( 'participation.closing' ), ( 'participation.valuation' ),
-  ( 'participation.purchase' ), ( 'participation.sale' ), ( 'participation.capital_contribution' ),
-  ( 'participation.distribution' ), ( 'participation.transfer_in' ), ( 'participation.transfer_out' ),
+  ( 'leasehold', 'opening' ), ( 'leasehold', 'closing' ), ( 'leasehold', 'valuation' ),
+  ( 'leasehold', 'purchase' ), ( 'leasehold', 'sale' ), ( 'leasehold', 'transfer_in' ),
+  ( 'leasehold', 'transfer_out' ),
 
-  ( 'equipment.opening' ), ( 'equipment.closing' ), ( 'equipment.valuation' ),
-  ( 'equipment.purchase' ), ( 'equipment.sale' ), ( 'equipment.transfer_in' ),
-  ( 'equipment.transfer_out' ),
+  ( 'vehicle', 'opening' ), ( 'vehicle', 'closing' ), ( 'vehicle', 'valuation' ),
+  ( 'vehicle', 'purchase' ), ( 'vehicle', 'sale' ), ( 'vehicle', 'transfer_in' ),
+  ( 'vehicle', 'transfer_out' ),
 
-  ( 'contract.opening' ), ( 'contract.closing' ), ( 'contract.valuation' ),
-  ( 'contract.acquisition' ), ( 'contract.disposal' ), ( 'contract.transfer_in' ),
-  ( 'contract.transfer_out' ),
+  ( 'valuables', 'opening' ), ( 'valuables', 'closing' ), ( 'valuables', 'valuation' ),
+  ( 'valuables', 'purchase' ), ( 'valuables', 'sale' ), ( 'valuables', 'gift_in' ),
+  ( 'valuables', 'gift_out' ), ( 'valuables', 'transfer_in' ), ( 'valuables', 'transfer_out' ),
 
-  ( 'other.opening' ), ( 'other.closing' ), ( 'other.valuation' ), ( 'other.purchase' ),
-  ( 'other.sale' ), ( 'other.transfer_in' ), ( 'other.transfer_out' );
+  ( 'collection', 'opening' ), ( 'collection', 'closing' ), ( 'collection', 'valuation' ),
+  ( 'collection', 'purchase' ), ( 'collection', 'sale' ), ( 'collection', 'gift_in' ),
+  ( 'collection', 'gift_out' ), ( 'collection', 'transfer_in' ), ( 'collection', 'transfer_out' ),
+
+  ( 'loan', 'opening' ), ( 'loan', 'closing' ), ( 'loan', 'valuation' ), ( 'loan', 'disbursement' ),
+  ( 'loan', 'repayment' ), ( 'loan', 'interest' ), ( 'loan', 'write_off' ),
+
+  ( 'participation', 'opening' ), ( 'participation', 'closing' ), ( 'participation', 'valuation' ),
+  ( 'participation', 'purchase' ), ( 'participation', 'sale' ), ( 'participation', 'contribution' ),
+  ( 'participation', 'distribution' ), ( 'participation', 'transfer_in' ),
+  ( 'participation', 'transfer_out' ),
+
+  ( 'equipment', 'opening' ), ( 'equipment', 'closing' ), ( 'equipment', 'valuation' ),
+  ( 'equipment', 'purchase' ), ( 'equipment', 'sale' ), ( 'equipment', 'transfer_in' ),
+  ( 'equipment', 'transfer_out' ),
+
+  ( 'contract', 'opening' ), ( 'contract', 'closing' ), ( 'contract', 'valuation' ),
+  ( 'contract', 'acquisition' ), ( 'contract', 'disposal' ), ( 'contract', 'transfer_in' ),
+  ( 'contract', 'transfer_out' ),
+
+  ( 'other', 'opening' ), ( 'other', 'closing' ), ( 'other', 'valuation' ), ( 'other', 'purchase' ),
+  ( 'other', 'sale' ), ( 'other', 'transfer_in' ), ( 'other', 'transfer_out' );
 
 
 -- ============================================================
@@ -295,13 +317,8 @@ CREATE TABLE asset_entries (
     ( mode = 'relative' AND amount <> 0 )
   ),
   CHECK (
-    ( transfer_id IS NULL AND type NOT LIKE '%.transfer_in'
-      AND type NOT LIKE '%.transfer_out' ) OR
-    ( transfer_id IS NOT NULL AND (
-      type LIKE '%.transfer_in' OR
-      type LIKE '%.transfer_out' OR
-      type LIKE '%.fee'
-    ) )
+    ( transfer_id IS NULL AND type NOT IN ( 'transfer_in', 'transfer_out' ) ) OR
+    ( transfer_id IS NOT NULL AND type IN ( 'transfer_in', 'transfer_out', 'fee' ) )
   ),
 
   UNIQUE ( asset_id, effective_date, sequence )
@@ -350,30 +367,34 @@ BEGIN
 END;
 
 
--- Entry types must belong to the asset's class.
+-- Entry types must be assigned to the asset's class.
 
 CREATE TRIGGER asset_entries_class_insert
 BEFORE INSERT ON asset_entries
 WHEN NOT EXISTS (
   SELECT 1
-  FROM assets
-  WHERE id = NEW.asset_id
-    AND NEW.type LIKE class || '.%'
+  FROM assets a
+  JOIN asset_class_entry_types ac
+    ON ac.class_id = a.class
+   AND ac.entry_type_id = NEW.type
+  WHERE a.id = NEW.asset_id
 )
 BEGIN
-  SELECT RAISE( ABORT, 'Entry type does not belong to the asset class.' );
+  SELECT RAISE( ABORT, 'Entry type is not allowed for this asset class.' );
 END;
 
 CREATE TRIGGER asset_entries_class_update
 BEFORE UPDATE OF asset_id, type ON asset_entries
 WHEN NOT EXISTS (
   SELECT 1
-  FROM assets
-  WHERE id = NEW.asset_id
-    AND NEW.type LIKE class || '.%'
+  FROM assets a
+  JOIN asset_class_entry_types ac
+    ON ac.class_id = a.class
+   AND ac.entry_type_id = NEW.type
+  WHERE a.id = NEW.asset_id
 )
 BEGIN
-  SELECT RAISE( ABORT, 'Entry type does not belong to the asset class.' );
+  SELECT RAISE( ABORT, 'Entry type is not allowed for this asset class.' );
 END;
 
 
@@ -391,15 +412,15 @@ WHEN NEW.transfer_id IS NOT NULL
       AND NEW.effective_date = t.effective_date
       AND ( (
         NEW.asset_id = t.source_asset_id
-        AND NEW.type = a.class || '.transfer_out'
+        AND NEW.type = 'transfer_out'
         AND NEW.amount = -t.source_amount
       ) OR (
         NEW.asset_id = t.target_asset_id
-        AND NEW.type = a.class || '.transfer_in'
+        AND NEW.type = 'transfer_in'
         AND NEW.amount = t.target_amount
       ) OR (
         NEW.asset_id = t.fee_asset_id
-        AND NEW.type = a.class || '.fee'
+        AND NEW.type = 'fee'
         AND NEW.amount = -t.fee_amount
         AND t.fee_amount > 0
       ) )
@@ -420,15 +441,15 @@ WHEN NEW.transfer_id IS NOT NULL
       AND NEW.effective_date = t.effective_date
       AND ( (
         NEW.asset_id = t.source_asset_id
-        AND NEW.type = a.class || '.transfer_out'
+        AND NEW.type = 'transfer_out'
         AND NEW.amount = -t.source_amount
       ) OR (
         NEW.asset_id = t.target_asset_id
-        AND NEW.type = a.class || '.transfer_in'
+        AND NEW.type = 'transfer_in'
         AND NEW.amount = t.target_amount
       ) OR (
         NEW.asset_id = t.fee_asset_id
-        AND NEW.type = a.class || '.fee'
+        AND NEW.type = 'fee'
         AND NEW.amount = -t.fee_amount
         AND t.fee_amount > 0
       ) )
