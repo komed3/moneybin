@@ -396,3 +396,30 @@ WHEN NOT EXISTS (
 BEGIN
   SELECT RAISE( ABORT, 'Transfer assets must belong to the same portfolio and be assets.' );
 END;
+
+
+-- ============================================================
+-- Calculated asset values
+-- ============================================================
+
+CREATE TABLE asset_value_points (
+  asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
+  effective_date TEXT NOT NULL,
+
+  native_value_minor INTEGER NOT NULL,
+  portfolio_value_minor INTEGER,
+
+  quality TEXT CHECK ( quality IS NULL OR quality IN ( 'documented', 'estimated', 'speculative' ) ),
+
+  conversion_factor_id TEXT REFERENCES asset_conversion_factors ( id ) ON DELETE SET NULL,
+  last_anchor_entry_id TEXT REFERENCES asset_entries ( id ) ON DELETE SET NULL,
+  last_entry_id TEXT REFERENCES asset_entries ( id ) ON DELETE SET NULL,
+
+  calculation_version INTEGER NOT NULL DEFAULT 1 CHECK ( calculation_version > 0 ),
+  calculated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  PRIMARY KEY ( asset_id, effective_date )
+);
+
+CREATE INDEX asset_value_points_date_idx ON asset_value_points ( effective_date );
+CREATE INDEX asset_value_points_asset_date_idx ON asset_value_points ( asset_id, effective_date DESC );
