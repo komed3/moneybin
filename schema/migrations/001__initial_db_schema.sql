@@ -282,3 +282,60 @@ WHEN EXISTS (
 BEGIN
   SELECT RAISE( ABORT, 'Absolute and relative entries cannot coexist on the same asset and date.' );
 END;
+
+
+-- Validate transfer entries against their transfer record.
+
+CREATE TRIGGER asset_entries_transfer_insert
+BEFORE INSERT ON asset_entries
+WHEN NEW.transfer_id IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1
+    FROM transfers t
+    WHERE t.id = NEW.transfer_id
+      AND NEW.entry_type = 'relative'
+      AND NEW.effective_date = t.effective_date
+      AND ( (
+        NEW.asset_id = t.source_asset_id
+        AND NEW.entry_kind = 'transfer_out'
+        AND NEW.amount_minor = -t.source_amount_minor
+      ) OR (
+        NEW.asset_id = t.target_asset_id
+        AND NEW.entry_kind = 'transfer_in'
+        AND NEW.amount_minor = t.target_amount_minor
+      ) OR (
+        NEW.asset_id = t.fee_asset_id
+        AND NEW.entry_kind = 'fee'
+        AND NEW.amount_minor = -t.fee_amount_minor
+      ) )
+  )
+BEGIN
+  SELECT RAISE( ABORT, 'Invalid asset entry for transfer.' );
+END;
+
+CREATE TRIGGER asset_entries_transfer_update
+BEFORE UPDATE OF asset_id, transfer_id, entry_type, effective_date, entry_kind, amount_minor ON asset_entries
+WHEN NEW.transfer_id IS NOT NULL
+  AND NOT EXISTS (
+    SELECT 1
+    FROM transfers t
+    WHERE t.id = NEW.transfer_id
+      AND NEW.entry_type = 'relative'
+      AND NEW.effective_date = t.effective_date
+      AND ( (
+        NEW.asset_id = t.source_asset_id
+        AND NEW.entry_kind = 'transfer_out'
+        AND NEW.amount_minor = -t.source_amount_minor
+      ) OR (
+        NEW.asset_id = t.target_asset_id
+        AND NEW.entry_kind = 'transfer_in'
+        AND NEW.amount_minor = t.target_amount_minor
+      ) OR (
+        NEW.asset_id = t.fee_asset_id
+        AND NEW.entry_kind = 'fee'
+        AND NEW.amount_minor = -t.fee_amount_minor
+      ) )
+  )
+BEGIN
+  SELECT RAISE( ABORT, 'Invalid asset entry for transfer.' );
+END;
