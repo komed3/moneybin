@@ -4,7 +4,7 @@
 
 
 -- ============================================================
--- 1. Users and authentication
+-- Users and authentication
 -- ============================================================
 
 CREATE TABLE users (
@@ -40,7 +40,7 @@ CREATE TABLE user_preferences (
 
 
 -- ============================================================
--- 2. Persons and portfolios
+-- Persons and portfolios
 -- ============================================================
 
 CREATE TABLE persons (
@@ -85,8 +85,9 @@ CREATE TABLE portfolio_members (
 CREATE INDEX portfolio_members_user_idx ON portfolio_members ( user_id, portfolio_id );
 CREATE UNIQUE INDEX portfolio_members_owner_idx ON portfolio_members ( portfolio_id ) WHERE role = 'owner';
 
+
 -- ============================================================
--- 3. Assets and liabilities
+-- Assets and liabilities
 -- ============================================================
 
 CREATE TABLE assets (
@@ -124,3 +125,28 @@ CREATE INDEX assets_portfolio_idx ON assets ( portfolio_id, is_active );
 CREATE INDEX assets_class_idx ON assets ( class);
 CREATE INDEX assets_kind_idx ON assets ( portfolio_id, kind );
 CREATE INDEX assets_start_date_idx ON assets ( start_date );
+
+
+-- ============================================================
+-- Asset conversion factors
+-- ============================================================
+
+CREATE TABLE asset_conversion_factors (
+  id TEXT PRIMARY KEY NOT NULL,
+  asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
+
+  effective_date TEXT NOT NULL,
+
+  numerator INTEGER NOT NULL CHECK ( numerator > 0 ),
+  denominator INTEGER NOT NULL CHECK ( denominator > 0 ),
+
+  quality TEXT NOT NULL CHECK ( quality IN ( 'documented', 'estimated', 'speculative' ) ),
+
+  note TEXT,
+  created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  UNIQUE ( asset_id, effective_date )
+);
+
+CREATE INDEX asset_conversion_factors_lookup_idx ON asset_conversion_factors ( asset_id, effective_date DESC );
