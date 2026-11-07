@@ -482,3 +482,25 @@ CREATE TABLE entry_documents (
 );
 
 CREATE INDEX entry_documents_document_idx ON entry_documents ( document_id );
+
+
+-- ============================================================
+-- Audit log
+-- ============================================================
+
+CREATE TABLE audit_log (
+  id TEXT PRIMARY KEY NOT NULL,
+  user_id TEXT REFERENCES users ( id ) ON DELETE SET NULL,
+
+  entity_type TEXT NOT NULL,
+  entity_id TEXT NOT NULL,
+  action TEXT NOT NULL CHECK ( action IN ( 'insert', 'update', 'delete' ) ),
+
+  before_json TEXT CHECK ( before_json IS NULL OR json_valid( before_json ) ),
+  after_json TEXT CHECK ( after_json IS NULL OR json_valid( after_json ) ),
+
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) )
+);
+
+CREATE INDEX audit_log_entity_idx ON audit_log ( entity_type, entity_id, created_at DESC );
+CREATE INDEX audit_log_user_idx ON audit_log ( user_id, created_at DESC );
