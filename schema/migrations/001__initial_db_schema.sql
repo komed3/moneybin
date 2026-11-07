@@ -72,3 +72,15 @@ CREATE TABLE portfolios (
 );
 
 CREATE INDEX portfolios_person_idx ON portfolios ( person_id );
+
+CREATE TABLE portfolio_members (
+  portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users ( id ) ON DELETE CASCADE,
+  role TEXT NOT NULL DEFAULT 'viewer' CHECK ( role IN ( 'owner', 'editor', 'viewer' ) ),
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  PRIMARY KEY ( portfolio_id, user_id )
+);
+
+CREATE INDEX portfolio_members_user_idx ON portfolio_members ( user_id, portfolio_id );
+CREATE UNIQUE INDEX portfolio_members_owner_idx ON portfolio_members ( portfolio_id ) WHERE role = 'owner';
