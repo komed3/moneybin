@@ -129,83 +129,39 @@ CREATE TABLE entry_types (
 );
 
 INSERT INTO entry_types ( id ) VALUES
-  ( 'bank_account.opening_balance' ), ( 'bank_account.closing_balance' ), ( 'bank_account.valuation' ),
+  ( 'bank_account.opening' ), ( 'bank_account.closing' ), ( 'bank_account.valuation' ),
   ( 'bank_account.direct_debit' ), ( 'bank_account.standing_order' ), ( 'bank_account.bank_transfer' ),
   ( 'bank_account.card_payment' ), ( 'bank_account.cash_deposit' ), ( 'bank_account.cash_withdrawal' ),
-  ( 'bank_account.incoming_payment' ), ( 'bank_account.outgoing_payment' ), ( 'bank_account.cheque' ),
-  ( 'bank_account.interest' ), ( 'bank_account.fee' ), ( 'bank_account.tax' ), ( 'bank_account.refund' ),
+  ( 'bank_account.incoming_payment' ), ( 'bank_account.outgoing_payment' ), ( 'bank_account.interest' ),
+  ( 'bank_account.fee' ), ( 'bank_account.tax' ), ( 'bank_account.refund' ),
   ( 'bank_account.transfer_in' ), ( 'bank_account.transfer_out' ),
 
-  ( 'cash.opening_balance' ), ( 'cash.closing_balance' ), ( 'cash.valuation' ), ( 'cash.cash_in' ),
-  ( 'cash.cash_out' ), ( 'cash.purchase' ), ( 'cash.sale' ), ( 'cash.transfer_in' ), ( 'cash.transfer_out' ),
+  ( 'cash.opening' ), ( 'cash.closing' ), ( 'cash.valuation' ), ( 'cash.cash_in' ), ( 'cash.cash_out' ),
+  ( 'cash.purchase' ), ( 'cash.sale' ), ( 'cash.transfer_in' ), ( 'cash.transfer_out' ),
 
-  ( 'brokerage_account.opening_balance' ), ( 'brokerage_account.closing_balance' ),
-  ( 'brokerage_account.valuation' ), ( 'brokerage_account.deposit' ), ( 'brokerage_account.withdrawal' ),
-  ( 'brokerage_account.buy' ), ( 'brokerage_account.sell' ), ( 'brokerage_account.interest' ),
-  ( 'brokerage_account.fee' ), ( 'brokerage_account.tax' ), ( 'brokerage_account.refund' ),
-  ( 'brokerage_account.transfer_in' ), ( 'brokerage_account.transfer_out' ),
+  ( 'depot.opening' ), ( 'depot.closing' ), ( 'depot.valuation' ), ( 'depot.deposit' ),
+  ( 'depot.withdrawal' ), ( 'depot.buy' ), ( 'depot.sell' ), ( 'depot.interest' ), ( 'depot.fee' ),
+  ( 'depot.tax' ), ( 'depot.transfer_in' ), ( 'depot.transfer_out' ),
 
-  ( 'stock.opening_balance' ), ( 'stock.closing_balance' ), ( 'stock.valuation' ), ( 'stock.buy' ),
-  ( 'stock.sell' ), ( 'stock.transfer_in' ), ( 'stock.transfer_out' ),
+  ( 'security.opening' ), ( 'security.closing' ), ( 'security.valuation' ), ( 'security.buy' ),
+  ( 'security.sell' ), ( 'security.transfer_in' ), ( 'security.transfer_out' ),
 
-  ( 'etf.opening_balance' ), ( 'etf.closing_balance' ), ( 'etf.valuation' ), ( 'etf.buy' ), ( 'etf.sell' ),
-  ( 'etf.transfer_in' ), ( 'etf.transfer_out' ),
-
-  ( 'investment_fund.opening_balance' ), ( 'investment_fund.closing_balance' ),
-  ( 'investment_fund.valuation' ), ( 'investment_fund.buy' ), ( 'investment_fund.sell' ),
-  ( 'investment_fund.transfer_in' ), ( 'investment_fund.transfer_out' ),
-
-  ( 'bond.opening_balance' ), ( 'bond.closing_balance' ), ( 'bond.valuation' ), ( 'bond.buy' ),
-  ( 'bond.sell' ), ( 'bond.transfer_in' ), ( 'bond.transfer_out' ),
-
-  ( 'real_estate.opening_balance' ), ( 'real_estate.closing_balance' ), ( 'real_estate.valuation' ),
+  ( 'real_estate.opening' ), ( 'real_estate.closing' ), ( 'real_estate.valuation' ),
   ( 'real_estate.purchase' ), ( 'real_estate.sale' ), ( 'real_estate.transfer_in' ),
   ( 'real_estate.transfer_out' ),
 
-  ( 'land.opening_balance' ), ( 'land.closing_balance' ), ( 'land.valuation' ), ( 'land.purchase' ),
-  ( 'land.sale' ), ( 'land.transfer_in' ), ( 'land.transfer_out' ),
+  ( 'vehicle.opening' ), ( 'vehicle.closing' ), ( 'vehicle.valuation' ), ( 'vehicle.purchase' ),
+  ( 'vehicle.sale' ), ( 'vehicle.transfer_in' ), ( 'vehicle.transfer_out' ),
 
-  ( 'vehicle.opening_balance' ), ( 'vehicle.closing_balance' ), ( 'vehicle.valuation' ),
-  ( 'vehicle.purchase' ), ( 'vehicle.sale' ), ( 'vehicle.transfer_in' ), ( 'vehicle.transfer_out' ),
+  ( 'collection.opening' ), ( 'collection.closing' ), ( 'collection.valuation' ), ( 'collection.purchase' ),
+  ( 'collection.sale' ), ( 'collection.gift_in' ), ( 'collection.gift_out' ), ( 'collection.transfer_in' ),
+  ( 'collection.transfer_out' ),
 
-  ( 'collectible.opening_balance' ), ( 'collectible.closing_balance' ), ( 'collectible.valuation' ),
-  ( 'collectible.acquisition' ), ( 'collectible.sale' ), ( 'collectible.gift_in' ),
-  ( 'collectible.gift_out' ), ( 'collectible.transfer_in' ), ( 'collectible.transfer_out' ),
+  ( 'loan.opening' ), ( 'loan.closing' ), ( 'loan.valuation' ), ( 'loan.disbursement' ),
+  ( 'loan.repayment' ), ( 'loan.interest_accrued' ), ( 'loan.write_off' ),
 
-  ( 'precious_metal.opening_balance' ), ( 'precious_metal.closing_balance' ), ( 'precious_metal.valuation' ),
-  ( 'precious_metal.acquisition' ), ( 'precious_metal.sale' ), ( 'precious_metal.gift_in' ),
-  ( 'precious_metal.gift_out' ), ( 'precious_metal.transfer_in' ), ( 'precious_metal.transfer_out' ),
-
-  ( 'intellectual_property.opening_balance' ), ( 'intellectual_property.closing_balance' ),
-  ( 'intellectual_property.valuation' ), ( 'intellectual_property.acquisition' ),
-  ( 'intellectual_property.sale' ), ( 'intellectual_property.transfer_in' ),
-  ( 'intellectual_property.transfer_out' ),
-
-  ( 'domain.opening_balance' ), ( 'domain.closing_balance' ), ( 'domain.valuation' ),
-  ( 'domain.acquisition' ), ( 'domain.sale' ), ( 'domain.transfer_in' ), ( 'domain.transfer_out' ),
-
-  ( 'private_loan.opening_balance' ), ( 'private_loan.closing_balance' ), ( 'private_loan.valuation' ),
-  ( 'private_loan.disbursement' ), ( 'private_loan.repayment' ), ( 'private_loan.interest_accrued' ),
-  ( 'private_loan.write_off' ),
-
-  ( 'receivable.opening_balance' ), ( 'receivable.closing_balance' ), ( 'receivable.valuation' ),
-  ( 'receivable.disbursement' ), ( 'receivable.repayment' ), ( 'receivable.interest_accrued' ),
-  ( 'receivable.write_off' ),
-
-  ( 'business_equity.opening_balance' ), ( 'business_equity.closing_balance' ),
-  ( 'business_equity.valuation' ), ( 'business_equity.investment' ), ( 'business_equity.capital_call' ),
-  ( 'business_equity.distribution' ), ( 'business_equity.sale' ), ( 'business_equity.transfer_in' ),
-  ( 'business_equity.transfer_out' ),
-
-  ( 'private_equity.opening_balance' ), ( 'private_equity.closing_balance' ), ( 'private_equity.valuation' ),
-  ( 'private_equity.investment' ), ( 'private_equity.capital_call' ), ( 'private_equity.distribution' ),
-  ( 'private_equity.sale' ), ( 'private_equity.transfer_in' ), ( 'private_equity.transfer_out' ),
-
-  ( 'equipment.opening_balance' ), ( 'equipment.closing_balance' ), ( 'equipment.valuation' ),
-  ( 'equipment.purchase' ), ( 'equipment.sale' ), ( 'equipment.transfer_in' ), ( 'equipment.transfer_out' ),
-
-  ( 'other.opening_balance' ), ( 'other.closing_balance' ), ( 'other.valuation' ), ( 'other.purchase' ),
-  ( 'other.sale' ), ( 'other.transfer_in' ), ( 'other.transfer_out' );
+  ( 'other.opening' ), ( 'other.closing' ), ( 'other.valuation' ), ( 'other.purchase' ), ( 'other.sale' ),
+  ( 'other.transfer_in' ), ( 'other.transfer_out' );
 
 
 -- ============================================================
