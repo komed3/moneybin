@@ -28,3 +28,12 @@ CREATE TABLE sessions (
 
 CREATE INDEX sessions_user_idx ON sessions ( user_id );
 CREATE INDEX sessions_expiry_idx ON sessions ( expires_at );
+
+CREATE TABLE user_preferences (
+  user_id TEXT NOT NULL REFERENCES users ( id ) ON DELETE CASCADE,
+  key TEXT NOT NULL,
+  value_json TEXT NOT NULL CHECK ( json_valid( value_json ) ),
+  updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  PRIMARY KEY ( user_id, key )
+);
