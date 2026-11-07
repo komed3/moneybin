@@ -75,7 +75,7 @@ CREATE INDEX portfolios_person_idx ON portfolios ( person_id );
 
 CREATE TABLE portfolio_members (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
-  user_id TEXT NOT NULL REFERENCES users ( id ) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users ( id ) ON DELETE RESTRICT,
   role TEXT NOT NULL DEFAULT 'viewer' CHECK ( role IN ( 'owner', 'editor', 'viewer' ) ),
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
@@ -94,27 +94,20 @@ CREATE TABLE assets (
   id TEXT PRIMARY KEY NOT NULL,
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
-
   name TEXT NOT NULL,
   description TEXT,
   class TEXT NOT NULL,
   kind TEXT NOT NULL DEFAULT 'asset' CHECK ( kind IN ( 'asset', 'liability' ) ),
-
   currency TEXT NOT NULL DEFAULT 'EUR' CHECK ( length( currency ) = 3 ),
-
   color TEXT NOT NULL,
   icon TEXT NOT NULL,
-
   liquidity TEXT NOT NULL DEFAULT 'unknown' CHECK ( liquidity IN (
     'immediate', 'short_term', 'medium_term', 'long_term', 'illiquid', 'unknown'
   ) ),
-
   start_date TEXT NOT NULL,
   end_date TEXT,
   is_active INTEGER NOT NULL DEFAULT 1 CHECK ( is_active IN ( 0, 1 ) ),
-
   metadata_json TEXT NOT NULL DEFAULT '{}' CHECK ( json_valid( metadata_json ) ),
-
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
   updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
@@ -122,7 +115,7 @@ CREATE TABLE assets (
 );
 
 CREATE INDEX assets_portfolio_idx ON assets ( portfolio_id, is_active );
-CREATE INDEX assets_class_idx ON assets ( class);
+CREATE INDEX assets_class_idx ON assets ( class );
 CREATE INDEX assets_kind_idx ON assets ( portfolio_id, kind );
 CREATE INDEX assets_start_date_idx ON assets ( start_date );
 
@@ -134,18 +127,13 @@ CREATE INDEX assets_start_date_idx ON assets ( start_date );
 CREATE TABLE asset_conversion_factors (
   id TEXT PRIMARY KEY NOT NULL,
   asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
-
   effective_date TEXT NOT NULL,
-
   numerator INTEGER NOT NULL CHECK ( numerator > 0 ),
   denominator INTEGER NOT NULL CHECK ( denominator > 0 ),
-
   quality TEXT NOT NULL CHECK ( quality IN ( 'documented', 'estimated', 'speculative' ) ),
-
   note TEXT,
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
-
   UNIQUE ( asset_id, effective_date )
 );
 
@@ -159,22 +147,15 @@ CREATE INDEX asset_conversion_factors_lookup_idx ON asset_conversion_factors ( a
 CREATE TABLE transfers (
   id TEXT PRIMARY KEY NOT NULL,
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
-
-  source_asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE RESTRICT,
-  target_asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE RESTRICT,
-
+  source_asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
+  target_asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
   effective_date TEXT NOT NULL,
   booking_date TEXT,
   value_date TEXT,
-
   source_amount_minor INTEGER NOT NULL CHECK ( source_amount_minor > 0 ),
   target_amount_minor INTEGER NOT NULL CHECK ( target_amount_minor > 0 ),
-
-  fee_asset_id TEXT REFERENCES assets ( id ) ON DELETE RESTRICT,
+  fee_asset_id TEXT REFERENCES assets ( id ) ON DELETE CASCADE,
   fee_amount_minor INTEGER NOT NULL DEFAULT 0 CHECK ( fee_amount_minor >= 0 ),
-
-  quality TEXT NOT NULL CHECK ( quality IN ( 'documented', 'estimated', 'speculative' ) ),
-
   note TEXT,
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
@@ -198,31 +179,34 @@ CREATE INDEX transfers_target_idx ON transfers ( target_asset_id, effective_date
 
 CREATE TABLE asset_entries (
   id TEXT PRIMARY KEY NOT NULL,
-  asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE RESTRICT,
+  asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
   transfer_id TEXT REFERENCES transfers ( id ) ON DELETE CASCADE,
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
-
   entry_type TEXT NOT NULL CHECK ( entry_type IN ( 'absolute', 'relative' ) ),
-
   amount_minor INTEGER NOT NULL,
-
   effective_date TEXT NOT NULL,
   booking_date TEXT,
   value_date TEXT,
-
   sequence INTEGER NOT NULL DEFAULT 0 CHECK ( sequence >= 0 ),
-
   entry_kind TEXT NOT NULL CHECK ( entry_kind IN (
-    'opening_balance', 'valuation', 'statement_balance', 'deposit', 'withdrawal',
-    'transfer_in', 'transfer_out', 'interest', 'dividend', 'fee', 'purchase', 'sale',
-    'repayment', 'adjustment', 'other'
+    'opening_balance', 'valuation', 'statement_balance', 'market_value', 'appraisal',
+    'inventory_count', 'deposit', 'withdrawal', 'cash_deposit', 'cash_withdrawal',
+    'transfer_in', 'transfer_out', 'rebooking_in', 'rebooking_out', 'bank_credit',
+    'bank_debit', 'sepa_credit_transfer', 'sepa_direct_debit', 'standing_order',
+    'card_payment', 'cash_payment', 'interest', 'dividend', 'distribution', 'rent_income',
+    'other_income', 'fee', 'tax', 'insurance', 'maintenance', 'other_expense',
+    'purchase', 'sale', 'subscription', 'redemption', 'security_split', 'security_merger',
+    'acquisition', 'disposal', 'repair', 'depreciation', 'appreciation', 'loan_disbursement',
+    'loan_repayment', 'repayment', 'debt_increase', 'debt_reduction', 'contribution',
+    'distribution_out', 'correction', 'adjustment', 'other'
   ) ),
-
+  payment_method TEXT CHECK ( payment_method IS NULL OR payment_method IN (
+    'cash', 'bank_transfer', 'sepa_credit_transfer', 'sepa_direct_debit', 'standing_order',
+    'card', 'direct_debit', 'broker', 'internal', 'other'
+  ) ),
   quality TEXT NOT NULL CHECK ( quality IN ( 'documented', 'estimated', 'speculative' ) ),
-
   note TEXT,
   source TEXT,
-
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
   updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
@@ -230,7 +214,14 @@ CREATE TABLE asset_entries (
     ( entry_type = 'absolute' AND amount_minor >= 0 AND sequence = 0 ) OR
     ( entry_type = 'relative' AND amount_minor <> 0 )
   ),
-
+  CHECK (
+    ( entry_type = 'absolute' AND entry_kind IN (
+      'opening_balance', 'valuation', 'statement_balance', 'market_value', 'appraisal', 'inventory_count'
+    ) ) OR
+    ( entry_type = 'relative' AND entry_kind NOT IN (
+      'opening_balance', 'valuation', 'statement_balance', 'market_value', 'appraisal', 'inventory_count'
+    ) )
+  ),
   CHECK (
     ( transfer_id IS NULL AND entry_kind NOT IN ( 'transfer_in', 'transfer_out' ) ) OR
     ( transfer_id IS NOT NULL AND entry_kind IN ( 'transfer_in', 'transfer_out', 'fee' ) )
@@ -239,9 +230,7 @@ CREATE TABLE asset_entries (
   UNIQUE ( asset_id, effective_date, sequence )
 );
 
-CREATE UNIQUE INDEX asset_entries_absolute_date_idx ON asset_entries ( asset_id, effective_date )
-  WHERE entry_type = 'absolute';
-
+CREATE UNIQUE INDEX asset_entries_absolute_date_idx ON asset_entries ( asset_id, effective_date ) WHERE entry_type = 'absolute';
 CREATE INDEX asset_entries_asset_date_idx ON asset_entries ( asset_id, effective_date, sequence );
 CREATE INDEX asset_entries_date_idx ON asset_entries ( effective_date );
 CREATE INDEX asset_entries_transfer_idx ON asset_entries ( transfer_id );
@@ -357,8 +346,7 @@ WHEN NOT EXISTS (
     AND source.kind = 'asset'
     AND target.kind = 'asset'
     AND (
-      NEW.fee_asset_id IS NULL
-      OR EXISTS (
+      NEW.fee_asset_id IS NULL OR EXISTS (
         SELECT 1
         FROM assets fee
         WHERE fee.id = NEW.fee_asset_id
@@ -383,8 +371,7 @@ WHEN NOT EXISTS (
     AND source.kind = 'asset'
     AND target.kind = 'asset'
     AND (
-      NEW.fee_asset_id IS NULL
-      OR EXISTS (
+      NEW.fee_asset_id IS NULL OR EXISTS (
         SELECT 1
         FROM assets fee
         WHERE fee.id = NEW.fee_asset_id
@@ -405,16 +392,12 @@ END;
 CREATE TABLE asset_value_points (
   asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
   effective_date TEXT NOT NULL,
-
   native_value_minor INTEGER NOT NULL,
   portfolio_value_minor INTEGER,
-
   quality TEXT CHECK ( quality IS NULL OR quality IN ( 'documented', 'estimated', 'speculative' ) ),
-
   conversion_factor_id TEXT REFERENCES asset_conversion_factors ( id ) ON DELETE SET NULL,
   last_anchor_entry_id TEXT REFERENCES asset_entries ( id ) ON DELETE SET NULL,
   last_entry_id TEXT REFERENCES asset_entries ( id ) ON DELETE SET NULL,
-
   calculation_version INTEGER NOT NULL DEFAULT 1 CHECK ( calculation_version > 0 ),
   calculated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
@@ -432,22 +415,22 @@ CREATE INDEX asset_value_points_asset_date_idx ON asset_value_points ( asset_id,
 CREATE TABLE portfolio_value_points (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
   effective_date TEXT NOT NULL,
-
-  gross_assets_minor INTEGER NOT NULL,
-  liabilities_minor INTEGER NOT NULL,
+  gross_assets_minor INTEGER NOT NULL CHECK ( gross_assets_minor >= 0 ),
+  liabilities_minor INTEGER NOT NULL CHECK ( liabilities_minor >= 0 ),
   net_worth_minor INTEGER NOT NULL,
-
   quality TEXT CHECK ( quality IS NULL OR quality IN ( 'documented', 'estimated', 'speculative' ) ),
-
   unconverted_assets INTEGER NOT NULL DEFAULT 0 CHECK ( unconverted_assets >= 0 ),
   is_complete INTEGER NOT NULL DEFAULT 1 CHECK ( is_complete IN ( 0, 1 ) ),
-
   calculation_version INTEGER NOT NULL DEFAULT 1 CHECK ( calculation_version > 0 ),
   calculated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
   PRIMARY KEY ( portfolio_id, effective_date ),
 
-  CHECK ( net_worth_minor = gross_assets_minor - liabilities_minor )
+  CHECK ( net_worth_minor = gross_assets_minor - liabilities_minor ),
+  CHECK (
+    ( is_complete = 1 AND unconverted_assets = 0 ) OR
+    ( is_complete = 0 AND unconverted_assets > 0 )
+  )
 );
 
 CREATE INDEX portfolio_value_points_date_idx ON portfolio_value_points ( effective_date );
@@ -460,13 +443,11 @@ CREATE INDEX portfolio_value_points_date_idx ON portfolio_value_points ( effecti
 CREATE TABLE documents (
   id TEXT PRIMARY KEY NOT NULL,
   uploaded_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
-
   original_name TEXT NOT NULL,
   storage_key TEXT NOT NULL UNIQUE,
   mime_type TEXT,
   size_bytes INTEGER NOT NULL CHECK ( size_bytes >= 0 ),
   file_hash TEXT,
-
   description TEXT,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) )
 );
@@ -477,7 +458,6 @@ CREATE TABLE entry_documents (
   entry_id TEXT NOT NULL REFERENCES asset_entries ( id ) ON DELETE CASCADE,
   document_id TEXT NOT NULL REFERENCES documents ( id ) ON DELETE CASCADE,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
-
   PRIMARY KEY ( entry_id, document_id )
 );
 
@@ -491,14 +471,11 @@ CREATE INDEX entry_documents_document_idx ON entry_documents ( document_id );
 CREATE TABLE audit_log (
   id TEXT PRIMARY KEY NOT NULL,
   user_id TEXT REFERENCES users ( id ) ON DELETE SET NULL,
-
   entity_type TEXT NOT NULL,
   entity_id TEXT NOT NULL,
   action TEXT NOT NULL CHECK ( action IN ( 'insert', 'update', 'delete' ) ),
-
   before_json TEXT CHECK ( before_json IS NULL OR json_valid( before_json ) ),
   after_json TEXT CHECK ( after_json IS NULL OR json_valid( after_json ) ),
-
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) )
 );
 
