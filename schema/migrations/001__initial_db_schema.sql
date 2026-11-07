@@ -190,3 +190,60 @@ CREATE TABLE transfers (
 CREATE INDEX transfers_portfolio_date_idx ON transfers ( portfolio_id, effective_date );
 CREATE INDEX transfers_source_idx ON transfers ( source_asset_id, effective_date );
 CREATE INDEX transfers_target_idx ON transfers ( target_asset_id, effective_date );
+
+
+-- ============================================================
+-- Asset entries
+-- ============================================================
+
+CREATE TABLE asset_entries (
+  id TEXT PRIMARY KEY NOT NULL,
+  asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE RESTRICT,
+  transfer_id TEXT REFERENCES transfers ( id ) ON DELETE CASCADE,
+  created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
+
+  entry_type TEXT NOT NULL CHECK ( entry_type IN ( 'absolute', 'relative' ) ),
+
+  amount_minor INTEGER NOT NULL,
+
+  effective_date TEXT NOT NULL,
+  booking_date TEXT,
+  value_date TEXT,
+
+  sequence INTEGER NOT NULL DEFAULT 0 CHECK ( sequence >= 0 ),
+
+  entry_kind TEXT NOT NULL CHECK ( entry_kind IN (
+    'opening_balance', 'valuation', 'statement_balance', 'deposit', 'withdrawal',
+    'transfer_in', 'transfer_out', 'interest', 'dividend', 'fee', 'purchase', 'sale',
+    'repayment', 'adjustment', 'other'
+  ) ),
+
+  quality TEXT NOT NULL CHECK ( quality IN ( 'documented', 'estimated', 'speculative' ) ),
+
+  note TEXT,
+  source TEXT,
+
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+  updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  CHECK (
+    ( entry_type = 'absolute' AND amount_minor >= 0 AND sequence = 0 ) OR
+    ( entry_type = 'relative' AND amount_minor <> 0 )
+  ),
+
+  CHECK (
+    ( transfer_id IS NULL AND entry_kind NOT IN ( 'transfer_in', 'transfer_out' ) ) OR
+    ( transfer_id IS NOT NULL AND entry_kind IN ( 'transfer_in', 'transfer_out', 'fee' ) )
+  ),
+
+  UNIQUE ( asset_id, effective_date, sequence )
+);
+
+CREATE UNIQUE INDEX asset_entries_absolute_date_idx ON asset_entries ( asset_id, effective_date )
+  WHERE entry_type = 'absolute';
+
+CREATE INDEX asset_entries_asset_date_idx ON asset_entries ( asset_id, effective_date, sequence );
+CREATE INDEX asset_entries_date_idx ON asset_entries ( effective_date );
+CREATE INDEX asset_entries_transfer_idx ON asset_entries ( transfer_id );
+CREATE INDEX asset_entries_kind_idx ON asset_entries ( entry_kind );
+CREATE INDEX asset_entries_quality_idx ON asset_entries ( quality );
