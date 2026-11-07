@@ -247,3 +247,35 @@ CREATE INDEX asset_entries_date_idx ON asset_entries ( effective_date );
 CREATE INDEX asset_entries_transfer_idx ON asset_entries ( transfer_id );
 CREATE INDEX asset_entries_kind_idx ON asset_entries ( entry_kind );
 CREATE INDEX asset_entries_quality_idx ON asset_entries ( quality );
+
+
+-- ============================================================
+-- Entry consistency
+-- ============================================================
+
+CREATE TRIGGER asset_entries_date_type_insert
+BEFORE INSERT ON asset_entries
+WHEN EXISTS (
+  SELECT 1
+  FROM asset_entries
+  WHERE asset_id = NEW.asset_id
+    AND effective_date = NEW.effective_date
+    AND entry_type <> NEW.entry_type
+)
+BEGIN
+  SELECT RAISE( ABORT, 'Absolute and relative entries cannot coexist on the same asset and date.' );
+END;
+
+CREATE TRIGGER asset_entries_date_type_update
+BEFORE UPDATE OF asset_id, effective_date, entry_type ON asset_entries
+WHEN EXISTS (
+  SELECT 1
+  FROM asset_entries
+  WHERE asset_id = NEW.asset_id
+    AND effective_date = NEW.effective_date
+    AND entry_type <> NEW.entry_type
+    AND id <> NEW.id
+)
+BEGIN
+  SELECT RAISE( ABORT, 'Absolute and relative entries cannot coexist on the same asset and date.' );
+END;
