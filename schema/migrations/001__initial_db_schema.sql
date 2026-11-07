@@ -1,6 +1,7 @@
 -- MoneyBin: Migration 001 – Initial schema
 -- Database: SQLite
 -- Apply once to a new, empty database.
+-- Monetary amounts are stored as integer minor currency units.
 
 
 -- ============================================================
@@ -87,6 +88,20 @@ CREATE UNIQUE INDEX portfolio_members_owner_idx ON portfolio_members ( portfolio
 
 
 -- ============================================================
+-- Asset classes
+-- ============================================================
+
+CREATE TABLE asset_classes (
+  id TEXT PRIMARY KEY NOT NULL
+);
+
+INSERT INTO asset_classes ( id ) VALUES
+  ( 'cash' ), ( 'bank_account' ), ( 'depot' ), ( 'security' ), ( 'real_estate' ), ( 'leasehold' ),
+  ( 'vehicle' ), ( 'valuables' ), ( 'collection' ), ( 'loan' ), ( 'participation' ), ( 'equipment' ),
+  ( 'contract' ), ( 'other' );
+
+
+-- ============================================================
 -- Assets and liabilities
 -- ============================================================
 
@@ -96,7 +111,7 @@ CREATE TABLE assets (
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
   name TEXT NOT NULL,
   description TEXT,
-  class TEXT NOT NULL,
+  class TEXT NOT NULL REFERENCES asset_classes ( id ),
   kind TEXT NOT NULL DEFAULT 'asset' CHECK ( kind IN ( 'asset', 'liability' ) ),
   currency TEXT NOT NULL DEFAULT 'EUR' CHECK ( length( currency ) = 3 ),
   color TEXT NOT NULL,
@@ -129,19 +144,18 @@ CREATE TABLE entry_types (
 );
 
 INSERT INTO entry_types ( id ) VALUES
+  ( 'cash.opening' ), ( 'cash.closing' ), ( 'cash.valuation' ), ( 'cash.cash_in' ),
+  ( 'cash.cash_out' ), ( 'cash.purchase' ), ( 'cash.sale' ), ( 'cash.transfer_in' ),
+  ( 'cash.transfer_out' ),
+
   ( 'bank_account.opening' ), ( 'bank_account.closing' ), ( 'bank_account.valuation' ),
-  ( 'bank_account.direct_debit' ), ( 'bank_account.standing_order' ), ( 'bank_account.bank_transfer' ),
-  ( 'bank_account.card_payment' ), ( 'bank_account.cash_deposit' ), ( 'bank_account.cash_withdrawal' ),
-  ( 'bank_account.incoming_payment' ), ( 'bank_account.outgoing_payment' ), ( 'bank_account.interest' ),
+  ( 'bank_account.payment_in' ), ( 'bank_account.payment_out' ), ( 'bank_account.interest' ),
   ( 'bank_account.fee' ), ( 'bank_account.tax' ), ( 'bank_account.refund' ),
   ( 'bank_account.transfer_in' ), ( 'bank_account.transfer_out' ),
 
-  ( 'cash.opening' ), ( 'cash.closing' ), ( 'cash.valuation' ), ( 'cash.cash_in' ), ( 'cash.cash_out' ),
-  ( 'cash.purchase' ), ( 'cash.sale' ), ( 'cash.transfer_in' ), ( 'cash.transfer_out' ),
-
-  ( 'depot.opening' ), ( 'depot.closing' ), ( 'depot.valuation' ), ( 'depot.deposit' ),
-  ( 'depot.withdrawal' ), ( 'depot.buy' ), ( 'depot.sell' ), ( 'depot.interest' ), ( 'depot.fee' ),
-  ( 'depot.tax' ), ( 'depot.transfer_in' ), ( 'depot.transfer_out' ),
+  ( 'depot.opening' ), ( 'depot.closing' ), ( 'depot.valuation' ), ( 'depot.buy' ),
+  ( 'depot.sell' ), ( 'depot.interest' ), ( 'depot.fee' ), ( 'depot.tax' ),
+  ( 'depot.transfer_in' ), ( 'depot.transfer_out' ),
 
   ( 'security.opening' ), ( 'security.closing' ), ( 'security.valuation' ), ( 'security.buy' ),
   ( 'security.sell' ), ( 'security.transfer_in' ), ( 'security.transfer_out' ),
@@ -150,18 +164,38 @@ INSERT INTO entry_types ( id ) VALUES
   ( 'real_estate.purchase' ), ( 'real_estate.sale' ), ( 'real_estate.transfer_in' ),
   ( 'real_estate.transfer_out' ),
 
+  ( 'leasehold.opening' ), ( 'leasehold.closing' ), ( 'leasehold.valuation' ),
+  ( 'leasehold.purchase' ), ( 'leasehold.sale' ), ( 'leasehold.transfer_in' ),
+  ( 'leasehold.transfer_out' ),
+
   ( 'vehicle.opening' ), ( 'vehicle.closing' ), ( 'vehicle.valuation' ), ( 'vehicle.purchase' ),
   ( 'vehicle.sale' ), ( 'vehicle.transfer_in' ), ( 'vehicle.transfer_out' ),
 
-  ( 'collection.opening' ), ( 'collection.closing' ), ( 'collection.valuation' ), ( 'collection.purchase' ),
-  ( 'collection.sale' ), ( 'collection.gift_in' ), ( 'collection.gift_out' ), ( 'collection.transfer_in' ),
-  ( 'collection.transfer_out' ),
+  ( 'valuables.opening' ), ( 'valuables.closing' ), ( 'valuables.valuation' ),
+  ( 'valuables.purchase' ), ( 'valuables.sale' ), ( 'valuables.gift_in' ), ( 'valuables.gift_out' ),
+  ( 'valuables.transfer_in' ), ( 'valuables.transfer_out' ),
+
+  ( 'collection.opening' ), ( 'collection.closing' ), ( 'collection.valuation' ),
+  ( 'collection.purchase' ), ( 'collection.sale' ), ( 'collection.gift_in' ),
+  ( 'collection.gift_out' ), ( 'collection.transfer_in' ), ( 'collection.transfer_out' ),
 
   ( 'loan.opening' ), ( 'loan.closing' ), ( 'loan.valuation' ), ( 'loan.disbursement' ),
   ( 'loan.repayment' ), ( 'loan.interest_accrued' ), ( 'loan.write_off' ),
 
-  ( 'other.opening' ), ( 'other.closing' ), ( 'other.valuation' ), ( 'other.purchase' ), ( 'other.sale' ),
-  ( 'other.transfer_in' ), ( 'other.transfer_out' );
+  ( 'participation.opening' ), ( 'participation.closing' ), ( 'participation.valuation' ),
+  ( 'participation.purchase' ), ( 'participation.sale' ), ( 'participation.capital_contribution' ),
+  ( 'participation.distribution' ), ( 'participation.transfer_in' ), ( 'participation.transfer_out' ),
+
+  ( 'equipment.opening' ), ( 'equipment.closing' ), ( 'equipment.valuation' ),
+  ( 'equipment.purchase' ), ( 'equipment.sale' ), ( 'equipment.transfer_in' ),
+  ( 'equipment.transfer_out' ),
+
+  ( 'contract.opening' ), ( 'contract.closing' ), ( 'contract.valuation' ),
+  ( 'contract.acquisition' ), ( 'contract.disposal' ), ( 'contract.transfer_in' ),
+  ( 'contract.transfer_out' ),
+
+  ( 'other.opening' ), ( 'other.closing' ), ( 'other.valuation' ), ( 'other.purchase' ),
+  ( 'other.sale' ), ( 'other.transfer_in' ), ( 'other.transfer_out' );
 
 
 -- ============================================================
@@ -466,7 +500,7 @@ CREATE TABLE asset_value_points (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
   asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
   effective_date TEXT NOT NULL,
-  class TEXT NOT NULL,
+  class TEXT NOT NULL REFERENCES asset_classes ( id ),
   kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
   native_value INTEGER,
   native_value_min INTEGER,
@@ -500,7 +534,7 @@ CREATE INDEX asset_value_points_asset_date_idx ON asset_value_points ( asset_id,
 
 CREATE TABLE asset_class_value_points (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
-  class TEXT NOT NULL,
+  class TEXT NOT NULL REFERENCES asset_classes ( id ),
   kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
   effective_date TEXT NOT NULL,
   value INTEGER NOT NULL,
@@ -569,7 +603,7 @@ CREATE TABLE asset_year_points (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
   asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
   year INTEGER NOT NULL CHECK ( year BETWEEN 1 AND 9999 ),
-  class TEXT NOT NULL,
+  class TEXT NOT NULL REFERENCES asset_classes ( id ),
   kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
   opening_value INTEGER NOT NULL,
   opening_value_min INTEGER,
@@ -611,7 +645,7 @@ CREATE INDEX asset_year_points_filter_idx ON asset_year_points ( portfolio_id, c
 
 CREATE TABLE asset_class_year_points (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
-  class TEXT NOT NULL,
+  class TEXT NOT NULL REFERENCES asset_classes ( id ),
   kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
   year INTEGER NOT NULL CHECK ( year BETWEEN 1 AND 9999 ),
   opening_value INTEGER NOT NULL,
