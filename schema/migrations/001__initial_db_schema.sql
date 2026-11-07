@@ -423,3 +423,31 @@ CREATE TABLE asset_value_points (
 
 CREATE INDEX asset_value_points_date_idx ON asset_value_points ( effective_date );
 CREATE INDEX asset_value_points_asset_date_idx ON asset_value_points ( asset_id, effective_date DESC );
+
+
+-- ============================================================
+-- Calculated portfolio values
+-- ============================================================
+
+CREATE TABLE portfolio_value_points (
+  portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
+  effective_date TEXT NOT NULL,
+
+  gross_assets_minor INTEGER NOT NULL,
+  liabilities_minor INTEGER NOT NULL,
+  net_worth_minor INTEGER NOT NULL,
+
+  quality TEXT CHECK ( quality IS NULL OR quality IN ( 'documented', 'estimated', 'speculative' ) ),
+
+  unconverted_assets INTEGER NOT NULL DEFAULT 0 CHECK ( unconverted_assets >= 0 ),
+  is_complete INTEGER NOT NULL DEFAULT 1 CHECK ( is_complete IN ( 0, 1 ) ),
+
+  calculation_version INTEGER NOT NULL DEFAULT 1 CHECK ( calculation_version > 0 ),
+  calculated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  PRIMARY KEY ( portfolio_id, effective_date ),
+
+  CHECK ( net_worth_minor = gross_assets_minor - liabilities_minor )
+);
+
+CREATE INDEX portfolio_value_points_date_idx ON portfolio_value_points ( effective_date );
