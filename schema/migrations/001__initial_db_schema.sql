@@ -253,6 +253,9 @@ CREATE INDEX asset_entries_quality_idx ON asset_entries ( quality );
 -- Entry consistency
 -- ============================================================
 
+-- Absolute and relative entries may not coexist on one asset
+-- and effective date. Multiple relative entries are allowed.
+
 CREATE TRIGGER asset_entries_date_type_insert
 BEFORE INSERT ON asset_entries
 WHEN EXISTS (
