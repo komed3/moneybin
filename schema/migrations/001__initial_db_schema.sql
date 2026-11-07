@@ -37,3 +37,21 @@ CREATE TABLE user_preferences (
 
   PRIMARY KEY ( user_id, key )
 );
+
+
+-- ============================================================
+-- 2. Persons and portfolios
+-- ============================================================
+
+CREATE TABLE persons (
+  id TEXT PRIMARY KEY NOT NULL,
+  created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
+  name TEXT NOT NULL,
+  birth_date TEXT,
+  description TEXT,
+  data_json TEXT NOT NULL DEFAULT '{}' CHECK ( json_valid( data_json ) ),
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+  updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) )
+);
+
+CREATE INDEX persons_created_by_idx ON persons ( created_by );
