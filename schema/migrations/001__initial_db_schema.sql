@@ -339,3 +339,60 @@ WHEN NEW.transfer_id IS NOT NULL
 BEGIN
   SELECT RAISE( ABORT, 'Invalid asset entry for transfer.' );
 END;
+
+
+-- Transfers may only connect assets of the same portfolio.
+-- Liabilities are not transfer endpoints; debt payments are
+-- recorded as ordinary relative entries.
+
+CREATE TRIGGER transfers_portfolio_insert
+BEFORE INSERT ON transfers
+WHEN NOT EXISTS (
+  SELECT 1
+  FROM assets source
+  JOIN assets target ON target.id = NEW.target_asset_id
+  WHERE source.id = NEW.source_asset_id
+    AND source.portfolio_id = NEW.portfolio_id
+    AND target.portfolio_id = NEW.portfolio_id
+    AND source.kind = 'asset'
+    AND target.kind = 'asset'
+    AND (
+      NEW.fee_asset_id IS NULL
+      OR EXISTS (
+        SELECT 1
+        FROM assets fee
+        WHERE fee.id = NEW.fee_asset_id
+          AND fee.portfolio_id = NEW.portfolio_id
+          AND fee.kind = 'asset'
+      )
+    )
+)
+BEGIN
+  SELECT RAISE( ABORT, 'Transfer assets must belong to the same portfolio and be assets.' );
+END;
+
+CREATE TRIGGER transfers_portfolio_update
+BEFORE UPDATE OF portfolio_id, source_asset_id, target_asset_id, fee_asset_id ON transfers
+WHEN NOT EXISTS (
+  SELECT 1
+  FROM assets source
+  JOIN assets target ON target.id = NEW.target_asset_id
+  WHERE source.id = NEW.source_asset_id
+    AND source.portfolio_id = NEW.portfolio_id
+    AND target.portfolio_id = NEW.portfolio_id
+    AND source.kind = 'asset'
+    AND target.kind = 'asset'
+    AND (
+      NEW.fee_asset_id IS NULL
+      OR EXISTS (
+        SELECT 1
+        FROM assets fee
+        WHERE fee.id = NEW.fee_asset_id
+          AND fee.portfolio_id = NEW.portfolio_id
+          AND fee.kind = 'asset'
+      )
+    )
+)
+BEGIN
+  SELECT RAISE( ABORT, 'Transfer assets must belong to the same portfolio and be assets.' );
+END;
