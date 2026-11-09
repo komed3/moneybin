@@ -206,10 +206,6 @@ CREATE TABLE asset_entries (
   UNIQUE ( asset_id, effective_date, sequence )
 );
 
--- An asset can have at most one absolute entry per day.
--- Relative entries may coexist with an absolute entry and with
--- other relative entries. Sequence determines their order.
-
 CREATE UNIQUE INDEX asset_entries_absolute_date_idx
   ON asset_entries ( asset_id, effective_date )
   WHERE mode = 'absolute';
@@ -224,9 +220,6 @@ CREATE INDEX asset_entries_quality_idx ON asset_entries ( quality );
 -- ============================================================
 -- Asset conversion factors
 -- ============================================================
-
--- Factors convert an asset's native currency into its portfolio's
--- base currency. They are maintained manually and historically.
 
 CREATE TABLE asset_conversion_factors (
   id TEXT PRIMARY KEY NOT NULL,
@@ -250,10 +243,6 @@ CREATE INDEX asset_conversion_factors_lookup_idx ON asset_conversion_factors ( a
 -- ============================================================
 -- Calculated asset values
 -- ============================================================
-
--- Only dates with actual entries need to be stored.
--- Values between these dates are carried forward when queried.
--- Relative entries without a preceding absolute entry start at zero.
 
 CREATE TABLE asset_value_points (
   asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
@@ -287,10 +276,6 @@ CREATE INDEX asset_value_points_class_idx ON asset_value_points ( class, kind, e
 -- ============================================================
 -- Calculated portfolio values
 -- ============================================================
-
--- Values represent the sum of converted assets and liabilities.
--- If unconverted assets exist, these are known subtotals rather
--- than a complete portfolio valuation.
 
 CREATE TABLE portfolio_value_points (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
