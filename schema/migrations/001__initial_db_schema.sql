@@ -251,7 +251,10 @@ CREATE TABLE bookings (
   CHECK ( value_type IN ( 'relative', 'absolute' ) ),
   CHECK ( exchange_rate_numerator > 0 ),
   CHECK ( exchange_rate_denominator > 0 ),
-  CHECK ( min_amount IS NULL OR max_amount IS NULL OR min_amount <= max_amount )
+  CHECK ( min_amount IS NULL OR min_amount <= amount ),
+  CHECK ( max_amount IS NULL OR max_amount >= amount ),
+  CHECK ( min_amount IS NULL OR max_amount IS NULL OR min_amount <= max_amount ),
+  CHECK ( quality IN ( 'documented', 'reconstructed', 'speculative', 'assumed' ) )
 );
 
 CREATE UNIQUE INDEX bookings_asset_absolute_idx
