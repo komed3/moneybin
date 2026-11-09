@@ -201,3 +201,15 @@ CREATE TABLE exchange_rates (
 
 CREATE INDEX exchange_rates_currencies_idx
   ON exchange_rates ( base_currency, quote_currency, effective_at );
+
+
+-- --- booking types ---
+
+CREATE TABLE booking_types (
+  id TEXT PRIMARY KEY NOT NULL
+);
+
+INSERT INTO booking_types ( id ) VALUES
+  ( 'deposit' ), ( 'withdrawal' ), ( 'transfer' ), ( 'direct_debit' ), ( 'purchase' ),
+  ( 'sale' ), ( 'fee' ), ( 'interest' ), ( 'dividend' ), ( 'tax' ), ( 'repayment' ),
+  ( 'adjustment' ), ( 'other' );
