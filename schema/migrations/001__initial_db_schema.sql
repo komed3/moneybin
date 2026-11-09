@@ -99,6 +99,7 @@ CREATE TABLE portfolios (
   name TEXT NOT NULL,
   description TEXT,
   currency TEXT NOT NULL REFERENCES currencies ( code ) ON DELETE RESTRICT,
+  note TEXT,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
   updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
