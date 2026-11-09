@@ -304,8 +304,6 @@ CREATE TABLE asset_yearly_stats (
 CREATE INDEX asset_yearly_stats_year_idx ON asset_yearly_stats ( year );
 
 
--- --- portfolio yearly stats ---
-
 CREATE TABLE portfolio_yearly_stats (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
   year INTEGER NOT NULL,
@@ -323,13 +321,28 @@ CREATE TABLE portfolio_yearly_stats (
   max_drawdown INTEGER NOT NULL,
   max_drawdown_percent REAL NOT NULL,
 
+  asset_count INTEGER NOT NULL,
+  active_asset_count INTEGER NOT NULL,
+  booking_count INTEGER NOT NULL,
+  positive_change INTEGER NOT NULL,
+  negative_change INTEGER NOT NULL,
+  average_change REAL,
+  best_day INTEGER,
+  worst_day INTEGER,
+  best_day_percent REAL,
+  worst_day_percent REAL,
+
   PRIMARY KEY ( portfolio_id, year ),
 
   CHECK ( year BETWEEN 1 AND 9999 ),
   CHECK ( quality IN ( 'documented', 'reconstructed', 'speculative', 'assumed' ) ),
   CHECK ( low <= high ),
   CHECK ( max_drawdown >= 0 ),
-  CHECK ( max_drawdown_percent >= 0 )
+  CHECK ( max_drawdown_percent >= 0 ),
+  CHECK ( asset_count >= 0 ),
+  CHECK ( active_asset_count >= 0 ),
+  CHECK ( active_asset_count <= asset_count ),
+  CHECK ( booking_count >= 0 )
 );
 
 CREATE INDEX portfolio_yearly_stats_year_idx ON portfolio_yearly_stats ( year );
