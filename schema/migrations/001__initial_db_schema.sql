@@ -57,6 +57,11 @@ CREATE TABLE currencies (
   CHECK ( decimal_places BETWEEN 0 AND 3 )
 );
 
+INSERT INTO currencies ( code, symbol, decimal_places ) VALUES
+  ( 'EUR', '€', 2 ), ( 'USD', '$', 2 ), ( 'GBP', '£', 2 ), ( 'CHF', 'CHF', 2 ),
+  ( 'RUB', '₽', 2 ), ( 'JPY', '¥', 0 ), ( 'CNY', '¥', 2 ), ( 'CAD', '$', 2 ),
+  ( 'AUD', '$', 2 ), ( 'SEK', 'kr', 2 ), ( 'PLN', 'zł', 2 );
+
 
 -- --- persons ---
 
