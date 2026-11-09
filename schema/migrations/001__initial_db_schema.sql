@@ -51,7 +51,7 @@ CREATE TABLE persons (
   id TEXT PRIMARY KEY NOT NULL,
   user_id TEXT NOT NULL REFERENCES users ( id ) ON DELETE RESTRICT,
   name TEXT NOT NULL,
-  gender TEXT NOT NULL CHECK ( mode IN ( 'M', 'F', 'D' ) ),
+  gender TEXT NOT NULL,
   birth_date TEXT,
   street TEXT,
   address_extra TEXT,
@@ -66,7 +66,8 @@ CREATE TABLE persons (
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
   updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
-  CHECK ( length( trim( name ) ) > 0 )
+  CHECK ( length( trim( name ) ) > 0 ),
+  CHECK ( mode IN ( 'M', 'F', 'D' ) )
 );
 
 CREATE INDEX persons_user_idx ON persons ( user_id );
@@ -86,3 +87,18 @@ CREATE TABLE portfolios (
 );
 
 CREATE INDEX portfolios_person_idx ON portfolios ( person_id );
+
+
+-- --- portfolio members ---
+
+CREATE TABLE portfolio_members (
+  portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
+  user_id TEXT NOT NULL REFERENCES users ( id ) ON DELETE RESTRICT,
+  role TEXT NOT NULL,
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  PRIMARY KEY ( portfolio_id, user_id ),
+  CHECK ( role IN ( 'owner', 'editor', 'viewer' ) )
+);
+
+CREATE INDEX portfolio_members_user_idx ON portfolio_members ( user_id );
