@@ -229,35 +229,41 @@ CREATE TABLE bookings (
   CHECK ( reliability IN ( 'documented', 'reconstructed', 'speculative', 'assumed' ) )
 );
 
+CREATE UNIQUE INDEX bookings_asset_absolute_idx
+  ON bookings ( asset_id, value_date )
+  WHERE value_type = 'absolute';
+
 CREATE INDEX bookings_asset_idx ON bookings ( asset_id );
 CREATE INDEX bookings_transaction_idx ON bookings ( transaction_id );
 CREATE INDEX bookings_booking_date_idx ON bookings ( booking_date );
 CREATE INDEX bookings_value_date_idx ON bookings ( value_date );
 CREATE INDEX bookings_type_idx ON bookings ( type );
 
-CREATE TRIGGER bookings_asset_date_unique_insert
+CREATE TRIGGER bookings_no_mixed_insert
 BEFORE INSERT ON bookings
 WHEN EXISTS (
   SELECT 1
   FROM bookings
   WHERE asset_id = NEW.asset_id
     AND value_date = NEW.value_date
+    AND value_type <> NEW.value_type
 )
 BEGIN
-  SELECT RAISE( ABORT, 'Only one booking per asset and value date is allowed' );
+  SELECT RAISE( ABORT, 'Absolute and relative bookings cannot coexist for the same asset and date' );
 END;
 
-CREATE TRIGGER bookings_asset_date_unique_update
-BEFORE UPDATE OF asset_id, value_date ON bookings
+CREATE TRIGGER bookings_no_mixed_update
+BEFORE UPDATE OF asset_id, value_date, value_type ON bookings
 WHEN EXISTS (
   SELECT 1
   FROM bookings
   WHERE asset_id = NEW.asset_id
     AND value_date = NEW.value_date
-    AND id != NEW.id
+    AND value_type <> NEW.value_type
+    AND id <> OLD.id
 )
 BEGIN
-  SELECT RAISE( ABORT, 'Only one booking per asset and value date is allowed' );
+  SELECT RAISE( ABORT, 'Absolute and relative bookings cannot coexist for the same asset and date' );
 END;
 
 
