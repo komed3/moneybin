@@ -184,28 +184,6 @@ CREATE INDEX assets_type_idx ON assets ( type );
 CREATE INDEX assets_liquidation_level_idx ON assets ( liquidation_level );
 
 
--- --- exchange rates ---
-
-CREATE TABLE exchange_rates (
-  id TEXT PRIMARY KEY NOT NULL,
-  base_currency TEXT NOT NULL REFERENCES currencies ( code ) ON DELETE RESTRICT,
-  quote_currency TEXT NOT NULL REFERENCES currencies ( code ) ON DELETE RESTRICT,
-  rate_numerator INTEGER NOT NULL,
-  rate_denominator INTEGER NOT NULL,
-  effective_at TEXT NOT NULL,
-  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
-
-  UNIQUE ( base_currency, quote_currency, effective_at ),
-
-  CHECK ( base_currency <> quote_currency ),
-  CHECK ( rate_numerator > 0 ),
-  CHECK ( rate_denominator > 0 )
-);
-
-CREATE INDEX exchange_rates_currencies_idx
-  ON exchange_rates ( base_currency, quote_currency, effective_at );
-
-
 -- --- booking types ---
 
 CREATE TABLE booking_types (
