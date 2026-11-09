@@ -301,7 +301,8 @@ CREATE TABLE asset_yearly_stats (
   CHECK ( high >= close ),
   CHECK ( low <= close ),
   CHECK ( open IS NULL OR high >= open ),
-  CHECK ( open IS NULL OR low <= open )
+  CHECK ( open IS NULL OR low <= open ),
+  CHECK ( volatility IS NULL OR volatility >= 0 ),
   CHECK ( max_drawdown >= 0 ),
   CHECK ( max_drawdown_percent >= 0 ),
   CHECK ( booking_count >= 0 ),
@@ -351,7 +352,8 @@ CREATE TABLE portfolio_yearly_stats (
   CHECK ( high >= close ),
   CHECK ( low <= close ),
   CHECK ( open IS NULL OR high >= open ),
-  CHECK ( open IS NULL OR low <= open )
+  CHECK ( open IS NULL OR low <= open ),
+  CHECK ( volatility IS NULL OR volatility >= 0 ),
   CHECK ( max_drawdown >= 0 ),
   CHECK ( max_drawdown_percent >= 0 ),
   CHECK ( asset_count >= 0 ),
