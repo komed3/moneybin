@@ -48,7 +48,7 @@ CREATE TABLE persons (
   id TEXT PRIMARY KEY NOT NULL,
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
   name TEXT NOT NULL,
-  birth_date TEXT,
+  birth_date TEXT CHECK ( birth_date IS NULL OR date( birth_date ) = birth_date ),
   description TEXT,
   data_json TEXT NOT NULL DEFAULT '{}' CHECK ( json_valid( data_json ) ),
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
@@ -63,9 +63,9 @@ CREATE TABLE portfolios (
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
   name TEXT NOT NULL,
   description TEXT,
-  base_currency TEXT NOT NULL DEFAULT 'EUR' CHECK ( length( base_currency ) = 3 ),
-  start_date TEXT NOT NULL,
-  end_date TEXT,
+  base_currency TEXT NOT NULL DEFAULT 'EUR' CHECK ( base_currency GLOB '[A-Z][A-Z][A-Z]' ),
+  start_date TEXT NOT NULL CHECK ( date( start_date ) = start_date ),
+  end_date TEXT CHECK ( end_date IS NULL OR date( end_date ) = end_date ),
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
   updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
@@ -96,9 +96,9 @@ CREATE TABLE asset_classes (
 );
 
 INSERT INTO asset_classes ( id ) VALUES
-  ( 'cash' ), ( 'account' ), ( 'depot' ), ( 'security' ), ( 'property' ),
-  ( 'leasehold' ), ( 'vehicle' ), ( 'valuables' ), ( 'collection' ),
-  ( 'loan' ), ( 'participation' ), ( 'equipment' ), ( 'contract' ), ( 'other' );
+  ( 'cash' ), ( 'account' ), ( 'depot' ), ( 'security' ), ( 'property' ), ( 'leasehold' ),
+  ( 'vehicle' ), ( 'valuables' ), ( 'collection' ), ( 'loan' ), ( 'participation' ),
+  ( 'equipment' ), ( 'contract' ), ( 'other' );
 
 
 -- ============================================================
@@ -113,14 +113,14 @@ CREATE TABLE assets (
   description TEXT,
   class TEXT NOT NULL REFERENCES asset_classes ( id ),
   kind TEXT NOT NULL DEFAULT 'asset' CHECK ( kind IN ( 'asset', 'liability' ) ),
-  currency TEXT NOT NULL DEFAULT 'EUR' CHECK ( length( currency ) = 3 ),
+  currency TEXT NOT NULL DEFAULT 'EUR' CHECK ( currency GLOB '[A-Z][A-Z][A-Z]' ),
   color TEXT NOT NULL,
   icon TEXT NOT NULL,
   liquidity TEXT NOT NULL DEFAULT 'unknown' CHECK ( liquidity IN (
     'immediate', 'short_term', 'medium_term', 'long_term', 'illiquid', 'unknown'
   ) ),
-  start_date TEXT NOT NULL,
-  end_date TEXT,
+  start_date TEXT NOT NULL CHECK ( date( start_date ) = start_date ),
+  end_date TEXT CHECK ( end_date IS NULL OR date( end_date ) = end_date ),
   is_active INTEGER NOT NULL DEFAULT 1 CHECK ( is_active IN ( 0, 1 ) ),
   metadata_json TEXT NOT NULL DEFAULT '{}' CHECK ( json_valid( metadata_json ) ),
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
@@ -145,14 +145,23 @@ CREATE TABLE entry_types (
 );
 
 INSERT INTO entry_types ( id ) VALUES
-  ( 'opening' ), ( 'closing' ), ( 'valuation' ),
-  ( 'deposit' ), ( 'withdrawal' ), ( 'payment_in' ), ( 'payment_out' ),
-  ( 'purchase' ), ( 'sale' ), ( 'buy' ), ( 'sell' ),
-  ( 'transfer_in' ), ( 'transfer_out' ),
-  ( 'interest' ), ( 'fee' ), ( 'tax' ), ( 'refund' ),
-  ( 'gift_in' ), ( 'gift_out' ), ( 'disbursement' ), ( 'repayment' ),
-  ( 'write_off' ), ( 'contribution' ), ( 'distribution' ),
-  ( 'acquisition' ), ( 'disposal' ), ( 'other' );
+  ( 'opening' ), ( 'closing' ), ( 'valuation' ), ( 'deposit' ), ( 'withdrawal' ), ( 'payment_in' ),
+  ( 'payment_out' ), ( 'purchase' ), ( 'sale' ), ( 'transfer_in' ), ( 'transfer_out' ), ( 'interest' ),
+  ( 'fee' ), ( 'tax' ), ( 'refund' ), ( 'gift_in' ), ( 'gift_out' ), ( 'disbursement' ), ( 'repayment' ),
+  ( 'write_off' ), ( 'contribution' ), ( 'distribution' ), ( 'other' );
+
+
+-- ============================================================
+-- Transaction types
+-- ============================================================
+
+CREATE TABLE transaction_types (
+  id TEXT PRIMARY KEY NOT NULL
+);
+
+INSERT INTO transaction_types ( id ) VALUES
+  ( 'transfer' ), ( 'purchase' ), ( 'sale' ), ( 'contribution' ), ( 'distribution' ), ( 'income' ),
+  ( 'expense' ), ( 'repayment' ), ( 'other' );
 
 
 -- ============================================================
@@ -162,7 +171,7 @@ INSERT INTO entry_types ( id ) VALUES
 CREATE TABLE transactions (
   id TEXT PRIMARY KEY NOT NULL,
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
-  type TEXT NOT NULL DEFAULT 'other',
+  type TEXT NOT NULL DEFAULT 'other' REFERENCES transaction_types ( id ),
   note TEXT,
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
@@ -189,9 +198,9 @@ CREATE TABLE asset_entries (
   amount INTEGER NOT NULL,
   amount_min INTEGER,
   amount_max INTEGER,
-  effective_date TEXT NOT NULL,
-  booking_date TEXT,
-  value_date TEXT,
+  effective_date TEXT NOT NULL CHECK ( date( effective_date ) = effective_date ),
+  booking_date TEXT CHECK ( booking_date IS NULL OR date( booking_date ) = booking_date ),
+  value_date TEXT CHECK ( value_date IS NULL OR date( value_date ) = value_date ),
   sequence INTEGER NOT NULL DEFAULT 0 CHECK ( sequence >= 0 ),
   quality TEXT NOT NULL DEFAULT 'documented' CHECK ( quality IN (
     'documented', 'estimated', 'speculative'
@@ -204,14 +213,14 @@ CREATE TABLE asset_entries (
   CHECK ( amount_min IS NULL OR amount_min <= amount ),
   CHECK ( amount_max IS NULL OR amount_max >= amount ),
 
-  UNIQUE ( asset_id, effective_date, sequence )
+  UNIQUE ( asset_id, effective_date, sequence ),
+  UNIQUE ( id, asset_id )
 );
 
 CREATE UNIQUE INDEX asset_entries_absolute_date_idx
   ON asset_entries ( asset_id, effective_date )
   WHERE mode = 'absolute';
 
-CREATE INDEX asset_entries_asset_date_idx ON asset_entries ( asset_id, effective_date, sequence );
 CREATE INDEX asset_entries_date_idx ON asset_entries ( effective_date );
 CREATE INDEX asset_entries_transaction_idx ON asset_entries ( transaction_id );
 CREATE INDEX asset_entries_type_idx ON asset_entries ( type );
@@ -293,7 +302,7 @@ END;
 CREATE TABLE asset_conversion_factors (
   id TEXT PRIMARY KEY NOT NULL,
   asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
-  effective_date TEXT NOT NULL,
+  effective_date TEXT NOT NULL CHECK ( date( effective_date ) = effective_date ),
   numerator INTEGER NOT NULL CHECK ( numerator > 0 ),
   denominator INTEGER NOT NULL CHECK ( denominator > 0 ),
   quality TEXT NOT NULL DEFAULT 'documented' CHECK ( quality IN (
@@ -307,7 +316,7 @@ CREATE TABLE asset_conversion_factors (
   UNIQUE ( id, asset_id )
 );
 
-CREATE INDEX asset_conversion_factors_lookup_idx ON asset_conversion_factors ( asset_id, effective_date DESC );
+CREATE INDEX asset_conversion_factors_asset_idx ON asset_conversion_factors ( asset_id );
 
 
 -- ============================================================
@@ -317,7 +326,7 @@ CREATE INDEX asset_conversion_factors_lookup_idx ON asset_conversion_factors ( a
 CREATE TABLE asset_value_points (
   asset_id TEXT NOT NULL,
   portfolio_id TEXT NOT NULL,
-  effective_date TEXT NOT NULL,
+  effective_date TEXT NOT NULL CHECK ( date( effective_date ) = effective_date ),
   class TEXT NOT NULL REFERENCES asset_classes ( id ),
   kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
   native_value INTEGER NOT NULL,
@@ -334,7 +343,7 @@ CREATE TABLE asset_value_points (
 
   PRIMARY KEY ( asset_id, effective_date ),
   FOREIGN KEY ( asset_id, portfolio_id ) REFERENCES assets ( id, portfolio_id ) ON DELETE CASCADE,
-  FOREIGN KEY ( conversion_factor_id, asset_id ) REFERENCES asset_conversion_factors ( id, asset_id ) ON DELETE SET NULL,
+  FOREIGN KEY ( conversion_factor_id, asset_id ) REFERENCES asset_conversion_factors ( id, asset_id ),
 
   CHECK ( native_value_min IS NULL OR native_value_min <= native_value ),
   CHECK ( native_value_max IS NULL OR native_value_max >= native_value ),
@@ -344,7 +353,7 @@ CREATE TABLE asset_value_points (
 
 CREATE INDEX asset_value_points_date_idx ON asset_value_points ( effective_date );
 CREATE INDEX asset_value_points_portfolio_idx ON asset_value_points ( portfolio_id, effective_date );
-CREATE INDEX asset_value_points_class_idx ON asset_value_points ( class, kind, effective_date );
+CREATE INDEX asset_value_points_class_idx ON asset_value_points ( portfolio_id, class, kind, effective_date );
 
 
 CREATE TRIGGER asset_value_points_metadata_insert
@@ -361,10 +370,32 @@ BEGIN
     )
     THEN RAISE( ABORT, 'Asset value point metadata does not match its asset' )
   END;
+
+  SELECT CASE
+    WHEN NEW.last_entry_id IS NOT NULL AND NOT EXISTS (
+      SELECT 1
+      FROM asset_entries e
+      WHERE e.id = NEW.last_entry_id
+        AND e.asset_id = NEW.asset_id
+        AND e.effective_date <= NEW.effective_date
+    )
+    THEN RAISE( ABORT, 'Last entry must belong to the asset and be effective' )
+  END;
+
+  SELECT CASE
+    WHEN NEW.conversion_factor_id IS NOT NULL AND NOT EXISTS (
+      SELECT 1
+      FROM asset_conversion_factors f
+      WHERE f.id = NEW.conversion_factor_id
+        AND f.asset_id = NEW.asset_id
+        AND f.effective_date <= NEW.effective_date
+    )
+    THEN RAISE( ABORT, 'Conversion factor must belong to the asset and be effective' )
+  END;
 END;
 
 CREATE TRIGGER asset_value_points_metadata_update
-BEFORE UPDATE OF asset_id, portfolio_id, class, kind ON asset_value_points
+BEFORE UPDATE ON asset_value_points
 BEGIN
   SELECT CASE
     WHEN NOT EXISTS (
@@ -377,7 +408,57 @@ BEGIN
     )
     THEN RAISE( ABORT, 'Asset value point metadata does not match its asset' )
   END;
+
+  SELECT CASE
+    WHEN NEW.last_entry_id IS NOT NULL AND NOT EXISTS (
+      SELECT 1
+      FROM asset_entries e
+      WHERE e.id = NEW.last_entry_id
+        AND e.asset_id = NEW.asset_id
+        AND e.effective_date <= NEW.effective_date
+    )
+    THEN RAISE( ABORT, 'Last entry must belong to the asset and be effective' )
+  END;
+
+  SELECT CASE
+    WHEN NEW.conversion_factor_id IS NOT NULL AND NOT EXISTS (
+      SELECT 1
+      FROM asset_conversion_factors f
+      WHERE f.id = NEW.conversion_factor_id
+        AND f.asset_id = NEW.asset_id
+        AND f.effective_date <= NEW.effective_date
+    )
+    THEN RAISE( ABORT, 'Conversion factor must belong to the asset and be effective' )
+  END;
 END;
+
+
+-- ============================================================
+-- Calculated asset class values
+-- ============================================================
+
+CREATE TABLE asset_class_value_points (
+  portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
+  effective_date TEXT NOT NULL CHECK ( date( effective_date ) = effective_date ),
+  class TEXT NOT NULL REFERENCES asset_classes ( id ),
+  kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
+  value INTEGER NOT NULL,
+  value_min INTEGER,
+  value_max INTEGER,
+  quality TEXT NOT NULL CHECK ( quality IN ( 'documented', 'estimated', 'speculative' ) ),
+  unconverted_assets INTEGER NOT NULL DEFAULT 0 CHECK ( unconverted_assets >= 0 ),
+  is_complete INTEGER NOT NULL DEFAULT 1 CHECK ( is_complete IN ( 0, 1 ) ),
+  calculation_version INTEGER NOT NULL DEFAULT 1 CHECK ( calculation_version > 0 ),
+  calculated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  PRIMARY KEY ( portfolio_id, effective_date, class, kind ),
+
+  CHECK ( value_min IS NULL OR value_min <= value ),
+  CHECK ( value_max IS NULL OR value_max >= value ),
+  CHECK ( is_complete = 0 OR unconverted_assets = 0 )
+);
+
+CREATE INDEX asset_class_value_points_date_idx ON asset_class_value_points ( portfolio_id, effective_date );
 
 
 -- ============================================================
@@ -386,7 +467,7 @@ END;
 
 CREATE TABLE portfolio_value_points (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
-  effective_date TEXT NOT NULL,
+  effective_date TEXT NOT NULL CHECK ( date( effective_date ) = effective_date ),
   gross_assets INTEGER NOT NULL,
   gross_assets_min INTEGER,
   gross_assets_max INTEGER,
@@ -414,7 +495,108 @@ CREATE TABLE portfolio_value_points (
   CHECK ( is_complete = 0 OR unconverted_assets = 0 )
 );
 
-CREATE INDEX portfolio_value_points_date_idx ON portfolio_value_points ( portfolio_id, effective_date );
+
+-- ============================================================
+-- Calculated annual asset values
+-- ============================================================
+
+CREATE TABLE asset_year_points (
+  asset_id TEXT NOT NULL,
+  portfolio_id TEXT NOT NULL,
+  class TEXT NOT NULL REFERENCES asset_classes ( id ),
+  kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
+  year INTEGER NOT NULL CHECK ( year BETWEEN 1 AND 9999 ),
+  opening_native_value INTEGER NOT NULL,
+  closing_native_value INTEGER NOT NULL,
+  opening_portfolio_value INTEGER,
+  closing_portfolio_value INTEGER,
+  purchase_volume INTEGER NOT NULL DEFAULT 0,
+  sale_volume INTEGER NOT NULL DEFAULT 0,
+  deposits INTEGER NOT NULL DEFAULT 0,
+  withdrawals INTEGER NOT NULL DEFAULT 0,
+  distributions INTEGER NOT NULL DEFAULT 0,
+  fees INTEGER NOT NULL DEFAULT 0,
+  taxes INTEGER NOT NULL DEFAULT 0,
+  interest_income INTEGER NOT NULL DEFAULT 0,
+  contributions INTEGER NOT NULL DEFAULT 0,
+  quality TEXT NOT NULL CHECK ( quality IN ( 'documented', 'estimated', 'speculative' ) ),
+  unconverted INTEGER NOT NULL DEFAULT 0 CHECK ( unconverted IN ( 0, 1 ) ),
+  calculation_version INTEGER NOT NULL DEFAULT 1 CHECK ( calculation_version > 0 ),
+  calculated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  PRIMARY KEY ( asset_id, year ),
+  FOREIGN KEY ( asset_id, portfolio_id ) REFERENCES assets ( id, portfolio_id ) ON DELETE CASCADE
+);
+
+CREATE INDEX asset_year_points_portfolio_idx ON asset_year_points ( portfolio_id, year );
+
+
+-- ============================================================
+-- Calculated annual asset class values
+-- ============================================================
+
+CREATE TABLE asset_class_year_points (
+  portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
+  class TEXT NOT NULL REFERENCES asset_classes ( id ),
+  kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
+  year INTEGER NOT NULL CHECK ( year BETWEEN 1 AND 9999 ),
+  opening_value INTEGER NOT NULL,
+  closing_value INTEGER NOT NULL,
+  purchase_volume INTEGER NOT NULL DEFAULT 0,
+  sale_volume INTEGER NOT NULL DEFAULT 0,
+  deposits INTEGER NOT NULL DEFAULT 0,
+  withdrawals INTEGER NOT NULL DEFAULT 0,
+  distributions INTEGER NOT NULL DEFAULT 0,
+  fees INTEGER NOT NULL DEFAULT 0,
+  taxes INTEGER NOT NULL DEFAULT 0,
+  interest_income INTEGER NOT NULL DEFAULT 0,
+  contributions INTEGER NOT NULL DEFAULT 0,
+  quality TEXT NOT NULL CHECK ( quality IN ( 'documented', 'estimated', 'speculative' ) ),
+  unconverted_assets INTEGER NOT NULL DEFAULT 0 CHECK ( unconverted_assets >= 0 ),
+  is_complete INTEGER NOT NULL DEFAULT 1 CHECK ( is_complete IN ( 0, 1 ) ),
+  calculation_version INTEGER NOT NULL DEFAULT 1 CHECK ( calculation_version > 0 ),
+  calculated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  PRIMARY KEY ( portfolio_id, class, kind, year ),
+
+  CHECK ( is_complete = 0 OR unconverted_assets = 0 )
+);
+
+
+-- ============================================================
+-- Calculated annual portfolio values
+-- ============================================================
+
+CREATE TABLE portfolio_year_points (
+  portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
+  year INTEGER NOT NULL CHECK ( year BETWEEN 1 AND 9999 ),
+  opening_gross_assets INTEGER NOT NULL,
+  closing_gross_assets INTEGER NOT NULL,
+  opening_liabilities INTEGER NOT NULL,
+  closing_liabilities INTEGER NOT NULL,
+  opening_net_worth INTEGER NOT NULL,
+  closing_net_worth INTEGER NOT NULL,
+  purchase_volume INTEGER NOT NULL DEFAULT 0,
+  sale_volume INTEGER NOT NULL DEFAULT 0,
+  deposits INTEGER NOT NULL DEFAULT 0,
+  withdrawals INTEGER NOT NULL DEFAULT 0,
+  distributions INTEGER NOT NULL DEFAULT 0,
+  fees INTEGER NOT NULL DEFAULT 0,
+  taxes INTEGER NOT NULL DEFAULT 0,
+  interest_income INTEGER NOT NULL DEFAULT 0,
+  contributions INTEGER NOT NULL DEFAULT 0,
+  quality TEXT NOT NULL CHECK ( quality IN ( 'documented', 'estimated', 'speculative' ) ),
+  unconverted_assets INTEGER NOT NULL DEFAULT 0 CHECK ( unconverted_assets >= 0 ),
+  is_complete INTEGER NOT NULL DEFAULT 1 CHECK ( is_complete IN ( 0, 1 ) ),
+  calculation_version INTEGER NOT NULL DEFAULT 1 CHECK ( calculation_version > 0 ),
+  calculated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  PRIMARY KEY ( portfolio_id, year ),
+
+  CHECK ( opening_net_worth = opening_gross_assets - opening_liabilities ),
+  CHECK ( closing_net_worth = closing_gross_assets - closing_liabilities ),
+  CHECK ( is_complete = 0 OR unconverted_assets = 0 )
+);
 
 
 -- ============================================================
@@ -444,14 +626,11 @@ CREATE TABLE document_links (
   CHECK (
     ( asset_id IS NOT NULL AND entry_id IS NULL ) OR
     ( asset_id IS NULL AND entry_id IS NOT NULL )
-  ),
-
-  UNIQUE ( document_id, asset_id ),
-  UNIQUE ( document_id, entry_id )
+  )
 );
 
-CREATE INDEX document_links_asset_idx ON document_links ( asset_id );
-CREATE INDEX document_links_entry_idx ON document_links ( entry_id );
+CREATE UNIQUE INDEX document_links_asset_idx ON document_links ( document_id, asset_id ) WHERE asset_id IS NOT NULL;
+CREATE UNIQUE INDEX document_links_entry_idx ON document_links ( document_id, entry_id ) WHERE entry_id IS NOT NULL;
 
 
 -- ============================================================
@@ -478,11 +657,14 @@ CREATE INDEX audit_log_user_idx ON audit_log ( user_id, created_at DESC );
 -- ============================================================
 
 CREATE TRIGGER assets_history_metadata_update
-BEFORE UPDATE OF portfolio_id, class, kind ON assets
+BEFORE UPDATE OF portfolio_id, class, kind, currency, start_date, end_date ON assets
 WHEN
   NEW.portfolio_id <> OLD.portfolio_id OR
   NEW.class <> OLD.class OR
-  NEW.kind <> OLD.kind
+  NEW.kind <> OLD.kind OR
+  NEW.currency <> OLD.currency OR
+  NEW.start_date <> OLD.start_date OR
+  NEW.end_date IS NOT OLD.end_date
 BEGIN
   SELECT CASE
     WHEN EXISTS (
@@ -490,17 +672,100 @@ BEGIN
       FROM asset_entries e
       WHERE e.asset_id = OLD.id
     )
-    THEN RAISE( ABORT, 'Asset portfolio, class or kind cannot change after entries exist' )
-  END;
-
-  SELECT CASE
-    WHEN EXISTS (
+    OR EXISTS (
+      SELECT 1
+      FROM asset_conversion_factors f
+      WHERE f.asset_id = OLD.id
+    )
+    OR EXISTS (
       SELECT 1
       FROM asset_value_points p
       WHERE p.asset_id = OLD.id
     )
-    THEN RAISE( ABORT, 'Asset portfolio, class or kind cannot change after value points exist' )
+    OR EXISTS (
+      SELECT 1
+      FROM asset_year_points p
+      WHERE p.asset_id = OLD.id
+    )
+    THEN RAISE( ABORT, 'Asset historical metadata cannot change after history exists' )
   END;
+END;
+
+
+-- ============================================================
+-- Portfolio currency integrity
+-- ============================================================
+
+CREATE TRIGGER portfolios_currency_history_update
+BEFORE UPDATE OF base_currency ON portfolios
+WHEN NEW.base_currency <> OLD.base_currency
+BEGIN
+  SELECT CASE
+    WHEN EXISTS (
+      SELECT 1
+      FROM assets a
+      JOIN asset_conversion_factors f ON f.asset_id = a.id
+      WHERE a.portfolio_id = OLD.id
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM asset_value_points p
+      WHERE p.portfolio_id = OLD.id
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM asset_class_value_points p
+      WHERE p.portfolio_id = OLD.id
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM portfolio_value_points p
+      WHERE p.portfolio_id = OLD.id
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM asset_year_points p
+      WHERE p.portfolio_id = OLD.id
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM asset_class_year_points p
+      WHERE p.portfolio_id = OLD.id
+    )
+    OR EXISTS (
+      SELECT 1
+      FROM portfolio_year_points p
+      WHERE p.portfolio_id = OLD.id
+    )
+    THEN RAISE( ABORT, 'Portfolio currency cannot change after historical values exist' )
+  END;
+END;
+
+
+-- ============================================================
+-- Conversion factor integrity
+-- ============================================================
+
+CREATE TRIGGER asset_conversion_factors_update
+BEFORE UPDATE ON asset_conversion_factors
+WHEN EXISTS (
+  SELECT 1
+  FROM asset_value_points p
+  WHERE p.conversion_factor_id = OLD.id
+)
+BEGIN
+  SELECT RAISE( ABORT, 'Conversion factor cannot change while historical values reference it' );
+END;
+
+CREATE TRIGGER asset_conversion_factors_delete
+BEFORE DELETE ON asset_conversion_factors
+WHEN EXISTS (
+  SELECT 1
+  FROM asset_value_points p
+  WHERE p.conversion_factor_id = OLD.id
+)
+BEGIN
+  SELECT RAISE( ABORT, 'Conversion factor cannot be deleted while historical values reference it' );
 END;
 
 
