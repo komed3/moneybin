@@ -126,7 +126,8 @@ CREATE TABLE assets (
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
   updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
-  CHECK ( end_date IS NULL OR end_date >= start_date )
+  CHECK ( end_date IS NULL OR end_date >= start_date ),
+  UNIQUE ( id, portfolio_id )
 );
 
 CREATE INDEX assets_portfolio_idx ON assets ( portfolio_id, is_active );
@@ -160,13 +161,17 @@ INSERT INTO entry_types ( id ) VALUES
 
 CREATE TABLE transactions (
   id TEXT PRIMARY KEY NOT NULL,
+  portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
   type TEXT NOT NULL DEFAULT 'other',
   note TEXT,
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
-  updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) )
+  updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  UNIQUE ( id, portfolio_id )
 );
 
+CREATE INDEX transactions_portfolio_idx ON transactions ( portfolio_id, created_at );
 CREATE INDEX transactions_type_idx ON transactions ( type );
 
 
@@ -198,10 +203,6 @@ CREATE TABLE asset_entries (
 
   CHECK ( amount_min IS NULL OR amount_min <= amount ),
   CHECK ( amount_max IS NULL OR amount_max >= amount ),
-  CHECK (
-    ( mode = 'absolute' AND amount >= 0 ) OR
-    ( mode = 'relative' AND amount <> 0 )
-  ),
 
   UNIQUE ( asset_id, effective_date, sequence )
 );
@@ -215,6 +216,74 @@ CREATE INDEX asset_entries_date_idx ON asset_entries ( effective_date );
 CREATE INDEX asset_entries_transaction_idx ON asset_entries ( transaction_id );
 CREATE INDEX asset_entries_type_idx ON asset_entries ( type );
 CREATE INDEX asset_entries_quality_idx ON asset_entries ( quality );
+
+
+-- ============================================================
+-- Asset entry integrity
+-- ============================================================
+
+CREATE TRIGGER asset_entries_mode_insert
+BEFORE INSERT ON asset_entries
+BEGIN
+  SELECT CASE
+    WHEN EXISTS (
+      SELECT 1
+      FROM asset_entries e
+      WHERE e.asset_id = NEW.asset_id
+        AND e.effective_date = NEW.effective_date
+        AND e.mode <> NEW.mode
+    )
+    THEN RAISE( ABORT, 'Absolute and relative entries cannot share an asset date' )
+  END;
+END;
+
+CREATE TRIGGER asset_entries_mode_update
+BEFORE UPDATE OF asset_id, effective_date, mode ON asset_entries
+BEGIN
+  SELECT CASE
+    WHEN EXISTS (
+      SELECT 1
+      FROM asset_entries e
+      WHERE e.asset_id = NEW.asset_id
+        AND e.effective_date = NEW.effective_date
+        AND e.id <> OLD.id
+        AND e.mode <> NEW.mode
+    )
+    THEN RAISE( ABORT, 'Absolute and relative entries cannot share an asset date' )
+  END;
+END;
+
+CREATE TRIGGER asset_entries_transaction_insert
+BEFORE INSERT ON asset_entries
+WHEN NEW.transaction_id IS NOT NULL
+BEGIN
+  SELECT CASE
+    WHEN NOT EXISTS (
+      SELECT 1
+      FROM transactions t
+      JOIN assets a ON a.id = NEW.asset_id
+      WHERE t.id = NEW.transaction_id
+        AND t.portfolio_id = a.portfolio_id
+    )
+    THEN RAISE( ABORT, 'Transaction and asset must belong to the same portfolio' )
+  END;
+END;
+
+CREATE TRIGGER asset_entries_transaction_update
+BEFORE UPDATE OF transaction_id, asset_id ON asset_entries
+WHEN NEW.transaction_id IS NOT NULL
+BEGIN
+  SELECT CASE
+    WHEN NOT EXISTS (
+      SELECT 1
+      FROM transactions t
+      JOIN assets a ON a.id = NEW.asset_id
+      WHERE t.id = NEW.transaction_id
+        AND t.portfolio_id = a.portfolio_id
+    )
+    THEN RAISE( ABORT, 'Transaction and asset must belong to the same portfolio' )
+  END;
+END;
 
 
 -- ============================================================
@@ -234,7 +303,8 @@ CREATE TABLE asset_conversion_factors (
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
-  UNIQUE ( asset_id, effective_date )
+  UNIQUE ( asset_id, effective_date ),
+  UNIQUE ( id, asset_id )
 );
 
 CREATE INDEX asset_conversion_factors_lookup_idx ON asset_conversion_factors ( asset_id, effective_date DESC );
@@ -245,7 +315,8 @@ CREATE INDEX asset_conversion_factors_lookup_idx ON asset_conversion_factors ( a
 -- ============================================================
 
 CREATE TABLE asset_value_points (
-  asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
+  asset_id TEXT NOT NULL,
+  portfolio_id TEXT NOT NULL,
   effective_date TEXT NOT NULL,
   class TEXT NOT NULL REFERENCES asset_classes ( id ),
   kind TEXT NOT NULL CHECK ( kind IN ( 'asset', 'liability' ) ),
@@ -256,12 +327,14 @@ CREATE TABLE asset_value_points (
   portfolio_value_min INTEGER,
   portfolio_value_max INTEGER,
   quality TEXT NOT NULL CHECK ( quality IN ( 'documented', 'estimated', 'speculative' ) ),
-  conversion_factor_id TEXT REFERENCES asset_conversion_factors ( id ) ON DELETE SET NULL,
+  conversion_factor_id TEXT,
   last_entry_id TEXT REFERENCES asset_entries ( id ) ON DELETE SET NULL,
   calculation_version INTEGER NOT NULL DEFAULT 1 CHECK ( calculation_version > 0 ),
   calculated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
   PRIMARY KEY ( asset_id, effective_date ),
+  FOREIGN KEY ( asset_id, portfolio_id ) REFERENCES assets ( id, portfolio_id ) ON DELETE CASCADE,
+  FOREIGN KEY ( conversion_factor_id, asset_id ) REFERENCES asset_conversion_factors ( id, asset_id ) ON DELETE SET NULL,
 
   CHECK ( native_value_min IS NULL OR native_value_min <= native_value ),
   CHECK ( native_value_max IS NULL OR native_value_max >= native_value ),
@@ -270,7 +343,41 @@ CREATE TABLE asset_value_points (
 );
 
 CREATE INDEX asset_value_points_date_idx ON asset_value_points ( effective_date );
+CREATE INDEX asset_value_points_portfolio_idx ON asset_value_points ( portfolio_id, effective_date );
 CREATE INDEX asset_value_points_class_idx ON asset_value_points ( class, kind, effective_date );
+
+
+CREATE TRIGGER asset_value_points_metadata_insert
+BEFORE INSERT ON asset_value_points
+BEGIN
+  SELECT CASE
+    WHEN NOT EXISTS (
+      SELECT 1
+      FROM assets a
+      WHERE a.id = NEW.asset_id
+        AND a.portfolio_id = NEW.portfolio_id
+        AND a.class = NEW.class
+        AND a.kind = NEW.kind
+    )
+    THEN RAISE( ABORT, 'Asset value point metadata does not match its asset' )
+  END;
+END;
+
+CREATE TRIGGER asset_value_points_metadata_update
+BEFORE UPDATE OF asset_id, portfolio_id, class, kind ON asset_value_points
+BEGIN
+  SELECT CASE
+    WHEN NOT EXISTS (
+      SELECT 1
+      FROM assets a
+      WHERE a.id = NEW.asset_id
+        AND a.portfolio_id = NEW.portfolio_id
+        AND a.class = NEW.class
+        AND a.kind = NEW.kind
+    )
+    THEN RAISE( ABORT, 'Asset value point metadata does not match its asset' )
+  END;
+END;
 
 
 -- ============================================================
@@ -328,25 +435,23 @@ CREATE TABLE documents (
 
 CREATE INDEX documents_hash_idx ON documents ( file_hash );
 
-CREATE TABLE entry_documents (
-  entry_id TEXT NOT NULL REFERENCES asset_entries ( id ) ON DELETE CASCADE,
+CREATE TABLE document_links (
   document_id TEXT NOT NULL REFERENCES documents ( id ) ON DELETE CASCADE,
+  asset_id TEXT REFERENCES assets ( id ) ON DELETE CASCADE,
+  entry_id TEXT REFERENCES asset_entries ( id ) ON DELETE CASCADE,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
-  PRIMARY KEY ( entry_id, document_id )
+  CHECK (
+    ( asset_id IS NOT NULL AND entry_id IS NULL ) OR
+    ( asset_id IS NULL AND entry_id IS NOT NULL )
+  ),
+
+  UNIQUE ( document_id, asset_id ),
+  UNIQUE ( document_id, entry_id )
 );
 
-CREATE INDEX entry_documents_document_idx ON entry_documents ( document_id );
-
-CREATE TABLE asset_documents (
-  asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
-  document_id TEXT NOT NULL REFERENCES documents ( id ) ON DELETE CASCADE,
-  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
-
-  PRIMARY KEY ( asset_id, document_id )
-);
-
-CREATE INDEX asset_documents_document_idx ON asset_documents ( document_id );
+CREATE INDEX document_links_asset_idx ON document_links ( asset_id );
+CREATE INDEX document_links_entry_idx ON document_links ( entry_id );
 
 
 -- ============================================================
@@ -366,3 +471,53 @@ CREATE TABLE audit_log (
 
 CREATE INDEX audit_log_entity_idx ON audit_log ( entity_type, entity_id, created_at DESC );
 CREATE INDEX audit_log_user_idx ON audit_log ( user_id, created_at DESC );
+
+
+-- ============================================================
+-- Asset metadata integrity
+-- ============================================================
+
+CREATE TRIGGER assets_history_metadata_update
+BEFORE UPDATE OF portfolio_id, class, kind ON assets
+WHEN
+  NEW.portfolio_id <> OLD.portfolio_id OR
+  NEW.class <> OLD.class OR
+  NEW.kind <> OLD.kind
+BEGIN
+  SELECT CASE
+    WHEN EXISTS (
+      SELECT 1
+      FROM asset_entries e
+      WHERE e.asset_id = OLD.id
+    )
+    THEN RAISE( ABORT, 'Asset portfolio, class or kind cannot change after entries exist' )
+  END;
+
+  SELECT CASE
+    WHEN EXISTS (
+      SELECT 1
+      FROM asset_value_points p
+      WHERE p.asset_id = OLD.id
+    )
+    THEN RAISE( ABORT, 'Asset portfolio, class or kind cannot change after value points exist' )
+  END;
+END;
+
+
+-- ============================================================
+-- Transaction integrity
+-- ============================================================
+
+CREATE TRIGGER transactions_portfolio_update
+BEFORE UPDATE OF portfolio_id ON transactions
+WHEN NEW.portfolio_id <> OLD.portfolio_id
+BEGIN
+  SELECT CASE
+    WHEN EXISTS (
+      SELECT 1
+      FROM asset_entries e
+      WHERE e.transaction_id = OLD.id
+    )
+    THEN RAISE( ABORT, 'Transaction portfolio cannot change while entries exist' )
+  END;
+END;
