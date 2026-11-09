@@ -31,3 +31,15 @@ CREATE TABLE sessions (
 
 CREATE INDEX sessions_user_idx ON sessions ( user_id );
 CREATE INDEX sessions_expires_idx ON sessions ( expires_at );
+
+
+-- --- user preferences ---
+
+CREATE TABLE user_preferences (
+  id TEXT PRIMARY KEY NOT NULL,
+  user_id TEXT NOT NULL REFERENCES users ( id ) ON DELETE CASCADE,
+  key TEXT NOT NULL,
+  value TEXT,
+
+  UNIQUE ( user_id, key )
+);
