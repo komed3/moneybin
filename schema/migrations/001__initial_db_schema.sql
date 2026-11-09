@@ -243,6 +243,7 @@ CREATE TABLE bookings (
   exchange_rate_denominator INTEGER NOT NULL DEFAULT 1,
   booking_date TEXT NOT NULL,
   value_date TEXT NOT NULL,
+  quality TEXT NOT NULL,
   note TEXT,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
   updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
