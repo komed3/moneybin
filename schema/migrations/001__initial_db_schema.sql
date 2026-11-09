@@ -261,3 +261,65 @@ CREATE TABLE asset_daily_values (
 );
 
 CREATE INDEX asset_daily_values_date_idx ON asset_daily_values ( value_date );
+
+
+-- --- asset yearly stats ---
+
+CREATE TABLE asset_yearly_stats (
+  asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
+  year INTEGER NOT NULL,
+  quality TEXT NOT NULL,
+
+  open INTEGER,
+  high INTEGER NOT NULL,
+  low INTEGER NOT NULL,
+  close INTEGER NOT NULL,
+  change INTEGER,
+  change_percent REAL,
+
+  average_value REAL NOT NULL,
+  volatility REAL,
+  max_drawdown INTEGER NOT NULL,
+  max_drawdown_percent REAL NOT NULL,
+
+  PRIMARY KEY ( asset_id, year ),
+
+  CHECK ( year BETWEEN 1 AND 9999 ),
+  CHECK ( quality IN ( 'documented', 'reconstructed', 'speculative', 'assumed' ) ),
+  CHECK ( low <= high ),
+  CHECK ( max_drawdown >= 0 ),
+  CHECK ( max_drawdown_percent >= 0 )
+);
+
+CREATE INDEX asset_yearly_stats_year_idx ON asset_yearly_stats ( year );
+
+
+-- --- portfolio yearly stats ---
+
+CREATE TABLE portfolio_yearly_stats (
+  portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
+  year INTEGER NOT NULL,
+  quality TEXT NOT NULL,
+
+  open INTEGER,
+  high INTEGER NOT NULL,
+  low INTEGER NOT NULL,
+  close INTEGER NOT NULL,
+  change INTEGER,
+  change_percent REAL,
+
+  average_value REAL NOT NULL,
+  volatility REAL,
+  max_drawdown INTEGER NOT NULL,
+  max_drawdown_percent REAL NOT NULL,
+
+  PRIMARY KEY ( portfolio_id, year ),
+
+  CHECK ( year BETWEEN 1 AND 9999 ),
+  CHECK ( quality IN ( 'documented', 'reconstructed', 'speculative', 'assumed' ) ),
+  CHECK ( low <= high ),
+  CHECK ( max_drawdown >= 0 ),
+  CHECK ( max_drawdown_percent >= 0 )
+);
+
+CREATE INDEX portfolio_yearly_stats_year_idx ON portfolio_yearly_stats ( year );
