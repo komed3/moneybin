@@ -298,7 +298,11 @@ CREATE TABLE asset_yearly_stats (
   CHECK ( low <= high ),
   CHECK ( max_drawdown >= 0 ),
   CHECK ( max_drawdown_percent >= 0 ),
-  CHECK ( booking_count >= 0 )
+  CHECK ( booking_count >= 0 ),
+  CHECK ( positive_change >= 0 ),
+  CHECK ( negative_change <= 0 ),
+  CHECK ( best_day IS NULL OR worst_day IS NULL OR worst_day <= best_day ),
+  CHECK ( best_day_percent IS NULL OR worst_day_percent IS NULL OR worst_day_percent <= best_day_percent )
 );
 
 CREATE INDEX asset_yearly_stats_year_idx ON asset_yearly_stats ( year );
