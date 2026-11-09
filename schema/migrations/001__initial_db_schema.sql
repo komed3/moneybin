@@ -245,7 +245,7 @@ CREATE INDEX bookings_type_idx ON bookings ( type );
 CREATE TABLE asset_daily_values (
   asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
   value_date TEXT NOT NULL,
-  quality TEXT NOT NULL,
+  quality REAL NOT NULL,
 
   open INTEGER,
   high INTEGER NOT NULL,
@@ -256,7 +256,7 @@ CREATE TABLE asset_daily_values (
 
   PRIMARY KEY ( asset_id, value_date ),
 
-  CHECK ( quality IN ( 'documented', 'reconstructed', 'speculative', 'assumed' ) ),
+  CHECK ( quality BETWEEN 0.0 AND 1.0 ),
   CHECK ( low <= high )
 );
 
