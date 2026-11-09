@@ -166,6 +166,7 @@ CREATE TABLE assets (
   city TEXT,
   region TEXT,
   country TEXT,
+  note TEXT,
   opened_at TEXT,
   closed_at TEXT,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
