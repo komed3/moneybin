@@ -217,7 +217,7 @@ CREATE TABLE bookings (
   max_amount INTEGER,
   booking_date TEXT NOT NULL,
   value_date TEXT NOT NULL,
-  quality TEXT NOT NULL,
+  reliability TEXT NOT NULL,
   note TEXT,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
   updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
@@ -226,7 +226,7 @@ CREATE TABLE bookings (
   CHECK ( min_amount IS NULL OR min_amount <= amount ),
   CHECK ( max_amount IS NULL OR max_amount >= amount ),
   CHECK ( min_amount IS NULL OR max_amount IS NULL OR min_amount <= max_amount ),
-  CHECK ( quality IN ( 'documented', 'reconstructed', 'speculative', 'assumed' ) )
+  CHECK ( reliability IN ( 'documented', 'reconstructed', 'speculative', 'assumed' ) )
 );
 
 CREATE UNIQUE INDEX bookings_asset_absolute_idx
