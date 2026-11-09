@@ -43,3 +43,30 @@ CREATE TABLE user_preferences (
 
   UNIQUE ( user_id, key )
 );
+
+
+-- --- persons ---
+
+CREATE TABLE persons (
+  id TEXT PRIMARY KEY NOT NULL,
+  user_id TEXT NOT NULL REFERENCES users ( id ) ON DELETE RESTRICT,
+  name TEXT NOT NULL,
+  gender TEXT NOT NULL CHECK ( mode IN ( 'M', 'F', 'D' ) ),
+  birth_date TEXT,
+  street TEXT,
+  address_extra TEXT,
+  postal_code TEXT,
+  city TEXT,
+  region TEXT,
+  country TEXT,
+  email TEXT,
+  phone TEXT,
+  website TEXT,
+  notes TEXT,
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+  updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  CHECK ( length( trim( name ) ) > 0 )
+);
+
+CREATE INDEX persons_user_idx ON persons ( user_id );
