@@ -102,3 +102,15 @@ CREATE TABLE portfolio_members (
 );
 
 CREATE INDEX portfolio_members_user_idx ON portfolio_members ( user_id );
+
+
+-- --- asset types ---
+
+CREATE TABLE asset_types (
+  id TEXT PRIMARY KEY NOT NULL
+);
+
+INSERT INTO asset_types ( id ) VALUES
+  ( 'cash' ), ( 'account' ), ( 'depot' ), ( 'collection' ), ( 'property' ), ( 'lease' ),
+  ( 'debt' ), ( 'receivable' ), ( 'contract' ), ( 'investment' ), ( 'insurance' ),
+  ( 'vehicle' ), ( 'valuable' ), ( 'right' ), ( 'other' );
