@@ -125,3 +125,37 @@ CREATE TABLE liquidation_levels (
 INSERT INTO liquidation_levels ( id ) VALUES
   ( 'instant' ), ( 'very_high' ), ( 'high' ), ( 'medium' ), ( 'low' ),
   ( 'very_low' ), ( 'illiquid' );
+
+
+-- --- assets ---
+
+CREATE TABLE assets (
+  id TEXT PRIMARY KEY NOT NULL,
+  portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE RESTRICT,
+  type TEXT NOT NULL REFERENCES asset_types ( id ) ON DELETE RESTRICT,
+  liquidation_level TEXT NOT NULL REFERENCES liquidation_levels ( id ) ON DELETE RESTRICT,
+  name TEXT NOT NULL,
+  description TEXT,
+  status TEXT NOT NULL,
+  archived INTEGER NOT NULL DEFAULT 0,
+  icon TEXT NOT NULL,
+  color TEXT NOT NULL,
+  street TEXT,
+  address_extra TEXT,
+  postal_code TEXT,
+  city TEXT,
+  region TEXT,
+  country TEXT,
+  opened_at TEXT,
+  closed_at TEXT,
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+  updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  CHECK ( length( trim( name ) ) > 0 ),
+  CHECK ( status IN ( 'real', 'fictional' ) ),
+  CHECK ( archived IN ( 0, 1 ) )
+);
+
+CREATE INDEX assets_portfolio_idx ON assets ( portfolio_id );
+CREATE INDEX assets_type_idx ON assets ( type );
+CREATE INDEX assets_liquidation_level_idx ON assets ( liquidation_level );
