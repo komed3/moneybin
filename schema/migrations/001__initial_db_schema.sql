@@ -247,25 +247,17 @@ CREATE TABLE asset_daily_values (
   value_date TEXT NOT NULL,
   quality TEXT NOT NULL,
 
-  asset_open INTEGER,
-  asset_high INTEGER NOT NULL,
-  asset_low INTEGER NOT NULL,
-  asset_close INTEGER NOT NULL,
-  asset_change INTEGER,
-  asset_change_percent REAL,
-
-  portfolio_open INTEGER,
-  portfolio_high INTEGER NOT NULL,
-  portfolio_low INTEGER NOT NULL,
-  portfolio_close INTEGER NOT NULL,
-  portfolio_change INTEGER,
-  portfolio_change_percent REAL,
+  open INTEGER,
+  high INTEGER NOT NULL,
+  low INTEGER NOT NULL,
+  close INTEGER NOT NULL,
+  change INTEGER,
+  change_percent REAL,
 
   PRIMARY KEY ( asset_id, value_date ),
 
   CHECK ( quality IN ( 'documented', 'reconstructed', 'speculative', 'assumed' ) ),
-  CHECK ( asset_low <= asset_high ),
-  CHECK ( portfolio_low <= portfolio_high )
+  CHECK ( low <= high )
 );
 
 CREATE INDEX asset_daily_values_date_idx ON asset_daily_values ( value_date );
