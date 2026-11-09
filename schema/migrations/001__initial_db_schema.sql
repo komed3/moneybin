@@ -145,10 +145,10 @@ CREATE TABLE entry_types (
 );
 
 INSERT INTO entry_types ( id ) VALUES
-  ( 'opening' ), ( 'closing' ), ( 'valuation' ), ( 'deposit' ), ( 'withdrawal' ), ( 'payment_in' ),
-  ( 'payment_out' ), ( 'purchase' ), ( 'sale' ), ( 'transfer_in' ), ( 'transfer_out' ), ( 'interest' ),
-  ( 'fee' ), ( 'tax' ), ( 'refund' ), ( 'gift_in' ), ( 'gift_out' ), ( 'disbursement' ), ( 'repayment' ),
-  ( 'write_off' ), ( 'contribution' ), ( 'distribution' ), ( 'other' );
+  ( 'opening' ), ( 'closing' ), ( 'valuation' ), ( 'adjustment' ), ( 'deposit' ), ( 'withdrawal' ),
+  ( 'transfer' ), ( 'debit' ), ( 'standingorder' ), ( 'card' ), ( 'cash' ), ( 'purchase' ), ( 'sale' ),
+  ( 'interest' ), ( 'dividend' ), ( 'income' ), ( 'expense' ), ( 'fee' ), ( 'tax' ), ( 'refund' ),
+  ( 'gift' ), ( 'contribution' ), ( 'distribution' ), ( 'repayment' ), ( 'writeoff' ), ( 'other' );
 
 
 -- ============================================================
@@ -160,18 +160,22 @@ CREATE TABLE transaction_types (
 );
 
 INSERT INTO transaction_types ( id ) VALUES
-  ( 'transfer' ), ( 'purchase' ), ( 'sale' ), ( 'contribution' ), ( 'distribution' ), ( 'income' ),
-  ( 'expense' ), ( 'repayment' ), ( 'other' );
+  ( 'transfer' ), ( 'purchase' ), ( 'sale' ), ( 'income' ), ( 'expense' ), ( 'contribution' ),
+  ( 'distribution' ), ( 'repayment' ), ( 'other' );
 
 
 -- ============================================================
 -- Transactions
+-- Optional grouping and shared information for asset entries.
 -- ============================================================
 
 CREATE TABLE transactions (
   id TEXT PRIMARY KEY NOT NULL,
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
   type TEXT NOT NULL DEFAULT 'other' REFERENCES transaction_types ( id ),
+  counterparty TEXT,
+  reference TEXT,
+  description TEXT,
   note TEXT,
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
@@ -191,10 +195,10 @@ CREATE INDEX transactions_type_idx ON transactions ( type );
 CREATE TABLE asset_entries (
   id TEXT PRIMARY KEY NOT NULL,
   asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE CASCADE,
-  transaction_id TEXT REFERENCES transactions ( id ) ON DELETE SET NULL,
+  transaction_id TEXT,
   created_by TEXT REFERENCES users ( id ) ON DELETE SET NULL,
-  mode TEXT NOT NULL CHECK ( mode IN ( 'absolute', 'relative' ) ),
   type TEXT NOT NULL REFERENCES entry_types ( id ),
+  mode TEXT NOT NULL DEFAULT 'relative' CHECK ( mode IN ( 'absolute', 'relative' ) ),
   amount INTEGER NOT NULL,
   amount_min INTEGER,
   amount_max INTEGER,
@@ -212,6 +216,8 @@ CREATE TABLE asset_entries (
 
   CHECK ( amount_min IS NULL OR amount_min <= amount ),
   CHECK ( amount_max IS NULL OR amount_max >= amount ),
+
+  FOREIGN KEY ( transaction_id ) REFERENCES transactions ( id ) ON DELETE SET NULL,
 
   UNIQUE ( asset_id, effective_date, sequence ),
   UNIQUE ( id, asset_id )
@@ -316,8 +322,6 @@ CREATE TABLE asset_conversion_factors (
   UNIQUE ( id, asset_id )
 );
 
-CREATE INDEX asset_conversion_factors_asset_idx ON asset_conversion_factors ( asset_id );
-
 
 -- ============================================================
 -- Calculated asset values
@@ -348,7 +352,11 @@ CREATE TABLE asset_value_points (
   CHECK ( native_value_min IS NULL OR native_value_min <= native_value ),
   CHECK ( native_value_max IS NULL OR native_value_max >= native_value ),
   CHECK ( portfolio_value_min IS NULL OR portfolio_value IS NOT NULL AND portfolio_value_min <= portfolio_value ),
-  CHECK ( portfolio_value_max IS NULL OR portfolio_value IS NOT NULL AND portfolio_value_max >= portfolio_value )
+  CHECK ( portfolio_value_max IS NULL OR portfolio_value IS NOT NULL AND portfolio_value_max >= portfolio_value ),
+  CHECK (
+    ( conversion_factor_id IS NULL AND portfolio_value IS NULL ) OR
+    ( conversion_factor_id IS NOT NULL AND portfolio_value IS NOT NULL )
+  )
 );
 
 CREATE INDEX asset_value_points_date_idx ON asset_value_points ( effective_date );
@@ -458,8 +466,6 @@ CREATE TABLE asset_class_value_points (
   CHECK ( is_complete = 0 OR unconverted_assets = 0 )
 );
 
-CREATE INDEX asset_class_value_points_date_idx ON asset_class_value_points ( portfolio_id, effective_date );
-
 
 -- ============================================================
 -- Calculated portfolio values
@@ -531,6 +537,39 @@ CREATE TABLE asset_year_points (
 CREATE INDEX asset_year_points_portfolio_idx ON asset_year_points ( portfolio_id, year );
 
 
+CREATE TRIGGER asset_year_points_metadata_insert
+BEFORE INSERT ON asset_year_points
+BEGIN
+  SELECT CASE
+    WHEN NOT EXISTS (
+      SELECT 1
+      FROM assets a
+      WHERE a.id = NEW.asset_id
+        AND a.portfolio_id = NEW.portfolio_id
+        AND a.class = NEW.class
+        AND a.kind = NEW.kind
+    )
+    THEN RAISE( ABORT, 'Asset year point metadata does not match its asset' )
+  END;
+END;
+
+CREATE TRIGGER asset_year_points_metadata_update
+BEFORE UPDATE ON asset_year_points
+BEGIN
+  SELECT CASE
+    WHEN NOT EXISTS (
+      SELECT 1
+      FROM assets a
+      WHERE a.id = NEW.asset_id
+        AND a.portfolio_id = NEW.portfolio_id
+        AND a.class = NEW.class
+        AND a.kind = NEW.kind
+    )
+    THEN RAISE( ABORT, 'Asset year point metadata does not match its asset' )
+  END;
+END;
+
+
 -- ============================================================
 -- Calculated annual asset class values
 -- ============================================================
@@ -561,6 +600,8 @@ CREATE TABLE asset_class_year_points (
 
   CHECK ( is_complete = 0 OR unconverted_assets = 0 )
 );
+
+CREATE INDEX asset_class_year_points_portfolio_idx ON asset_class_year_points ( portfolio_id, year );
 
 
 -- ============================================================
@@ -629,8 +670,11 @@ CREATE TABLE document_links (
   )
 );
 
-CREATE UNIQUE INDEX document_links_asset_idx ON document_links ( document_id, asset_id ) WHERE asset_id IS NOT NULL;
-CREATE UNIQUE INDEX document_links_entry_idx ON document_links ( document_id, entry_id ) WHERE entry_id IS NOT NULL;
+CREATE UNIQUE INDEX document_links_asset_unique_idx ON document_links ( document_id, asset_id ) WHERE asset_id IS NOT NULL;
+CREATE UNIQUE INDEX document_links_entry_unique_idx ON document_links ( document_id, entry_id ) WHERE entry_id IS NOT NULL;
+
+CREATE INDEX document_links_asset_lookup_idx ON document_links ( asset_id );
+CREATE INDEX document_links_entry_lookup_idx ON document_links ( entry_id );
 
 
 -- ============================================================
@@ -747,7 +791,8 @@ END;
 -- ============================================================
 
 CREATE TRIGGER asset_conversion_factors_update
-BEFORE UPDATE ON asset_conversion_factors
+BEFORE UPDATE OF asset_id, effective_date, numerator, denominator, quality
+ON asset_conversion_factors
 WHEN EXISTS (
   SELECT 1
   FROM asset_value_points p
