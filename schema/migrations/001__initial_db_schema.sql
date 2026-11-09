@@ -222,3 +222,40 @@ CREATE TABLE transactions (
   note TEXT,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) )
 );
+
+
+-- --- bookings ---
+
+CREATE TABLE bookings (
+  id TEXT PRIMARY KEY NOT NULL,
+  asset_id TEXT NOT NULL REFERENCES assets ( id ) ON DELETE RESTRICT,
+  transaction_id TEXT REFERENCES transactions ( id ) ON DELETE SET NULL,
+  type TEXT NOT NULL REFERENCES booking_types ( id ) ON DELETE RESTRICT,
+  value_type TEXT NOT NULL,
+  amount INTEGER NOT NULL,
+  min_amount INTEGER,
+  max_amount INTEGER,
+  currency TEXT NOT NULL REFERENCES currencies ( code ) ON DELETE RESTRICT,
+  exchange_rate_numerator INTEGER NOT NULL DEFAULT 1,
+  exchange_rate_denominator INTEGER NOT NULL DEFAULT 1,
+  booking_date TEXT NOT NULL,
+  value_date TEXT NOT NULL,
+  note TEXT,
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+  updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  CHECK ( value_type IN ( 'relative', 'absolute' ) ),
+  CHECK ( exchange_rate_numerator > 0 ),
+  CHECK ( exchange_rate_denominator > 0 ),
+  CHECK ( min_amount IS NULL OR max_amount IS NULL OR min_amount <= max_amount )
+);
+
+CREATE UNIQUE INDEX bookings_asset_absolute_idx
+  ON bookings ( asset_id, value_date )
+  WHERE value_type = 'absolute';
+
+CREATE INDEX bookings_asset_idx ON bookings ( asset_id );
+CREATE INDEX bookings_transaction_idx ON bookings ( transaction_id );
+CREATE INDEX bookings_booking_date_idx ON bookings ( booking_date );
+CREATE INDEX bookings_value_date_idx ON bookings ( value_date );
+CREATE INDEX bookings_type_idx ON bookings ( type );
