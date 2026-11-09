@@ -213,3 +213,12 @@ INSERT INTO booking_types ( id ) VALUES
   ( 'deposit' ), ( 'withdrawal' ), ( 'transfer' ), ( 'direct_debit' ), ( 'purchase' ),
   ( 'sale' ), ( 'fee' ), ( 'interest' ), ( 'dividend' ), ( 'tax' ), ( 'repayment' ),
   ( 'adjustment' ), ( 'other' );
+
+
+-- --- transactions ---
+
+CREATE TABLE transactions (
+  id TEXT PRIMARY KEY NOT NULL,
+  note TEXT,
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) )
+);
