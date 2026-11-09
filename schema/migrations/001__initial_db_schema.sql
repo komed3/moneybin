@@ -282,13 +282,23 @@ CREATE TABLE asset_yearly_stats (
   max_drawdown INTEGER NOT NULL,
   max_drawdown_percent REAL NOT NULL,
 
+  booking_count INTEGER NOT NULL,
+  positive_change INTEGER NOT NULL,
+  negative_change INTEGER NOT NULL,
+  average_change REAL,
+  best_day INTEGER,
+  worst_day INTEGER,
+  best_day_percent REAL,
+  worst_day_percent REAL,
+
   PRIMARY KEY ( asset_id, year ),
 
   CHECK ( year BETWEEN 1 AND 9999 ),
   CHECK ( quality IN ( 'documented', 'reconstructed', 'speculative', 'assumed' ) ),
   CHECK ( low <= high ),
   CHECK ( max_drawdown >= 0 ),
-  CHECK ( max_drawdown_percent >= 0 )
+  CHECK ( max_drawdown_percent >= 0 ),
+  CHECK ( booking_count >= 0 )
 );
 
 CREATE INDEX asset_yearly_stats_year_idx ON asset_yearly_stats ( year );
