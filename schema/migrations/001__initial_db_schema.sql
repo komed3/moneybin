@@ -308,6 +308,8 @@ CREATE TABLE asset_yearly_stats (
 CREATE INDEX asset_yearly_stats_year_idx ON asset_yearly_stats ( year );
 
 
+-- --- portfolio yearly stats ---
+
 CREATE TABLE portfolio_yearly_stats (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
   year INTEGER NOT NULL,
