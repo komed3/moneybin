@@ -346,7 +346,11 @@ CREATE TABLE portfolio_yearly_stats (
   CHECK ( asset_count >= 0 ),
   CHECK ( active_asset_count >= 0 ),
   CHECK ( active_asset_count <= asset_count ),
-  CHECK ( booking_count >= 0 )
+  CHECK ( booking_count >= 0 ),
+  CHECK ( positive_change >= 0 ),
+  CHECK ( negative_change <= 0 ),
+  CHECK ( best_day IS NULL OR worst_day IS NULL OR worst_day <= best_day ),
+  CHECK ( best_day_percent IS NULL OR worst_day_percent IS NULL OR worst_day_percent <= best_day_percent )
 );
 
 CREATE INDEX portfolio_yearly_stats_year_idx ON portfolio_yearly_stats ( year );
