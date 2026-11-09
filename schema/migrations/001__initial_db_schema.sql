@@ -45,6 +45,19 @@ CREATE TABLE user_preferences (
 );
 
 
+-- --- currencies ---
+
+CREATE TABLE currencies (
+  code TEXT PRIMARY KEY NOT NULL,
+  symbol TEXT NOT NULL,
+  decimal_places INTEGER NOT NULL,
+
+  CHECK ( length( code ) = 3 ),
+  CHECK ( code = upper( code ) ),
+  CHECK ( decimal_places BETWEEN 0 AND 3 )
+);
+
+
 -- --- persons ---
 
 CREATE TABLE persons (
