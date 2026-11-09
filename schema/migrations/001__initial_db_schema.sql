@@ -313,7 +313,7 @@ CREATE INDEX asset_yearly_stats_year_idx ON asset_yearly_stats ( year );
 CREATE TABLE portfolio_yearly_stats (
   portfolio_id TEXT NOT NULL REFERENCES portfolios ( id ) ON DELETE CASCADE,
   year INTEGER NOT NULL,
-  quality TEXT NOT NULL,
+  quality REAL NOT NULL,
 
   open INTEGER,
   high INTEGER NOT NULL,
@@ -341,7 +341,7 @@ CREATE TABLE portfolio_yearly_stats (
   PRIMARY KEY ( portfolio_id, year ),
 
   CHECK ( year BETWEEN 1 AND 9999 ),
-  CHECK ( quality IN ( 'documented', 'reconstructed', 'speculative', 'assumed' ) ),
+  CHECK ( quality BETWEEN 0.0 AND 1.0 ),
   CHECK ( low <= high ),
   CHECK ( max_drawdown >= 0 ),
   CHECK ( max_drawdown_percent >= 0 ),
