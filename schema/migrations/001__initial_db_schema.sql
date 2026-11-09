@@ -70,3 +70,19 @@ CREATE TABLE persons (
 );
 
 CREATE INDEX persons_user_idx ON persons ( user_id );
+
+
+-- --- portfolios ---
+
+CREATE TABLE portfolios (
+  id TEXT PRIMARY KEY NOT NULL,
+  person_id TEXT NOT NULL REFERENCES persons ( id ) ON DELETE RESTRICT,
+  name TEXT NOT NULL,
+  description TEXT,
+  created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+  updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
+
+  CHECK ( length( trim( name ) ) > 0 )
+);
+
+CREATE INDEX portfolios_person_idx ON portfolios ( person_id );
