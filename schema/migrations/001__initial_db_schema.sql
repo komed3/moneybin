@@ -257,7 +257,10 @@ CREATE TABLE asset_daily_values (
   PRIMARY KEY ( asset_id, value_date ),
 
   CHECK ( quality BETWEEN 0.0 AND 1.0 ),
-  CHECK ( low <= high )
+  CHECK ( high >= close ),
+  CHECK ( low <= close ),
+  CHECK ( open IS NULL OR high >= open ),
+  CHECK ( open IS NULL OR low <= open )
 );
 
 CREATE INDEX asset_daily_values_date_idx ON asset_daily_values ( value_date );
@@ -295,7 +298,10 @@ CREATE TABLE asset_yearly_stats (
 
   CHECK ( year BETWEEN 1 AND 9999 ),
   CHECK ( quality BETWEEN 0.0 AND 1.0 ),
-  CHECK ( low <= high ),
+  CHECK ( high >= close ),
+  CHECK ( low <= close ),
+  CHECK ( open IS NULL OR high >= open ),
+  CHECK ( open IS NULL OR low <= open )
   CHECK ( max_drawdown >= 0 ),
   CHECK ( max_drawdown_percent >= 0 ),
   CHECK ( booking_count >= 0 ),
@@ -342,7 +348,10 @@ CREATE TABLE portfolio_yearly_stats (
 
   CHECK ( year BETWEEN 1 AND 9999 ),
   CHECK ( quality BETWEEN 0.0 AND 1.0 ),
-  CHECK ( low <= high ),
+  CHECK ( high >= close ),
+  CHECK ( low <= close ),
+  CHECK ( open IS NULL OR high >= open ),
+  CHECK ( open IS NULL OR low <= open )
   CHECK ( max_drawdown >= 0 ),
   CHECK ( max_drawdown_percent >= 0 ),
   CHECK ( asset_count >= 0 ),
