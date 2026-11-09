@@ -69,6 +69,7 @@ CREATE TABLE persons (
   id TEXT PRIMARY KEY NOT NULL,
   user_id TEXT NOT NULL REFERENCES users ( id ) ON DELETE RESTRICT,
   name TEXT NOT NULL,
+  description TEXT,
   gender TEXT NOT NULL,
   birth_date TEXT,
   street TEXT,
