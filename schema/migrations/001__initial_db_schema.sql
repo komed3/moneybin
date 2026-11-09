@@ -93,6 +93,7 @@ CREATE TABLE portfolios (
   person_id TEXT NOT NULL REFERENCES persons ( id ) ON DELETE RESTRICT,
   name TEXT NOT NULL,
   description TEXT,
+  currency TEXT NOT NULL REFERENCES currencies ( code ) ON DELETE RESTRICT,
   created_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
   updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
@@ -149,6 +150,7 @@ CREATE TABLE assets (
   liquidation_level TEXT NOT NULL REFERENCES liquidation_levels ( id ) ON DELETE RESTRICT,
   name TEXT NOT NULL,
   description TEXT,
+  currency TEXT NOT NULL REFERENCES currencies ( code ) ON DELETE RESTRICT,
   status TEXT NOT NULL,
   archived INTEGER NOT NULL DEFAULT 0,
   icon TEXT NOT NULL,
