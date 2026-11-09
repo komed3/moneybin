@@ -67,7 +67,7 @@ CREATE TABLE persons (
   updated_at TEXT NOT NULL DEFAULT ( strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' ) ),
 
   CHECK ( length( trim( name ) ) > 0 ),
-  CHECK ( gender IN ( 'M', 'F', 'D' ) )
+  CHECK ( gender IN ( 'male', 'female', 'diverse' ) )
 );
 
 CREATE INDEX persons_user_idx ON persons ( user_id );
