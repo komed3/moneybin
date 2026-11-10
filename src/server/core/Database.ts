@@ -90,4 +90,12 @@ export class Database {
     this.connection.close();
     this.connection = null;
   }
+
+  public listMigrations () : AppliedMigration[] {
+    return as< AppliedMigration[] >( this.open().db.prepare( `
+      SELECT name, checksum, applied_at AS appliedAt
+      FROM schema_migrations
+      ORDER BY applied_at, name
+    ` ).all() );
+  }
 }
