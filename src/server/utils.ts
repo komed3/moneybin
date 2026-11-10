@@ -43,3 +43,10 @@ export function validateNumber ( value: unknown, label: string, min: number, max
 
   return parsed;
 }
+
+export function validateEnum < T extends string > ( value: unknown, label: string, values: readonly T[] ) : T {
+  if ( typeof value !== 'string' || ! values.includes( value as T ) )
+    throw new Error( `Invalid value for ${ label }: ${ String( value ) }` );
+
+  return value as T;
+}
