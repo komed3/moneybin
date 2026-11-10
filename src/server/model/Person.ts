@@ -21,4 +21,12 @@ export class Person {
       website: row.website, notes: row.notes, createdAt: row.created_at, updatedAt: row.updated_at
     };
   }
+
+  private static validateName ( name: string ) : string {
+    return normalizeString( name, 'Name' );
+  }
+
+  private static validateGender ( gender: unknown ) : PersonGender {
+    return validateEnum( gender, 'gender', [ 'male', 'female', 'diverse' ] );
+  }
 }
