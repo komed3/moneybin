@@ -63,4 +63,10 @@ export class User {
     if ( ! /[0-9]/.test( pw ) ) throw new Error( 'Password must contain at least one number' );
     if ( ! /[^a-zA-Z0-9]/.test( pw ) ) throw new Error( 'Password must contain at least one special character' );
   }
+
+  public static list () : UserRecord[] {
+    return as< UserRow[] >( conn().prepare(
+      'SELECT * FROM users ORDER BY username COLLATE NOCASE'
+    ).all() ).map( row => User.toRecord( row ) );
+  }
 }
