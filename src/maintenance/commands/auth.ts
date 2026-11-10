@@ -21,4 +21,15 @@ export const registerAuthCommands = ( program: Command ) : void => {
         lastSeenAt: session.lastSeenAt, expiresAt: session.expiresAt
       } ) ) );
     } );
+
+  authCommand
+    .command( 'clear' )
+    .description( 'Revoke all sessions' )
+    .option( '-y, --yes', 'Skip confirmation' )
+    .action( async ( options: { yes?: boolean } ) => {
+      if ( ! options.yes && ! await confirm( 'Revoke all active sessions?' ) ) return ui.cancelled();
+
+      const count = Auth.logoutAll();
+      ui.success( `Revoked ${ count } session(s).` );
+    } );
 }
