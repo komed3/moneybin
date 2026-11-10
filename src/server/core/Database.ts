@@ -54,4 +54,32 @@ export class Database {
     if ( ! this.connection ) throw new Error( 'Database connection is not open' );
     return this.connection;
   }
+
+  public open () : this {
+    if ( this.connection ) return this;
+
+    const path = Config.get( 'DB_PATH' );
+    if ( path !== ':memory:' ) mkdirSync( dirname( path ), { recursive: true } );
+
+    const conn = new DatabaseSync( path );
+
+    try {
+      conn.exec( `
+        PRAGMA foreign_keys = ON;
+        PRAGMA busy_timeout = ${ Config.get( 'DB_BUSY_TIMEOUT_MS' ) };
+        PRAGMA journal_mode = WAL;
+        PRAGMA synchronous = NORMAL;
+      ` );
+
+      this.connection = conn;
+      this.migrate();
+
+      return this;
+    } catch ( err ) {
+      this.connection = null;
+      conn.close();
+
+      throw err;
+    }
+  }
 }
