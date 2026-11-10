@@ -73,3 +73,19 @@ export const promptPassword = async ( message: string ) : Promise< string > => {
     }
   } );
 };
+
+export const promptConfirmedPassword = async ( validate: ( pw: string ) => void ) : Promise< string > => {
+  while ( true ) {
+    const pw = await promptPassword( 'Password: ' );
+
+    try { validate( pw ) }
+    catch ( err ) { ui.error( err instanceof Error ? err.message : String( err ) ); continue }
+
+    if ( pw !== await promptPassword( 'Confirm password: ' ) ) {
+      ui.error( 'Passwords do not match.' );
+      continue;
+    }
+
+    return pw;
+  }
+};
