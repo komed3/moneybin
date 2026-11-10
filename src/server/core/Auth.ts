@@ -4,3 +4,10 @@ import { User } from '@/src/server/core/User';
 import type { ActiveSession, AuthResult, SessionRow } from '@/src/shared/types/auth';
 import type { UserRecord } from '@/src/shared/types/user';
 import { createHash, randomBytes } from 'node:crypto';
+
+
+export class Auth {
+  private static hashToken ( token: string ) : string {
+    return createHash( 'sha256' ).update( token ).digest( 'hex' );
+  }
+}
