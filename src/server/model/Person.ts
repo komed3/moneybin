@@ -2,6 +2,15 @@ import { as, conn, db } from '@/src/server/core/Database';
 import { User } from '@/src/server/core/User';
 import { assertId, normalizeString, validateEnum } from '@/src/server/utils';
 import type { PersonCreateData, PersonGender, PersonRecord, PersonRow, PersonUpdateData } from '@/src/shared/types/person';
+import { SQLInputValue } from 'node:sqlite';
+
+
+const COLUMNS = {
+  name: 'name', description: 'description', gender: 'gender', birthDate: 'birth_date',
+  street: 'street', addressExtra: 'address_extra', postalCode: 'postal_code', city: 'city',
+  region: 'region', country: 'country', email: 'email', phone: 'phone', website: 'website',
+  notes: 'notes'
+};
 
 
 export class Person {
@@ -77,6 +86,40 @@ export class Person {
 
     const person = Person.get( id, userId );
     if ( ! person ) throw new Error( 'Failed to create person' );
+
+    return person;
+  }
+
+  public static update ( personId: string, userId: string, data: PersonUpdateData ) : PersonRecord {
+    User.assertUserIdSafe( userId );
+    Person.assertPersonId( personId );
+
+    const entries = Object.entries( COLUMNS ).filter(
+      ( [ key ] ) => data[ key as keyof PersonUpdateData ] !== undefined
+    );
+
+    if ( ! entries.length ) {
+      const person = Person.get( personId, userId );
+      if ( ! person ) throw new Error( 'Person does not exist or is not assigned to this user' );
+      return person;
+    }
+
+    if ( data.name !== undefined ) data.name = Person.validateName( data.name );
+    if ( data.gender !== undefined ) data.gender = Person.validateGender( data.gender );
+
+    const values = entries.map( ( [ key ] ) => data[ key as keyof PersonUpdateData ] );
+
+    const result = conn().prepare( `
+      UPDATE persons
+      SET ${ entries.map( ( [ , column ] ) => `${ column } = ?` ).join( ', ' ) },
+          updated_at = strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' )
+      WHERE id = ? AND user_id = ?
+    ` ).run( ...values as SQLInputValue[], personId, userId );
+
+    if ( ! result.changes ) throw new Error( 'Person does not exist or is not assigned to this user' );
+
+    const person = Person.get( personId, userId );
+    if ( ! person ) throw new Error( 'Failed to update person' );
 
     return person;
   }
