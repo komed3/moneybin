@@ -44,4 +44,11 @@ export class Person {
     const row = Person.getRow( personId, userId );
     return row ? Person.toRecord( row ) : null;
   }
+
+  public static assertPersonId ( personId: string ) : void {
+    assertId( personId, 'person' );
+
+    if ( ! conn().prepare( 'SELECT 1 FROM persons WHERE id = ?' ).get( personId ) )
+      throw new Error( `Person ${ personId } does not exist` );
+  }
 }
