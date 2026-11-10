@@ -12,9 +12,6 @@ export class User {
   }
 
   private static toRecord ( row: UserRow ) : UserRecord {
-    return {
-      id: row.id, username: row.username,
-      createdAt: row.created_at, updatedAt: row.updated_at
-    };
+    return { id: row.id, username: row.username, createdAt: row.created_at, updatedAt: row.updated_at };
   }
 }
