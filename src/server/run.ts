@@ -23,7 +23,7 @@ async function run () : Promise< void > {
 
   // --- react ---
 
-  if ( process.env.NODE_ENV === 'dev' ) {
+  if ( [ 'dev', 'development', 'test' ].includes( env ) ) {
     const { createServer } = await import( 'vite' );
 
     vite = await createServer( {
