@@ -18,3 +18,11 @@ moneybin
     'Copyright (c) 2026 komed3. MIT license.\n\n' +
     'Maintenance script.'
   );
+
+
+moneybin.commandsGroup( 'System:' );
+registerConfigCommands( moneybin );
+registerDbCommands( moneybin );
+
+moneybin.commandsGroup( 'Authentication:' );
+registerAuthCommands( moneybin );
