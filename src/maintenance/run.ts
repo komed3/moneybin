@@ -9,3 +9,12 @@ import { Command } from 'commander';
 
 
 const moneybin = new Command();
+
+moneybin
+  .name( 'moneybin' )
+  .version( '1.0.0' )
+  .description(
+    'MoneyBin, open-source net worth tracking software.\n' +
+    'Copyright (c) 2026 komed3. MIT license.\n\n' +
+    'Maintenance script.'
+  );
