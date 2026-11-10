@@ -139,4 +139,16 @@ export class User {
       tx.prepare( 'DELETE FROM sessions WHERE user_id = ?' ).run( userId );
     } );
   }
+
+  public static async verifyPassword ( userId: string, password: string ) : Promise< boolean > {
+    const user = User.getRow( userId );
+    return !! user && await User.verifyHash( password, user.pw_hash );
+  }
+
+  public static assertUserIdSafe ( userId: string ) : void {
+    assertId( userId, 'user' );
+
+    if ( ! conn().prepare( 'SELECT 1 FROM users WHERE id = ?' ).get( userId ) )
+      throw new Error( `User ${ userId } does not exist` );
+  }
 }
