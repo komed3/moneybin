@@ -43,4 +43,13 @@ export class User {
 
     return timingSafeEqual( actual, expected );
   }
+
+  public static validateUsername ( username: string ) : string {
+    const value = username.trim();
+    if ( ! value || value.length > 64 ) throw new Error( 'Username must contain between 1 and 64 characters' );
+    if ( ! /^[a-zA-Z0-9_]+$/.test( value ) ) throw new Error( 'Username can only contain letters, numbers and underscores' );
+    if ( ! /^[a-zA-Z]/.test( value ) ) throw new Error( 'Username must start with a letter' );
+
+    return value;
+  }
 }
