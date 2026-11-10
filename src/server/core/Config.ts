@@ -46,4 +46,9 @@ export class Config {
 
     return ( def.type === 'path' ? key === 'DB_PATH' && parsed === ':memory:' ? parsed : resolve( parsed ) : parsed ) as ConfigValue< K >;
   }
+
+  public static get < K extends ConfigName > ( name: K ) : ConfigValue< K > {
+    const key = this.resolveName( name );
+    return this.validate( key, process.env[ key ] ?? this.schema[ key ].default ) as ConfigValue< K >;
+  }
 }
