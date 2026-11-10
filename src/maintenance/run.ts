@@ -26,3 +26,11 @@ registerDbCommands( moneybin );
 
 moneybin.commandsGroup( 'Authentication:' );
 registerAuthCommands( moneybin );
+
+
+try { await moneybin.parseAsync( process.argv ) }
+catch ( err ) {
+  ui.error( err instanceof Error ? err.message : String( err ) );
+  process.exitCode = 1;
+}
+finally { db.close() }
