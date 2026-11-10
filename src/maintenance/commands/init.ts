@@ -37,3 +37,33 @@ const configure = async () : Promise< void > => {
     }
   }
 };
+
+const createFirstUser = async () : Promise< void > => {
+  ui.nl();
+  ui.headline( 'Initial user account', '[2/2]' );
+  ui.nl();
+
+  if ( ! await confirm( 'Create an initial user account?' ) ) {
+    ui.info( 'No user account created. You can create one later using the user command.' );
+    return;
+  }
+
+  let username = await prompt( 'Username:' );
+
+  while ( true ) {
+    try {
+      username = User.validateUsername( username );
+      if ( User.getByUsername( username ) ) throw new Error( 'Username is already taken' );
+      break;
+    } catch ( err ) {
+      ui.error( err instanceof Error ? err.message : String( err ) );
+      username = await prompt( 'Username:' );
+    }
+  }
+
+  const pw = await promptConfirmedPassword( pw => User.validatePassword( pw ) );
+  const user = await User.create( username, pw );
+
+  ui.nl();
+  ui.success( `Created user ${ user.username } (ID ${ user.id })` );
+};
