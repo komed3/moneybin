@@ -188,4 +188,80 @@ export class Portfolio {
         u.username COLLATE NOCASE
     ` ).all( portfolioId ) ).map( Portfolio.toMemberRecord );
   }
+
+  public static addMember ( portfolioId: string, userId: string, memberId: string, role: PortfolioMemberRole = 'viewer' ) : PortfolioMemberRecord {
+    Portfolio.assertOwner( portfolioId, userId );
+    User.assertUserIdSafe( memberId );
+
+    const memberRole = Portfolio.validateRole( role );
+
+    conn().prepare(
+      'INSERT INTO portfolio_members ( portfolio_id, user_id, role ) VALUES ( ?, ?, ? )'
+    ).run( portfolioId, memberId, memberRole );
+
+    const member = as< PortfolioMemberRow | null >( conn().prepare( `
+      SELECT pm.*, u.username
+      FROM portfolio_members pm
+      JOIN users u ON u.id = pm.user_id
+      WHERE pm.portfolio_id = ? AND pm.user_id = ?
+    ` ).get( portfolioId, memberId ) );
+
+    if ( ! member ) throw new Error( 'Failed to add portfolio member' );
+    return Portfolio.toMemberRecord( member );
+  }
+
+  public static updateMemberRole ( portfolioId: string, userId: string, memberId: string, role: PortfolioMemberRole ) : PortfolioMemberRecord {
+    Portfolio.assertOwner( portfolioId, userId );
+    User.assertUserIdSafe( memberId );
+
+    const memberRole = Portfolio.validateRole( role );
+    const currentRole = Portfolio.getMemberRole( portfolioId, memberId );
+    if ( ! currentRole ) throw new Error( 'Portfolio member does not exist' );
+
+    if ( currentRole === 'owner' && memberRole !== 'owner' ) {
+      const owners = as< { count: number } >( conn().prepare( `
+        SELECT COUNT(*) AS count
+        FROM portfolio_members
+        WHERE portfolio_id = ? AND role = 'owner'
+      ` ).get( portfolioId ) ).count;
+
+      if ( owners <= 1 ) throw new Error( 'A portfolio must have at least one owner' );
+    }
+
+    conn().prepare( 'UPDATE portfolio_members SET role = ? WHERE portfolio_id = ? AND user_id = ?' )
+      .run( memberRole, portfolioId, memberId );
+
+    const member = as< PortfolioMemberRow | null >( conn().prepare( `
+      SELECT pm.*, u.username
+      FROM portfolio_members pm
+      JOIN users u ON u.id = pm.user_id
+      WHERE pm.portfolio_id = ? AND pm.user_id = ?
+    ` ).get( portfolioId, memberId ) );
+
+    if ( ! member ) throw new Error( 'Portfolio member does not exist' );
+    return Portfolio.toMemberRecord( member );
+  }
+
+  public static removeMember ( portfolioId: string, userId: string, memberId: string ) : void {
+    Portfolio.assertOwner( portfolioId, userId );
+    User.assertUserIdSafe( memberId );
+
+    const currentRole = Portfolio.getMemberRole( portfolioId, memberId );
+    if ( ! currentRole ) throw new Error( 'Portfolio member does not exist' );
+
+    if ( currentRole === 'owner' ) {
+      const owners = as< { count: number } >( conn().prepare( `
+        SELECT COUNT(*) AS count
+        FROM portfolio_members
+        WHERE portfolio_id = ? AND role = 'owner'
+      ` ).get( portfolioId ) ).count;
+
+      if ( owners <= 1 ) throw new Error( 'A portfolio must have at least one owner' );
+    }
+
+    const result = conn().prepare( 'DELETE FROM portfolio_members WHERE portfolio_id = ? AND user_id = ?' )
+      .run( portfolioId, memberId );
+
+    if ( ! result.changes ) throw new Error( 'Portfolio member does not exist' );
+  }
 }
