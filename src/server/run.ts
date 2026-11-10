@@ -11,7 +11,7 @@ const __dirname = dirname( fileURLToPath( import.meta.url ) );
 
 
 async function run () : Promise< void > {
-  const host = process.env.HOST ?? '0.0.0.0', port = process.env.PORT ?? 3000;
+  const host = Config.get( 'HOST' ), port = Config.get( 'PORT' ), env = Config.get( 'NODE_ENV' );
   const app = express();
 
   let server: Server | undefined, vite: ViteDevServer | undefined;
