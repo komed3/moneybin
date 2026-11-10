@@ -45,4 +45,21 @@ export class Portfolio {
     if ( Portfolio.assertMember( portfolioId, userId ) !== 'owner' )
       throw new Error( 'Only portfolio owners can perform this action' );
   }
+
+  private static validateName ( name: string ) : string {
+    return normalizeString( name, 'Name' );
+  }
+
+  private static validateCurrency ( currency: string ) : string {
+    const code = normalizeString( currency, 'Currency' );
+
+    if ( ! conn().prepare( 'SELECT 1 FROM currencies WHERE code = ?' ).get( code ) )
+      throw new Error( `Unknown currency: ${ code }` );
+
+    return code;
+  }
+
+  private static validateRole ( role: unknown ) : PortfolioMemberRole {
+    return validateEnum( role, 'role', [ 'owner', 'editor', 'viewer' ] );
+  }
 }
