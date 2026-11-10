@@ -100,4 +100,11 @@ export class Portfolio {
     const row = Portfolio.getRow( portfolioId );
     return row ? Portfolio.toRecord( row ) : null;
   }
+
+  public static assertPortfolioId ( portfolioId: string ) : void {
+    assertId( portfolioId, 'portfolio' );
+
+    if ( ! conn().prepare( 'SELECT 1 FROM portfolios WHERE id = ?' ).get( portfolioId ) )
+      throw new Error( `Portfolio ${ portfolioId } does not exist` );
+  }
 }
