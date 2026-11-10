@@ -39,4 +39,15 @@ export const registerConfigCommands = ( program: Command ) : void => {
       ui.success( `Updated ${ key }=${ JSON.stringify( updated ) }` );
       ui.warning( 'Restart MoneyBin for changes to take effect.' );
     } );
+
+  configCommand
+    .command( 'unset <name>' )
+    .description( 'Restore the default value' )
+    .action( ( name: string ) => {
+      const key = Config.resolveName( name );
+      Config.reset( key );
+
+      ui.success( `Reset ${ key } to ${ JSON.stringify( Config.get( key ) ) }` );
+      ui.warning( 'Restart MoneyBin for changes to take effect.' );
+    } );
 }
