@@ -25,6 +25,13 @@ export class Portfolio {
     };
   }
 
+  private static toMemberRecord ( row: PortfolioMemberRow ) : PortfolioMemberRecord {
+    return {
+      portfolioId: row.portfolio_id, userId: row.user_id, username: row.username,
+      role: row.role, createdAt: row.created_at
+    };
+  }
+
   private static getMemberRole ( portfolioId: string, userId: string ) : PortfolioMemberRole | null {
     return as< { role: PortfolioMemberRole } | null >( conn().prepare(
       'SELECT role FROM portfolio_members WHERE portfolio_id = ? AND user_id = ?'
