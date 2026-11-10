@@ -50,4 +50,19 @@ export const registerDbCommands = ( program: Command ) : void => {
       const pages = await db.backup( destination );
       ui.success( `Database backup created: ${ destination } (${ pages.toLocaleString() } pages).` );
     } );
+
+  dbCommand
+    .command( 'reset' )
+    .description( 'Delete the database and reapply migrations' )
+    .option( '-y, --yes', 'Skip confirmation' )
+    .action( async ( options: { yes?: boolean } ) => {
+      ui.warning( 'Please stop the server before resetting the database.' );
+      ui.warning( 'This will permanently delete all database data and cannot be undone.' );
+      ui.nl();
+
+      if ( ! options.yes && ! await confirm( 'Continue?' ) ) return ui.cancelled();
+
+      const count = db.reset();
+      ui.success( `Database reset. Applied ${ count } migration(s).` );
+    } );
 }
