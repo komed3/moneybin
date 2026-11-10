@@ -10,4 +10,8 @@ import { DatabaseSync, backup as sqliteBackup } from 'node:sqlite';
 export class Database {
   private connection: DatabaseSync | null = null;
   private transactionActive = false;
+
+  private static isPrimaryKeyCollision ( err: unknown ) : boolean {
+    return typeof err === 'object' && err !== null && 'errcode' in err && err.errcode === 1555;
+  }
 }
