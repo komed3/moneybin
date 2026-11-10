@@ -22,3 +22,18 @@ export function normalizeString ( value: unknown, label: string ) : string {
 
   return value.trim();
 }
+
+
+export function validateBoolean ( value: unknown, label: string, coerce = false ) : boolean {
+  if ( typeof value === 'boolean' ) return value;
+
+  if ( coerce && typeof value === 'string' ) {
+    const parsed = value.trim().toLowerCase();
+
+    if ( parsed === 'true' || parsed === '1' ) return true;
+    if ( parsed === 'false' || parsed === '0' ) return false;
+  }
+
+  if ( coerce && ( value === 0 || value === 1 ) ) return !! value;
+  throw new Error( `${ label } must be true or false` );
+}
