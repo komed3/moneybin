@@ -55,4 +55,16 @@ export class Auth {
 
     return user;
   }
+
+  public static listSessions () : ActiveSession[] {
+    return as< ActiveSession[] >( conn().prepare( `
+      SELECT
+        s.id, s.user_id AS userId, u.username, s.created_at AS createdAt,
+        s.expires_at AS expiresAt, s.last_seen_at AS lastSeenAt
+      FROM sessions s
+      JOIN users u ON u.id = s.user_id
+      WHERE s.expires_at > ?
+      ORDER BY s.last_seen_at DESC, s.created_at DESC
+    ` ).all( new Date().toISOString() ) );
+  }
 }
