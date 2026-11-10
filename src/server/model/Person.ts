@@ -29,4 +29,12 @@ export class Person {
   private static validateGender ( gender: unknown ) : PersonGender {
     return validateEnum( gender, 'gender', [ 'male', 'female', 'diverse' ] );
   }
+
+  public static list ( userId: string ) : PersonRecord[] {
+    User.assertUserIdSafe( userId );
+
+    return as< PersonRow[] >( conn().prepare(
+      'SELECT * FROM persons WHERE user_id = ? ORDER BY name COLLATE NOCASE'
+    ).all( userId ) ).map( Person.toRecord );
+  }
 }
