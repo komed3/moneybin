@@ -94,11 +94,12 @@ export class Portfolio {
   }
 
   public static get ( portfolioId: string, userId: string ) : PortfolioRecord | null {
-    const role = Portfolio.assertMember( portfolioId, userId );
-    if ( ! role ) return null;
+    User.assertUserIdSafe( userId );
 
     const row = Portfolio.getRow( portfolioId );
-    return row ? Portfolio.toRecord( row ) : null;
+    if ( ! row || ! Portfolio.getMemberRole( portfolioId, userId ) ) return null;
+
+    return Portfolio.toRecord( row );
   }
 
   public static assertPortfolioId ( portfolioId: string ) : void {
