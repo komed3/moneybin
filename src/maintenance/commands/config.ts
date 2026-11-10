@@ -29,4 +29,14 @@ export const registerConfigCommands = ( program: Command ) : void => {
       ui.info( def.desc );
       console.log( `${ ui.key( key ) }=${ ui.value( JSON.stringify( Config.get( key ) ) ) }` );
     } );
+
+  configCommand
+    .command( 'set <name> <value>' )
+    .description( 'Set a configuration value' )
+    .action( ( name: string, value: string ) => {
+      const key = Config.resolveName( name ), updated = Config.set( key, Config.validate( key, value ) );
+
+      ui.success( `Updated ${ key }=${ JSON.stringify( updated ) }` );
+      ui.warning( 'Restart MoneyBin for changes to take effect.' );
+    } );
 }
