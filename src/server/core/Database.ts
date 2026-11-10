@@ -91,6 +91,30 @@ export class Database {
     this.connection = null;
   }
 
+  public transaction < T > ( callback: ( db: DatabaseSync ) => T ) : T {
+    const db = this.db;
+    if ( this.transactionActive ) throw new Error( 'Nested transactions are not supported' );
+
+    db.exec( 'BEGIN IMMEDIATE' );
+    this.transactionActive = true;
+
+    try {
+      const result = callback( db );
+      if ( result && typeof result === 'object' && 'then' in result )
+        throw new Error( 'Database transactions must execute synchronously' );
+
+      db.exec( 'COMMIT' );
+      return result;
+    } catch ( err ) {
+      try { db.exec( 'ROLLBACK' ) }
+      catch { /** Preserve the original transaction error */ }
+
+      throw err;
+    } finally {
+      this.transactionActive = false;
+    }
+  }
+
   public listMigrations () : AppliedMigration[] {
     return as< AppliedMigration[] >( this.open().db.prepare(
       'SELECT name, checksum, applied_at AS appliedAt FROM schema_migrations ORDER BY applied_at, name'
