@@ -69,4 +69,17 @@ export class User {
       'SELECT * FROM users ORDER BY username COLLATE NOCASE'
     ).all() ).map( User.toRecord );
   }
+
+   public static get ( userId: string ) : UserRecord | null {
+    const row = User.getRow( userId );
+    return row ? User.toRecord( row ) : null;
+  }
+
+  public static getByUsername ( username: string ) : UserRecord | null {
+    const row = as< UserRow | null >( conn().prepare(
+      'SELECT * FROM users WHERE username = ? COLLATE NOCASE'
+    ).get( username.trim() ) );
+
+    return row ? User.toRecord( row ) : null;
+  }
 }
