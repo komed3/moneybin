@@ -69,4 +69,16 @@ export class Portfolio {
   private static validateRole ( role: unknown ) : PortfolioMemberRole {
     return validateEnum( role, 'role', [ 'owner', 'editor', 'viewer' ] );
   }
+
+  public static list ( userId: string ) : PortfolioRecord[] {
+    User.assertUserIdSafe( userId );
+
+    return as< PortfolioRow[] >( conn().prepare( `
+      SELECT p.*
+      FROM portfolios p
+      JOIN portfolio_members pm ON pm.portfolio_id = p.id
+      WHERE pm.user_id = ?
+      ORDER BY p.name COLLATE NOCASE
+    ` ).all( userId ) ).map( Portfolio.toRecord );
+  }
 }
