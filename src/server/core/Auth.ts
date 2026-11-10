@@ -30,4 +30,9 @@ export class Auth {
 
     return { token, expiresAt, user };
   }
+
+  public static logout ( token: string | null | undefined ) : void {
+    if ( ! token ) return;
+    conn().prepare( 'DELETE FROM sessions WHERE token_hash = ?' ).run( Auth.hashToken( token ) );
+  }
 }
