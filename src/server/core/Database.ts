@@ -183,3 +183,8 @@ export class Database {
     return this.listMigrations().length;
   }
 }
+
+
+export const as = < T > ( value: unknown ) : T => value as T;
+export const db = new Database();
+export const conn = () => db.open().db;
