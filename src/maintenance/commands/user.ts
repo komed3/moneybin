@@ -20,4 +20,18 @@ export const registerUserCommands = ( program: Command ) : void => {
         id, username, createdAt, updatedAt
       } ) ) );
     } );
+
+  userCommand
+    .command( 'create <username>' )
+    .description( 'Create a user account' )
+    .action( async ( username: string ) => {
+      const name = User.validateUsername( username );
+      if ( User.getByUsername( name ) ) throw new Error( 'Username is already taken' );
+
+      const pw = await promptConfirmedPassword( pw => User.validatePassword( pw ) );
+      const created = await User.create( name, pw );
+
+      ui.nl();
+      ui.success( `Created user ${ created.username } (ID ${ created.id })` );
+    } );
 }
