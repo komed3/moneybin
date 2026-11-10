@@ -154,6 +154,13 @@ export class Database {
     };
   }
 
+  public createWithId < T > ( callback: ( id: string ) => T ) : T {
+    while ( true ) {
+      try { return callback( generateId( Config.get( 'ID_LENGTH' ) ) ) }
+      catch ( err ) { if ( ! Database.isPrimaryKeyCollision( err ) ) throw err }
+    }
+  }
+
   public async backup ( destination: string ) : Promise<number> {
     const source = Config.get( 'DB_PATH' ), path = resolve( destination );
 
