@@ -140,4 +140,15 @@ export class Database {
     mkdirSync( dirname( path ), { recursive: true } );
     return sqliteBackup( this.open().db, path );
   }
+
+  public reset () : number {
+    const path = Config.get( 'DB_PATH' );
+    this.close();
+
+    if ( path !== ':memory:' ) for ( const file of [ path, `${ path }-wal`, `${ path }-shm` ] )
+      rmSync( file, { force: true } );
+
+    this.open();
+    return this.listMigrations().length;
+  }
 }
