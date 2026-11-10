@@ -7,3 +7,6 @@ import type {
   PortfolioRecord, PortfolioRow, PortfolioUpdateData
 } from '@/src/shared/types/portfolio';
 import { SQLInputValue } from 'node:sqlite';
+
+
+const COLUMNS = { personId: 'person_id', name: 'name', description: 'description', currency: 'currency', note: 'note' };
