@@ -134,4 +134,38 @@ export class Portfolio {
 
     return Portfolio.toRecord( portfolio );
   }
+
+  public static update ( portfolioId: string, userId: string, data: PortfolioUpdateData ) : PortfolioRecord {
+    Portfolio.assertOwner( portfolioId, userId );
+
+    const entries = Object.entries( COLUMNS ).filter( ( [ key ] ) => data[ key as keyof PortfolioUpdateData ] !== undefined );
+
+    if ( ! entries.length ) {
+      const portfolio = Portfolio.getRow( portfolioId );
+      if ( ! portfolio ) throw new Error( 'Portfolio does not exist' );
+      return Portfolio.toRecord( portfolio );
+    }
+
+    if ( data.personId !== undefined && ! Person.get( data.personId, userId ) )
+      throw new Error( 'Person does not exist or is not assigned to this user' );
+
+    if ( data.name !== undefined ) data.name = Portfolio.validateName( data.name );
+    if ( data.currency !== undefined ) data.currency = Portfolio.validateCurrency( data.currency );
+
+    const values = entries.map( ( [ key ] ) => data[ key as keyof PortfolioUpdateData ] );
+
+    const result = conn().prepare( `
+      UPDATE portfolios
+      SET ${ entries.map( ( [ , column ] ) => `${ column } = ?` ).join( ', ' ) },
+          updated_at = strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' )
+      WHERE id = ?
+    ` ).run( ...values as SQLInputValue[], portfolioId );
+
+    if ( ! result.changes ) throw new Error( 'Portfolio does not exist' );
+
+    const portfolio = Portfolio.getRow( portfolioId );
+    if ( ! portfolio ) throw new Error( 'Failed to update portfolio' );
+
+    return Portfolio.toRecord( portfolio );
+  }
 }
