@@ -92,4 +92,12 @@ export class Portfolio {
       ORDER BY name COLLATE NOCASE
     ` ).all( personId ) ).map( Portfolio.toRecord );
   }
+
+  public static get ( portfolioId: string, userId: string ) : PortfolioRecord | null {
+    const role = Portfolio.assertMember( portfolioId, userId );
+    if ( ! role ) return null;
+
+    const row = Portfolio.getRow( portfolioId );
+    return row ? Portfolio.toRecord( row ) : null;
+  }
 }
