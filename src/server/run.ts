@@ -45,6 +45,7 @@ async function run () : Promise< void > {
 
   // --- start ---
 
+  db.open();
   server = app.listen( port, host );
 
   await new Promise< void >( ( resolve, reject ) => {
@@ -70,6 +71,8 @@ async function run () : Promise< void > {
       } );
 
       await vite?.close();
+      db.close();
+
       console.info( '[MoneyBin] Server stopped.' );
     } catch ( err ) {
       console.error( '[MoneyBin] Shutdown failed:', err );
@@ -84,5 +87,6 @@ async function run () : Promise< void > {
 
 run().catch( err => {
   console.error( '[MoneyBin] Failed to start:', err );
+  db.close();
   process.exitCode = 1;
 } );
