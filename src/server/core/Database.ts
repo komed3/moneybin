@@ -45,4 +45,13 @@ export class Database {
       } );
     }
   }
+
+  public get isOpen () : boolean {
+    return this.connection !== null;
+  }
+
+  public get db () : DatabaseSync {
+    if ( ! this.connection ) throw new Error( 'Database connection is not open' );
+    return this.connection;
+  }
 }
