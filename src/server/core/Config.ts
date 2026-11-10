@@ -76,4 +76,10 @@ export class Config {
     const key = this.resolveName( name );
     this.set( key, this.schema[ key ].default as ConfigValue< typeof key > );
   }
+
+  public static all () : ConfigSchema {
+    const values = Object.create( null ) as Record< ConfigName, ConfigSchema[ ConfigName ] >;
+    for ( const key of Object.keys( this.schema ) as ConfigName[] ) values[ key ] = this.get( key );
+    return values as ConfigSchema;
+  }
 }
