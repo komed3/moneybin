@@ -83,6 +83,12 @@ export class User {
     return row ? User.toRecord( row ) : null;
   }
 
+  public static resolveUser ( ref: string ) : UserRecord {
+    const user = /^[a-zA-Z0-9]{5,32}$/.test( ref ) ? User.get( ref ) ?? User.getByUsername( ref ) : User.getByUsername( ref );
+    if ( ! user ) throw new Error( `User not found: ${ ref }` );
+    return user;
+  }
+
   public static async create ( username: string, pw: string ) : Promise< UserRecord > {
     const name = User.validateUsername( username );
     if ( User.getByUsername( name ) ) throw new Error( 'Username is already taken' );
