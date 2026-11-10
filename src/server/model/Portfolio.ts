@@ -107,4 +107,31 @@ export class Portfolio {
     if ( ! conn().prepare( 'SELECT 1 FROM portfolios WHERE id = ?' ).get( portfolioId ) )
       throw new Error( `Portfolio ${ portfolioId } does not exist` );
   }
+
+  public static create ( userId: string, data: PortfolioCreateData ) : PortfolioRecord {
+    User.assertUserIdSafe( userId );
+    if ( ! Person.get( data.personId, userId ) ) throw new Error( 'Person does not exist or is not assigned to this user' );
+
+    const name = Portfolio.validateName( data.name );
+    const currency = Portfolio.validateCurrency( data.currency );
+
+    const id = db.transaction( tx => db.createWithId( id => {
+      tx.prepare( `
+        INSERT INTO portfolios ( id, person_id, name, description, currency, note )
+        VALUES ( ?, ?, ?, ?, ?, ? )
+      ` ).run( id, data.personId, name, data.description ?? null, currency, data.note ?? null );
+
+      tx.prepare( `
+        INSERT INTO portfolio_members ( portfolio_id, user_id, role )
+        VALUES ( ?, ?, 'owner' )
+      ` ).run( id, userId );
+
+      return id;
+    } ) );
+
+    const portfolio = Portfolio.getRow( id );
+    if ( ! portfolio ) throw new Error( 'Failed to create portfolio' );
+
+    return Portfolio.toRecord( portfolio );
+  }
 }
