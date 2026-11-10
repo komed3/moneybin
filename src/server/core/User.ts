@@ -160,7 +160,23 @@ export class User {
 
   public static delete ( userId: string ) : void {
     assertId( userId, 'user' );
-    if ( ! User.getRow( userId ) ) throw new Error( 'User does not exist' );
-    conn().prepare( 'DELETE FROM users WHERE id = ?' ).run( userId );
+
+    db.transaction( tx => {
+      if ( ! tx.prepare( 'SELECT 1 FROM users WHERE id = ?' ).get( userId ) ) throw new Error( 'User does not exist' );
+
+      const persons = as< { count: number } >( tx.prepare(
+        'SELECT COUNT(*) AS count FROM persons WHERE user_id = ?'
+      ).get( userId ) ).count;
+
+      const memberships = as< { count: number } >( tx.prepare(
+        'SELECT COUNT(*) AS count FROM portfolio_members WHERE user_id = ?'
+      ).get( userId ) ).count;
+
+      if ( persons || memberships ) throw new Error(
+        'Cannot delete user while persons or portfolio memberships are assigned to this account'
+      );
+
+      tx.prepare( 'DELETE FROM users WHERE id = ?' ).run( userId );
+    } );
   }
 }
