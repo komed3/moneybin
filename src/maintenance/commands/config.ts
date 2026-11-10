@@ -19,4 +19,14 @@ export const registerConfigCommands = ( program: Command ) : void => {
         min: def.type === 'integer' ? def.min : '', max: def.type === 'integer' ? def.max : ''
       };
     } ) ) );
+
+  configCommand
+    .command( 'get <name>' )
+    .description( 'Show a configuration value' )
+    .action( ( name: string ) => {
+      const key = Config.resolveName( name ), def = Config.schema[ key ];
+
+      ui.info( def.desc );
+      console.log( `${ ui.key( key ) }=${ ui.value( JSON.stringify( Config.get( key ) ) ) }` );
+    } );
 }
