@@ -151,4 +151,10 @@ export class User {
     if ( ! conn().prepare( 'SELECT 1 FROM users WHERE id = ?' ).get( userId ) )
       throw new Error( `User ${ userId } does not exist` );
   }
+
+  public static delete ( userId: string ) : void {
+    assertId( userId, 'user' );
+    if ( ! User.getRow( userId ) ) throw new Error( 'User does not exist' );
+    conn().prepare( 'DELETE FROM users WHERE id = ?' ).run( userId );
+  }
 }
