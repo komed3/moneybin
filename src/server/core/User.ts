@@ -100,4 +100,24 @@ export class User {
 
     return user;
   }
+
+  public static changeUsername ( userId: string, username: string ) : UserRecord {
+    const target = User.getRow( userId );
+    if ( ! target ) throw new Error( 'User does not exist' );
+
+    const name = User.validateUsername( username );
+    const existing = User.getByUsername( name );
+    if ( existing && existing.id !== target.id ) throw new Error( 'Username is already taken' );
+
+    conn().prepare( `
+      UPDATE users
+      SET username = ?, updated_at = strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' )
+      WHERE id = ?
+    ` ).run( name, userId );
+
+    const user = User.get( userId );
+    if ( ! user ) throw new Error( 'User does not exist' );
+
+    return user;
+  }
 }
