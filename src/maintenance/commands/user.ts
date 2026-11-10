@@ -16,11 +16,8 @@ export const registerUserCommands = ( program: Command ) : void => {
       const users = User.list();
       if ( ! users.length ) return ui.info( 'No users found.' );
 
-      console.table( users.map( user => ( {
-        id: user.id,
-        username: user.username,
-        createdAt: user.createdAt,
-        updatedAt: user.updatedAt
+      console.table( users.map( ( { id, username, createdAt, updatedAt } ) => ( {
+        id, username, createdAt, updatedAt
       } ) ) );
     } );
 }
