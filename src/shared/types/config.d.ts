@@ -1,5 +1,7 @@
 export interface ConfigSchema {
   APP_NAME: string;
+  APP_DEFAULT_LANG: 'en' | 'de';
+
   NODE_ENV: 'dev' | 'development' | 'test' | 'prod' | 'production';
   ID_LENGTH: number;
 
