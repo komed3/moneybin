@@ -51,4 +51,24 @@ export class Config {
     const key = this.resolveName( name );
     return this.validate( key, process.env[ key ] ?? this.schema[ key ].default ) as ConfigValue< K >;
   }
+
+  public static set < K extends ConfigName > ( name: K, value: ConfigValue< K > ) : ConfigValue< K > {
+    const key = this.resolveName( name ), parsed = this.validate( key, value ) as ConfigValue< K >;
+    const file = resolve( '.env' );
+    const lines = ( existsSync( file ) ? readFileSync( file, 'utf8' ) : '' ).split( /\r?\n/ );
+    const pattern = new RegExp( `^\\s*(?:export\\s+)?${ key }\\s*=` );
+    const matches = lines.reduce( ( idx, line, i ) => pattern.test( line ) ? [ ...idx, i ] : idx, [] as number[] );
+    const line = `${ key }=${ JSON.stringify( parsed ) }`;
+
+    if ( matches.length ) {
+      lines[ matches[ 0 ] ] = line;
+      for ( const index of matches.slice( 1 ).reverse() ) lines.splice( index, 1 );
+    } else lines.push( line );
+
+    writeFileSync( file, `${ lines.filter( line => line.trim() !== '' ).join( '\n' ) }\n`, { mode: 0o600 } );
+    chmodSync( file, 0o600 );
+    process.env[ key ] = String( parsed );
+
+    return parsed;
+  }
 }
