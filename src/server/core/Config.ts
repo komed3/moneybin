@@ -35,4 +35,15 @@ export class Config {
     if ( ! this.isName( name ) ) throw new Error( `Unknown configuration key: ${ name }` );
     return name;
   }
+
+  public static validate < K extends ConfigName > ( name: K, value: unknown ) : ConfigValue< K > {
+    const key = this.resolveName( name ), def = this.schema[ key ];
+    if ( def.type === 'boolean' ) return validateBoolean( value, key, true ) as ConfigValue< K >;
+    if ( def.type === 'integer' ) return validateNumber( value, key, def.min, def.max, def.type === 'integer', true ) as ConfigValue< K >;
+
+    const parsed = normalizeString( value, key );
+    if ( def.type === 'enum' ) return validateEnum( parsed, key, def.values ) as ConfigValue< K >;
+
+    return ( def.type === 'path' ? key === 'DB_PATH' && parsed === ':memory:' ? parsed : resolve( parsed ) : parsed ) as ConfigValue< K >;
+  }
 }
