@@ -82,4 +82,22 @@ export class User {
 
     return row ? User.toRecord( row ) : null;
   }
+
+  public static async create ( username: string, pw: string ) : Promise< UserRecord > {
+    const name = User.validateUsername( username );
+    if ( User.getByUsername( name ) ) throw new Error( 'Username is already taken' );
+
+    User.validatePassword( pw );
+    const hash = await User.hashPassword( pw );
+
+    const id = db.createWithId( id => {
+      conn().prepare( 'INSERT INTO users ( id, username, pw_hash ) VALUES ( ?, ?, ? )' ).run( id, name, hash );
+      return id;
+    } );
+
+    const user = User.get( id );
+    if ( ! user ) throw new Error( 'Failed to create user' );
+
+    return user;
+  }
 }
