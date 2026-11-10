@@ -82,4 +82,12 @@ export class Database {
       throw err;
     }
   }
+
+  public close () : void {
+    if ( ! this.connection ) return;
+    if ( this.transactionActive ) throw new Error( 'Database cannot be closed while a transaction is running' );
+
+    this.connection.close();
+    this.connection = null;
+  }
 }
