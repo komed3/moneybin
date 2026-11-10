@@ -35,4 +35,24 @@ export class Auth {
     if ( ! token ) return;
     conn().prepare( 'DELETE FROM sessions WHERE token_hash = ?' ).run( Auth.hashToken( token ) );
   }
+
+  public static validateSession ( token: string | null | undefined ) : UserRecord | null {
+    if ( ! token ) return null;
+
+    const now = new Date();
+    const session = as< SessionRow | null >( conn().prepare(
+      'SELECT * FROM sessions WHERE token_hash = ? AND expires_at > ?'
+    ).get( Auth.hashToken( token ), now.toISOString() ) );
+
+    if ( ! session ) return null;
+
+    const user = User.get( session.user_id );
+    if ( ! user ) { conn().prepare( 'DELETE FROM sessions WHERE id = ?' ).run( session.id ); return null }
+
+    if ( now.getTime() - Date.parse( session.last_seen_at ) >= 5 * 60 * 1000 )
+      conn().prepare( 'UPDATE sessions SET last_seen_at = ? WHERE id = ?' )
+        .run( now.toISOString(), session.id );
+
+    return user;
+  }
 }
