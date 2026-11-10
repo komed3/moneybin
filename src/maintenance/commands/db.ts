@@ -42,4 +42,12 @@ export const registerDbCommands = ( program: Command ) : void => {
         { stat: 'Free pages', value: stats.freePages }
       ] );
     } );
+
+  dbCommand
+    .command( 'backup <destination>' )
+    .description( 'Create a database backup' )
+    .action( async ( destination: string ) => {
+      const pages = await db.backup( destination );
+      ui.success( `Database backup created: ${ destination } (${ pages.toLocaleString() } pages).` );
+    } );
 }
