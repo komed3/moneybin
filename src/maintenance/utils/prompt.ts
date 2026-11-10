@@ -16,3 +16,8 @@ export const prompt = async ( message: string, defaultValue?: string ) : Promise
   try { return ( await rl.question( question ) ).trim() || defaultValue || '' }
   finally { rl.close() }
 };
+
+export const confirm = async ( message: string ) : Promise< boolean > => {
+  const answer = await prompt( ui.confirm( message ) );
+  return /^y(?:es)?$/i.test( answer );
+};
