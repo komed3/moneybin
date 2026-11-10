@@ -51,4 +51,33 @@ export class Person {
     if ( ! conn().prepare( 'SELECT 1 FROM persons WHERE id = ?' ).get( personId ) )
       throw new Error( `Person ${ personId } does not exist` );
   }
+
+  public static create ( userId: string, data: PersonCreateData ) : PersonRecord {
+    User.assertUserIdSafe( userId );
+
+    const name = Person.validateName( data.name );
+    const gender = Person.validateGender( data.gender );
+
+    const id = db.createWithId( id => {
+      conn().prepare( `
+        INSERT INTO persons (
+          id, user_id, name, description, gender, birth_date,
+          street, address_extra, postal_code, city, region, country,
+          email, phone, website, notes
+        ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+      ` ).run(
+        id, userId, name, data.description ?? null, gender, data.birthDate ?? null,
+        data.street ?? null, data.addressExtra ?? null, data.postalCode ?? null,
+        data.city ?? null, data.region ?? null, data.country ?? null,
+        data.email ?? null, data.phone ?? null, data.website ?? null, data.notes ?? null
+      );
+
+      return id;
+    } );
+
+    const person = Person.get( id, userId );
+    if ( ! person ) throw new Error( 'Failed to create person' );
+
+    return person;
+  }
 }
