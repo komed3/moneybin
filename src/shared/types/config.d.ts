@@ -12,3 +12,6 @@ export interface ConfigSchema {
   SESSION_LIFETIME_MS: number;
   PASSWORD_STRICT: boolean;
 }
+
+export type ConfigName = keyof ConfigSchema;
+export type ConfigValue< K extends ConfigName > = ConfigSchema[ K ];
