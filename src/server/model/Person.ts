@@ -123,4 +123,12 @@ export class Person {
 
     return person;
   }
+
+  public static delete ( personId: string, userId: string ) : void {
+    User.assertUserIdSafe( userId );
+    Person.assertPersonId( personId );
+
+    const result = conn().prepare( 'DELETE FROM persons WHERE id = ? AND user_id = ?' ).run( personId, userId );
+    if ( ! result.changes ) throw new Error( 'Person does not exist or is not assigned to this user' );
+  }
 }
