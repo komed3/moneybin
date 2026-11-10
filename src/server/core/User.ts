@@ -52,4 +52,15 @@ export class User {
 
     return value;
   }
+
+  public static validatePassword ( pw: string ) : void {
+    if ( ! pw ) throw new Error( 'Password must not be empty' );
+    if ( ! Config.get( 'PASSWORD_STRICT' ) ) return;
+
+    if ( pw.length < 12 ) throw new Error( 'Password must contain at least 12 characters' );
+    if ( ! /[a-z]/.test( pw ) ) throw new Error( 'Password must contain at least one lowercase letter' );
+    if ( ! /[A-Z]/.test( pw ) ) throw new Error( 'Password must contain at least one uppercase letter' );
+    if ( ! /[0-9]/.test( pw ) ) throw new Error( 'Password must contain at least one number' );
+    if ( ! /[^a-zA-Z0-9]/.test( pw ) ) throw new Error( 'Password must contain at least one special character' );
+  }
 }
