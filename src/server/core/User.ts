@@ -14,4 +14,15 @@ export class User {
   private static toRecord ( row: UserRow ) : UserRecord {
     return { id: row.id, username: row.username, createdAt: row.created_at, updatedAt: row.updated_at };
   }
+
+  private static hashPassword ( pw: string ) : Promise< string > {
+    const salt = randomBytes( 16 );
+
+    return new Promise( ( resolve, reject ) => {
+      scrypt( pw, salt, 64, ( err, key ) => {
+        if ( err ) return reject( err );
+        resolve( `scrypt$${ salt.toString( 'base64url' ) }$${ key.toString( 'base64url' ) }` );
+      } );
+    } );
+  }
 }
