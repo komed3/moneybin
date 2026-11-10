@@ -168,4 +168,10 @@ export class Portfolio {
 
     return Portfolio.toRecord( portfolio );
   }
+
+  public static delete ( portfolioId: string, userId: string ) : void {
+    Portfolio.assertOwner( portfolioId, userId );
+    const result = conn().prepare( 'DELETE FROM portfolios WHERE id = ?' ).run( portfolioId );
+    if ( ! result.changes ) throw new Error( 'Portfolio does not exist' );
+  }
 }
