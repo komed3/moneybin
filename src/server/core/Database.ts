@@ -5,3 +5,9 @@ import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { DatabaseSync, backup as sqliteBackup } from 'node:sqlite';
+
+
+export class Database {
+  private connection: DatabaseSync | null = null;
+  private transactionActive = false;
+}
