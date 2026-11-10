@@ -37,4 +37,11 @@ export class Person {
       'SELECT * FROM persons WHERE user_id = ? ORDER BY name COLLATE NOCASE'
     ).all( userId ) ).map( Person.toRecord );
   }
+
+  public static get ( personId: string, userId: string ) : PersonRecord | null {
+    User.assertUserIdSafe( userId );
+
+    const row = Person.getRow( personId, userId );
+    return row ? Person.toRecord( row ) : null;
+  }
 }
