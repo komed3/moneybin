@@ -120,4 +120,23 @@ export class User {
 
     return user;
   }
+
+  public static async changePassword ( userId: string, newPw: string, currentPw: string ) : Promise< void > {
+    const target = User.getRow( userId );
+    if ( ! target ) throw new Error( 'User does not exist' );
+    if ( ! await User.verifyHash( currentPw, target.pw_hash ) ) throw new Error( 'Current password is incorrect' );
+
+    User.validatePassword( newPw );
+    const hash = await User.hashPassword( newPw );
+
+    db.transaction( tx => {
+      tx.prepare( `
+        UPDATE users
+        SET pw_hash = ?, updated_at = strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' )
+        WHERE id = ?
+      ` ).run( hash, userId );
+
+      tx.prepare( 'DELETE FROM sessions WHERE user_id = ?' ).run( userId );
+    } );
+  }
 }
