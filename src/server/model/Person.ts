@@ -54,11 +54,10 @@ export class Person {
     return row ? Person.toRecord( row ) : null;
   }
 
-  public static assertPersonId ( personId: string ) : void {
-    assertId( personId, 'person' );
-
-    if ( ! conn().prepare( 'SELECT 1 FROM persons WHERE id = ?' ).get( personId ) )
-      throw new Error( `Person ${ personId } does not exist` );
+  public static getSafe ( personId: string, userId?: string ) : PersonRecord {
+    const row = Person.getRow( personId, userId );
+    if ( ! row ) throw new Error( `Person ${ personId } does not exist${ userId ? ' or is not assigned to this user' : '' }` );
+    return Person.toRecord( row );
   }
 
   public static create ( userId: string, data: PersonCreateData ) : PersonRecord {
@@ -84,30 +83,22 @@ export class Person {
       return id;
     } );
 
-    const person = Person.get( id, userId );
-    if ( ! person ) throw new Error( 'Failed to create person' );
-
-    return person;
+    return Person.getSafe( id, userId );
   }
 
   public static update ( personId: string, userId: string, data: PersonUpdateData ) : PersonRecord {
-    User.assertUserIdSafe( userId );
-    Person.assertPersonId( personId );
+    const person = Person.getSafe( personId, userId ), updates = { ...data };
+
+    if ( updates.name !== undefined ) updates.name = Person.validateName( updates.name );
+    if ( updates.gender !== undefined ) updates.gender = Person.validateGender( updates.gender );
 
     const entries = Object.entries( COLUMNS ).filter(
-      ( [ key ] ) => data[ key as keyof PersonUpdateData ] !== undefined
+      ( [ key ] ) => updates[ key as keyof PersonUpdateData ] !== undefined
     );
 
-    if ( ! entries.length ) {
-      const person = Person.get( personId, userId );
-      if ( ! person ) throw new Error( 'Person does not exist or is not assigned to this user' );
-      return person;
-    }
+    if ( ! entries.length ) return person;
 
-    if ( data.name !== undefined ) data.name = Person.validateName( data.name );
-    if ( data.gender !== undefined ) data.gender = Person.validateGender( data.gender );
-
-    const values = entries.map( ( [ key ] ) => data[ key as keyof PersonUpdateData ] );
+    const values = entries.map( ( [ key ] ) => updates[ key as keyof PersonUpdateData ] );
 
     const result = conn().prepare( `
       UPDATE persons
@@ -117,17 +108,11 @@ export class Person {
     ` ).run( ...values as SQLInputValue[], personId, userId );
 
     if ( ! result.changes ) throw new Error( 'Person does not exist or is not assigned to this user' );
-
-    const person = Person.get( personId, userId );
-    if ( ! person ) throw new Error( 'Failed to update person' );
-
-    return person;
+    return Person.getSafe( personId, userId );
   }
 
   public static delete ( personId: string, userId: string ) : void {
-    User.assertUserIdSafe( userId );
-    Person.assertPersonId( personId );
-
+    Person.getSafe( personId, userId );
     const result = conn().prepare( 'DELETE FROM persons WHERE id = ? AND user_id = ?' ).run( personId, userId );
     if ( ! result.changes ) throw new Error( 'Person does not exist or is not assigned to this user' );
   }
