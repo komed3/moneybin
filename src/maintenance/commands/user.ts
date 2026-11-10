@@ -34,4 +34,18 @@ export const registerUserCommands = ( program: Command ) : void => {
       ui.nl();
       ui.success( `Created user ${ created.username } (ID ${ created.id })` );
     } );
+
+  userCommand
+    .command( 'delete <user>' )
+    .description( 'Delete a user by ID or username' )
+    .option( '-y, --yes', 'Skip confirmation' )
+    .action( async ( ref: string, options: { yes?: boolean } ) => {
+      const target = User.resolveUser( ref );
+
+      if ( ! options.yes && ! await confirm( `Delete user ${ target.username } (ID ${ target.id })?` ) )
+        return ui.cancelled();
+
+      User.delete( target.id );
+      ui.success( `Deleted user ${ target.username } (ID ${ target.id })` );
+    } );
 }
