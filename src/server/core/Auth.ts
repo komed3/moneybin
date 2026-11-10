@@ -67,4 +67,8 @@ export class Auth {
       ORDER BY s.last_seen_at DESC, s.created_at DESC
     ` ).all( new Date().toISOString() ) );
   }
+
+  public static logoutAll () : number {
+    return Number( conn().prepare( 'DELETE FROM sessions' ).run().changes );
+  }
 }
