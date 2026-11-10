@@ -67,6 +67,6 @@ export class User {
   public static list () : UserRecord[] {
     return as< UserRow[] >( conn().prepare(
       'SELECT * FROM users ORDER BY username COLLATE NOCASE'
-    ).all() ).map( row => User.toRecord( row ) );
+    ).all() ).map( User.toRecord );
   }
 }
