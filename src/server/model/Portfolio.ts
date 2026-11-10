@@ -18,6 +18,21 @@ export class Portfolio {
     return as< PortfolioRow | null >( conn().prepare( 'SELECT * FROM portfolios WHERE id = ?' ).get( portfolioId ) );
   }
 
+  private static getMemberRole ( portfolioId: string, userId: string ) : PortfolioMemberRole | null {
+    return as< { role: PortfolioMemberRole } | null >( conn().prepare(
+      'SELECT role FROM portfolio_members WHERE portfolio_id = ? AND user_id = ?'
+    ).get( portfolioId, userId ) )?.role ?? null;
+  }
+
+  private static getMemberRow ( portfolioId: string, userId: string ) : PortfolioMemberRow | null {
+    return as< PortfolioMemberRow | null >( conn().prepare( `
+      SELECT pm.*, u.username
+      FROM portfolio_members pm
+      JOIN users u ON u.id = pm.user_id
+      WHERE pm.portfolio_id = ? AND pm.user_id = ?
+    ` ).get( portfolioId, userId ) );
+  }
+
   private static toRecord ( row: PortfolioRow ) : PortfolioRecord {
     return {
       id: row.id, personId: row.person_id, name: row.name, description: row.description,
@@ -32,15 +47,9 @@ export class Portfolio {
     };
   }
 
-  private static getMemberRole ( portfolioId: string, userId: string ) : PortfolioMemberRole | null {
-    return as< { role: PortfolioMemberRole } | null >( conn().prepare(
-      'SELECT role FROM portfolio_members WHERE portfolio_id = ? AND user_id = ?'
-    ).get( portfolioId, userId ) )?.role ?? null;
-  }
-
   private static assertMember ( portfolioId: string, userId: string ) : PortfolioMemberRole {
+    assertId( portfolioId, 'portfolio' );
     User.assertUserIdSafe( userId );
-    Portfolio.assertPortfolioId( portfolioId );
 
     const role = Portfolio.getMemberRole( portfolioId, userId );
     if ( ! role ) throw new Error( 'User is not a member of this portfolio' );
@@ -83,8 +92,7 @@ export class Portfolio {
   }
 
   public static listByPerson ( personId: string, userId: string ) : PortfolioRecord[] {
-    if ( ! Person.get( personId, userId ) )
-      throw new Error( 'Person does not exist or is not assigned to this user' );
+    Person.getSafe( personId, userId );
 
     return as< PortfolioRow[] >( conn().prepare( `
       SELECT * FROM portfolios
@@ -94,24 +102,28 @@ export class Portfolio {
   }
 
   public static get ( portfolioId: string, userId: string ) : PortfolioRecord | null {
+    assertId( portfolioId, 'portfolio' );
     User.assertUserIdSafe( userId );
 
-    const row = Portfolio.getRow( portfolioId );
-    if ( ! row || ! Portfolio.getMemberRole( portfolioId, userId ) ) return null;
+    const row = as< PortfolioRow | null >( conn().prepare( `
+      SELECT p.*
+      FROM portfolios p
+      JOIN portfolio_members pm ON pm.portfolio_id = p.id
+      WHERE p.id = ? AND pm.user_id = ?
+    ` ).get( portfolioId, userId ) );
 
-    return Portfolio.toRecord( row );
+    return row ? Portfolio.toRecord( row ) : null;
   }
 
-  public static assertPortfolioId ( portfolioId: string ) : void {
-    assertId( portfolioId, 'portfolio' );
-
-    if ( ! conn().prepare( 'SELECT 1 FROM portfolios WHERE id = ?' ).get( portfolioId ) )
-      throw new Error( `Portfolio ${ portfolioId } does not exist` );
+  public static getSafe ( portfolioId: string ) : PortfolioRecord {
+    const row = Portfolio.getRow( portfolioId );
+    if ( ! row ) throw new Error( `Portfolio ${ portfolioId } does not exist` );
+    return Portfolio.toRecord( row );
   }
 
   public static create ( userId: string, data: PortfolioCreateData ) : PortfolioRecord {
     User.assertUserIdSafe( userId );
-    if ( ! Person.get( data.personId, userId ) ) throw new Error( 'Person does not exist or is not assigned to this user' );
+    Person.getSafe( data.personId, userId );
 
     const name = Portfolio.validateName( data.name );
     const currency = Portfolio.validateCurrency( data.currency );
@@ -130,30 +142,26 @@ export class Portfolio {
       return id;
     } ) );
 
-    const portfolio = Portfolio.getRow( id );
-    if ( ! portfolio ) throw new Error( 'Failed to create portfolio' );
-
-    return Portfolio.toRecord( portfolio );
+    return Portfolio.getSafe( id );
   }
 
   public static update ( portfolioId: string, userId: string, data: PortfolioUpdateData ) : PortfolioRecord {
     Portfolio.assertOwner( portfolioId, userId );
 
-    const entries = Object.entries( COLUMNS ).filter( ( [ key ] ) => data[ key as keyof PortfolioUpdateData ] !== undefined );
+    const portfolio = Portfolio.getSafe( portfolioId );
+    const updates = { ...data };
 
-    if ( ! entries.length ) {
-      const portfolio = Portfolio.getRow( portfolioId );
-      if ( ! portfolio ) throw new Error( 'Portfolio does not exist' );
-      return Portfolio.toRecord( portfolio );
-    }
+    if ( updates.personId !== undefined ) Person.getSafe( updates.personId, userId );
+    if ( updates.name !== undefined ) updates.name = Portfolio.validateName( updates.name );
+    if ( updates.currency !== undefined ) updates.currency = Portfolio.validateCurrency( updates.currency );
 
-    if ( data.personId !== undefined && ! Person.get( data.personId, userId ) )
-      throw new Error( 'Person does not exist or is not assigned to this user' );
+    const entries = Object.entries( COLUMNS ).filter(
+      ( [ key ] ) => updates[ key as keyof PortfolioUpdateData ] !== undefined
+    );
 
-    if ( data.name !== undefined ) data.name = Portfolio.validateName( data.name );
-    if ( data.currency !== undefined ) data.currency = Portfolio.validateCurrency( data.currency );
+    if ( ! entries.length ) return portfolio;
 
-    const values = entries.map( ( [ key ] ) => data[ key as keyof PortfolioUpdateData ] );
+    const values = entries.map( ( [ key ] ) => updates[ key as keyof PortfolioUpdateData ] );
 
     const result = conn().prepare( `
       UPDATE portfolios
@@ -163,11 +171,7 @@ export class Portfolio {
     ` ).run( ...values as SQLInputValue[], portfolioId );
 
     if ( ! result.changes ) throw new Error( 'Portfolio does not exist' );
-
-    const portfolio = Portfolio.getRow( portfolioId );
-    if ( ! portfolio ) throw new Error( 'Failed to update portfolio' );
-
-    return Portfolio.toRecord( portfolio );
+    return Portfolio.getSafe( portfolioId );
   }
 
   public static delete ( portfolioId: string, userId: string ) : void {
@@ -196,73 +200,67 @@ export class Portfolio {
 
     const memberRole = Portfolio.validateRole( role );
 
-    conn().prepare(
-      'INSERT INTO portfolio_members ( portfolio_id, user_id, role ) VALUES ( ?, ?, ? )'
-    ).run( portfolioId, memberId, memberRole );
+    conn().prepare( 'INSERT INTO portfolio_members ( portfolio_id, user_id, role ) VALUES ( ?, ?, ? )' )
+      .run( portfolioId, memberId, memberRole );
 
-    const member = as< PortfolioMemberRow | null >( conn().prepare( `
-      SELECT pm.*, u.username
-      FROM portfolio_members pm
-      JOIN users u ON u.id = pm.user_id
-      WHERE pm.portfolio_id = ? AND pm.user_id = ?
-    ` ).get( portfolioId, memberId ) );
-
+    const member = Portfolio.getMemberRow( portfolioId, memberId );
     if ( ! member ) throw new Error( 'Failed to add portfolio member' );
+
     return Portfolio.toMemberRecord( member );
   }
 
   public static updateMemberRole ( portfolioId: string, userId: string, memberId: string, role: PortfolioMemberRole ) : PortfolioMemberRecord {
-    Portfolio.assertOwner( portfolioId, userId );
-    User.assertUserIdSafe( memberId );
-
     const memberRole = Portfolio.validateRole( role );
-    const currentRole = Portfolio.getMemberRole( portfolioId, memberId );
-    if ( ! currentRole ) throw new Error( 'Portfolio member does not exist' );
 
-    if ( currentRole === 'owner' && memberRole !== 'owner' ) {
-      const owners = as< { count: number } >( conn().prepare( `
-        SELECT COUNT(*) AS count
-        FROM portfolio_members
-        WHERE portfolio_id = ? AND role = 'owner'
-      ` ).get( portfolioId ) ).count;
+    db.transaction( tx => {
+      Portfolio.assertOwner( portfolioId, userId );
+      User.assertUserIdSafe( memberId );
 
-      if ( owners <= 1 ) throw new Error( 'A portfolio must have at least one owner' );
-    }
+      const currentRole = Portfolio.getMemberRole( portfolioId, memberId );
+      if ( ! currentRole ) throw new Error( 'Portfolio member does not exist' );
 
-    conn().prepare( 'UPDATE portfolio_members SET role = ? WHERE portfolio_id = ? AND user_id = ?' )
-      .run( memberRole, portfolioId, memberId );
+      if ( currentRole === 'owner' && memberRole !== 'owner' ) {
+        const owners = as< { count: number } >( tx.prepare( `
+          SELECT COUNT(*) AS count
+          FROM portfolio_members
+          WHERE portfolio_id = ? AND role = 'owner'
+        ` ).get( portfolioId ) ).count;
 
-    const member = as< PortfolioMemberRow | null >( conn().prepare( `
-      SELECT pm.*, u.username
-      FROM portfolio_members pm
-      JOIN users u ON u.id = pm.user_id
-      WHERE pm.portfolio_id = ? AND pm.user_id = ?
-    ` ).get( portfolioId, memberId ) );
+        if ( owners <= 1 ) throw new Error( 'A portfolio must have at least one owner' );
+      }
 
+      tx.prepare( 'UPDATE portfolio_members SET role = ? WHERE portfolio_id = ? AND user_id = ?' )
+        .run( memberRole, portfolioId, memberId );
+    } );
+
+    const member = Portfolio.getMemberRow( portfolioId, memberId );
     if ( ! member ) throw new Error( 'Portfolio member does not exist' );
+
     return Portfolio.toMemberRecord( member );
   }
 
   public static removeMember ( portfolioId: string, userId: string, memberId: string ) : void {
-    Portfolio.assertOwner( portfolioId, userId );
-    User.assertUserIdSafe( memberId );
+    db.transaction( tx => {
+      Portfolio.assertOwner( portfolioId, userId );
+      User.assertUserIdSafe( memberId );
 
-    const currentRole = Portfolio.getMemberRole( portfolioId, memberId );
-    if ( ! currentRole ) throw new Error( 'Portfolio member does not exist' );
+      const currentRole = Portfolio.getMemberRole( portfolioId, memberId );
+      if ( ! currentRole ) throw new Error( 'Portfolio member does not exist' );
 
-    if ( currentRole === 'owner' ) {
-      const owners = as< { count: number } >( conn().prepare( `
-        SELECT COUNT(*) AS count
-        FROM portfolio_members
-        WHERE portfolio_id = ? AND role = 'owner'
-      ` ).get( portfolioId ) ).count;
+      if ( currentRole === 'owner' ) {
+        const owners = as< { count: number } >( tx.prepare( `
+          SELECT COUNT(*) AS count
+          FROM portfolio_members
+          WHERE portfolio_id = ? AND role = 'owner'
+        ` ).get( portfolioId ) ).count;
 
-      if ( owners <= 1 ) throw new Error( 'A portfolio must have at least one owner' );
-    }
+        if ( owners <= 1 ) throw new Error( 'A portfolio must have at least one owner' );
+      }
 
-    const result = conn().prepare( 'DELETE FROM portfolio_members WHERE portfolio_id = ? AND user_id = ?' )
-      .run( portfolioId, memberId );
+      const result = tx.prepare( 'DELETE FROM portfolio_members WHERE portfolio_id = ? AND user_id = ?' )
+        .run( portfolioId, memberId );
 
-    if ( ! result.changes ) throw new Error( 'Portfolio member does not exist' );
+      if ( ! result.changes ) throw new Error( 'Portfolio member does not exist' );
+    } );
   }
 }
