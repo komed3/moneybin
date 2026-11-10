@@ -174,4 +174,18 @@ export class Portfolio {
     const result = conn().prepare( 'DELETE FROM portfolios WHERE id = ?' ).run( portfolioId );
     if ( ! result.changes ) throw new Error( 'Portfolio does not exist' );
   }
+
+  public static listMembers ( portfolioId: string, userId: string ) : PortfolioMemberRecord[] {
+    Portfolio.assertMember( portfolioId, userId );
+
+    return as< PortfolioMemberRow[] >( conn().prepare( `
+      SELECT pm.*, u.username
+      FROM portfolio_members pm
+      JOIN users u ON u.id = pm.user_id
+      WHERE pm.portfolio_id = ?
+      ORDER BY
+        CASE pm.role WHEN 'owner' THEN 0 WHEN 'editor' THEN 1 ELSE 2 END,
+        u.username COLLATE NOCASE
+    ` ).all( portfolioId ) ).map( Portfolio.toMemberRecord );
+  }
 }
