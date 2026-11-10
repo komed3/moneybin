@@ -81,4 +81,15 @@ export class Portfolio {
       ORDER BY p.name COLLATE NOCASE
     ` ).all( userId ) ).map( Portfolio.toRecord );
   }
+
+  public static listByPerson ( personId: string, userId: string ) : PortfolioRecord[] {
+    if ( ! Person.get( personId, userId ) )
+      throw new Error( 'Person does not exist or is not assigned to this user' );
+
+    return as< PortfolioRow[] >( conn().prepare( `
+      SELECT * FROM portfolios
+      WHERE person_id = ?
+      ORDER BY name COLLATE NOCASE
+    ` ).all( personId ) ).map( Portfolio.toRecord );
+  }
 }
