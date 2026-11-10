@@ -67,3 +67,34 @@ const createFirstUser = async () : Promise< void > => {
   ui.nl();
   ui.success( `Created user ${ user.username } (ID ${ user.id })` );
 };
+
+
+export const registerInitCommands = ( program: Command ) : void => {
+  program
+    .command( 'init' )
+    .description( 'Initialize MoneyBin' )
+    .action( async () => {
+      if ( existsSync( resolve( '.env' ) ) )
+        throw new Error( 'MoneyBin has already been initialized (.env already exists).' );
+
+      ui.nl();
+      console.log( ui.muted( '----------' ) );
+      ui.nl();
+
+      ui.info( ui.key( 'Welcome to MoneyBin' ) );
+      ui.nl();
+
+      ui.info( 'This command will guide you through the initial configuration of MoneyBin.' );
+      ui.info( 'Press Enter to accept the displayed default value.' );
+      ui.nl();
+
+      await configure();
+
+      db.open();
+      await createFirstUser();
+
+      ui.nl();
+      ui.success( 'MoneyBin initialization complete.' );
+      ui.info( `Run ${ ui.value( 'npm run start' ) } to start the server.` );
+    } );
+};
