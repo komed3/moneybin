@@ -26,4 +26,13 @@ export class Config {
     SESSION_LIFETIME_MS: { type: 'integer', desc: 'Session lifetime', default: 2592e6, min: 60000, max: 31536e6 },
     PASSWORD_STRICT: { type: 'boolean', desc: 'Enforce strong password requirements', default: true }
   } satisfies ConfigTable;
+
+  private static isName ( name: string ) : name is ConfigName {
+    return Object.hasOwn( this.schema, name );
+  }
+
+  public static resolveName ( name: string ) : ConfigName {
+    if ( ! this.isName( name ) ) throw new Error( `Unknown configuration key: ${ name }` );
+    return name;
+  }
 }
