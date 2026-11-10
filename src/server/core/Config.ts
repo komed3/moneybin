@@ -71,4 +71,9 @@ export class Config {
 
     return parsed;
   }
+
+  public static reset ( name: ConfigName ) : void {
+    const key = this.resolveName( name );
+    this.set( key, this.schema[ key ].default as ConfigValue< typeof key > );
+  }
 }
