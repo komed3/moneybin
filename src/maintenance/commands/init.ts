@@ -1,7 +1,7 @@
-import { prompt, confirm, promptConfirmedPassword } from '@/src/maintenance/utils/prompt';
+import { confirm, prompt, promptConfirmedPassword } from '@/src/maintenance/utils/prompt';
 import { ui } from '@/src/maintenance/utils/ui';
 import { Config } from '@/src/server/core/Config';
-import { Database, db } from '@/src/server/core/Database';
+import { db } from '@/src/server/core/Database';
 import { User } from '@/src/server/core/User';
 import type { ConfigName, ConfigValue } from '@/src/shared/types/config';
 import { Command } from 'commander';
