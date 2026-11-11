@@ -15,6 +15,8 @@ export interface TransactionRow {
   created_at: string;
 }
 
+export type TransactionWithPortfolio = TransactionRow & { portfolio_id: string };
+
 export interface TransactionCreateData {
   note?: string | null;
   bookings: BookingCreateData[];
