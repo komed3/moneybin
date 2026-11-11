@@ -1,5 +1,5 @@
 import { as, conn, db } from '@/src/server/core/Database';
-import { User } from '@/src/server/core/User';
+import { Portfolio } from '@/src/server/model/Portfolio';
 import { assertId, normalizeString, validateBoolean, validateEnum } from '@/src/server/utils';
 import type {
   AssetCreateData, AssetLiquidationLevel, AssetRecord, AssetRow,
