@@ -1,6 +1,7 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { Asset } from '@/src/server/model/Asset';
 import { Portfolio } from '@/src/server/model/Portfolio';
+import { Transaction } from '@/src/server/model/Transaction';
 import { assertId, parseDate, parseEnum, parseNumber, parseString } from '@/src/server/utils';
 import type {
   BookingCreateData, BookingRecord, BookingReliability, BookingRow,
@@ -18,7 +19,7 @@ const MIN = Number.MIN_SAFE_INTEGER, MAX = Number.MAX_SAFE_INTEGER, COLS = {
 
 export class Booking {
   private static getRow ( bookingId: string ) : BookingRow | null {
-    assertId( bookingId, 'booking' );
+    assertId( bookingId, 'booking', false, true );
     return as< BookingRow | null >( conn().prepare( 'SELECT * FROM bookings WHERE id = ?' ).get( bookingId ) );
   }
 
@@ -32,9 +33,6 @@ export class Booking {
   }
 
   private static validate ( data: BookingCreateData | BookingUpdateData ) : void {
-    data.assetId = assertId( data.assetId, 'asset' );
-    data.transactionId = assertId( data.transactionId, 'transaction', true );
-
     data.type = parseEnum< BookingType >( data.type, 'type', [
       'deposit', 'withdrawal', 'transfer', 'direct_debit', 'purchase', 'sale',
       'fee', 'interest', 'dividend', 'tax', 'repayment', 'adjustment', 'other'
@@ -46,6 +44,8 @@ export class Booking {
       'documented', 'reconstructed', 'speculative', 'assumed'
     ] );
 
+    data.assetId = assertId( data.assetId, 'asset' );
+    data.transactionId = assertId( data.transactionId, 'transaction', true );
     data.amount = parseNumber( data.amount, 'Amount', MIN, MAX, true );
     data.minAmount = parseNumber( data.minAmount, 'Minimum amount', MIN, MAX, true, false, true );
     data.maxAmount = parseNumber( data.maxAmount, 'Maximum amount', MIN, MAX, true, false, true );
@@ -55,25 +55,17 @@ export class Booking {
   }
 
   private static validateAmounts ( amount: number, min: number | null, max: number | null ) : void {
-    if ( min !== null && min > amount ) throw new Error( 'Minimum amount must not exceed amount' );
-    if ( max !== null && max < amount ) throw new Error( 'Maximum amount must not be less than amount' );
-    if ( min !== null && max !== null && min > max ) throw new Error( 'Minimum amount must not exceed maximum amount' );
+    if ( min !== null && min > amount ) throw new Error( 'Minimum amount exceeds amount' );
+    if ( max !== null && max < amount ) throw new Error( 'Maximum amount is below amount' );
+    if ( min !== null && max !== null && min > max ) throw new Error( 'Minimum amount exceeds maximum' );
   }
 
-  private static assertTransaction ( transactionId: string, portfolioId: string, excludeBookingId?: string ) : void {
-    if ( ! conn().prepare( 'SELECT 1 FROM transactions WHERE id = ?' ).get( transactionId ) )
-      throw new Error( `Transaction ${ transactionId } does not exist` );
+  public static validateCreateData ( data: BookingCreateData ) : void {
+    if ( ! data.bookingDate && ! data.valueDate ) throw new Error( 'A booking date is required' );
+    data.bookingDate ??= data.valueDate, data.valueDate ??= data.bookingDate;
 
-    const booking = as< { portfolio_id: string } | null >( conn().prepare( `
-      SELECT a.portfolio_id
-      FROM bookings b
-      JOIN assets a ON a.id = b.asset_id
-      WHERE b.transaction_id = ? AND b.id <> COALESCE( ?, '' )
-      LIMIT 1
-    ` ).get( transactionId, excludeBookingId ?? null ) );
-
-    if ( booking && booking.portfolio_id !== portfolioId )
-      throw new Error( 'A transaction cannot contain bookings from different portfolios' );
+    Booking.validate( data );
+    Booking.validateAmounts( data.amount, data.minAmount ?? null, data.maxAmount ?? null );
   }
 
   private static cleanupTransaction ( transactionId: string | null ) : void {
@@ -84,8 +76,20 @@ export class Booking {
     )` ).run( transactionId, transactionId );
   }
 
+  public static assertBookingIdSafe ( bookingId: string, userId: string ) : void {
+    assertId( bookingId, 'booking', false, true );
+
+    if ( ! conn().prepare( `
+      SELECT 1
+      FROM bookings b
+      JOIN assets a ON a.id = b.asset_id
+      JOIN portfolio_members pm ON pm.portfolio_id = a.portfolio_id
+      WHERE b.id = ? AND pm.user_id = ?
+    ` ).get( bookingId, userId ) ) throw new Error( `Booking ${ bookingId } does not exist` );
+  }
+
   public static list ( assetId: string, userId: string ) : BookingRecord[] {
-    Asset.getSafe( assetId, userId );
+    Asset.assertAssetIdSafe( assetId, userId );
 
     return as< BookingRow[] >( conn().prepare(
       'SELECT * FROM bookings WHERE asset_id = ? ORDER BY value_date DESC, booking_date DESC, created_at DESC'
@@ -105,7 +109,7 @@ export class Booking {
   }
 
   public static listByTransaction ( transactionId: string, portfolioId: string, userId: string ) : BookingRecord[] {
-    assertId( transactionId, 'transaction' );
+    assertId( transactionId, 'transaction', false, true );
     Portfolio.assertMember( portfolioId, userId );
 
     return as< BookingRow[] >( conn().prepare( `
@@ -121,7 +125,7 @@ export class Booking {
     const row = Booking.getRow( bookingId );
     if ( ! row ) return null;
 
-    Asset.getSafe( row.asset_id, userId );
+    Asset.assertAssetIdSafe( row.asset_id, userId );
     return Booking.toRecord( row );
   }
 
@@ -132,16 +136,13 @@ export class Booking {
   }
 
   public static create ( userId: string, data: BookingCreateData ) : BookingRecord {
-    Booking.validate( data );
+    Booking.validateCreateData( data );
 
-    if ( ! data.bookingDate && ! data.valueDate ) throw new Error( 'Booking date or value date is required' );
-    data.bookingDate ??= data.valueDate;
-    data.valueDate ??= data.bookingDate;
-
+    Asset.assertAssetIdSafe( data.assetId, userId );
     const asset = Asset.getSafe( data.assetId, userId );
     Portfolio.assertEditable( asset.portfolioId, userId );
-    if ( data.transactionId ) Booking.assertTransaction( data.transactionId, asset.portfolioId );
-    Booking.validateAmounts( data.amount, data.minAmount ?? null, data.maxAmount ?? null );
+
+    if ( data.transactionId ) Transaction.assertTransactionIdSafe( data.transactionId, asset.portfolioId );
 
     const id = db.createWithId( id => {
       conn().prepare( `
@@ -166,11 +167,13 @@ export class Booking {
     Booking.validate( data );
 
     const assetId = data.assetId ?? booking.assetId;
+    Asset.assertAssetIdSafe( assetId, userId );
+
     const asset = Asset.getSafe( assetId, userId );
     Portfolio.assertEditable( asset.portfolioId, userId );
 
     const transactionId = data.transactionId === undefined ? booking.transactionId : data.transactionId;
-    if ( transactionId ) Booking.assertTransaction( transactionId, asset.portfolioId, bookingId );
+    if ( transactionId ) Transaction.assertTransactionIdSafe( transactionId, asset.portfolioId, bookingId );
 
     const amount = data.amount ?? booking.amount;
     const min = data.minAmount === undefined ? booking.minAmount : data.minAmount;
