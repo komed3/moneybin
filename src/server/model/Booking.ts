@@ -160,4 +160,42 @@ export class Booking {
 
     return Booking.getSafe( id, userId );
   }
+
+  public static update ( bookingId: string, userId: string, data: BookingUpdateData ) : BookingRecord {
+    const booking = Booking.getSafe( bookingId, userId );
+    Booking.validate( data );
+
+    const assetId = data.assetId ?? booking.assetId;
+    const asset = Asset.getSafe( assetId, userId );
+    Portfolio.assertEditable( asset.portfolioId, userId );
+
+    const transactionId = data.transactionId === undefined ? booking.transactionId : data.transactionId;
+    if ( transactionId ) Booking.assertTransaction( transactionId, asset.portfolioId, bookingId );
+
+    const amount = data.amount ?? booking.amount;
+    const min = data.minAmount === undefined ? booking.minAmount : data.minAmount;
+    const max = data.maxAmount === undefined ? booking.maxAmount : data.maxAmount;
+    Booking.validateAmounts( amount, min, max );
+
+    const entries = Object.entries( COLS ).filter( ( [ k ] ) => data[ k as keyof BookingUpdateData ] !== undefined );
+    if ( ! entries.length ) return booking;
+
+    const values = entries.map( ( [ key ] ) => {
+      const value = data[ key as keyof BookingUpdateData ];
+      return key === 'transactionId' || key === 'note' || key === 'minAmount' || key === 'maxAmount'
+        ? value ?? null : value;
+    } );
+
+    conn().prepare( `
+      UPDATE bookings
+      SET ${ entries.map( ( [ , column ] ) => `${ column } = ?` ).join( ', ' ) },
+          updated_at = strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' )
+      WHERE id = ?
+    ` ).run( ...values as SQLInputValue[], bookingId );
+
+    if ( booking.transactionId && booking.transactionId !== transactionId )
+      Booking.cleanupTransaction( booking.transactionId );
+
+    return Booking.getSafe( bookingId, userId );
+  }
 }
