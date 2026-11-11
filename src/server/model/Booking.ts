@@ -75,4 +75,12 @@ export class Booking {
     if ( booking && booking.portfolio_id !== portfolioId )
       throw new Error( 'A transaction cannot contain bookings from different portfolios' );
   }
+
+  private static cleanupTransaction ( transactionId: string | null ) : void {
+    if ( ! transactionId ) return;
+
+    conn().prepare( `DELETE FROM transactions WHERE id = ? AND NOT EXISTS (
+      SELECT 1 FROM bookings WHERE transaction_id = ?
+    )` ).run( transactionId, transactionId );
+  }
 }
