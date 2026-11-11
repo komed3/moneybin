@@ -4,8 +4,8 @@ import { Booking } from '@/src/server/model/Booking';
 import { Portfolio } from '@/src/server/model/Portfolio';
 import { assertId, parseString } from '@/src/server/utils';
 import type {
-  TransactionCreateData, TransactionRecord, TransactionRow,
-  TransactionUpdateData, TransactionWithPortfolio
+  TransactionCreateData, TransactionRecord, TransactionUpdateData,
+  TransactionWithPortfolio
 } from '@/src/shared/types/transaction';
 
 
@@ -91,5 +91,11 @@ export class Transaction {
     conn().prepare( 'UPDATE transactions SET note = ? WHERE id = ?' ).run( data.note ?? null, transactionId );
 
     return Transaction.getSafe( transactionId, userId );
+  }
+
+  public static delete ( transactionId: string, userId: string ) : void {
+    const transaction = Transaction.getSafe( transactionId, userId );
+    Portfolio.assertEditable( transaction.portfolioId, userId );
+    conn().prepare( 'DELETE FROM transactions WHERE id = ?' ).run( transactionId );
   }
 }
