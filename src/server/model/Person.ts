@@ -30,12 +30,21 @@ export class Person {
     };
   }
 
-  private static validateName ( name: string ) : string {
-    return normalizeString( name, 'Name' );
-  }
-
-  private static validateGender ( gender: unknown ) : PersonGender {
-    return validateEnum( gender, 'gender', [ 'male', 'female', 'diverse' ] );
+  private static validate ( data: PersonCreateData | PersonUpdateData ) : void {
+    if ( data.name !== undefined ) data.name = normalizeString( data.name, 'Name' );
+    if ( data.description !== undefined ) data.description = normalizeString( data.description, 'Description' );
+    if ( data.gender !== undefined ) data.gender = validateEnum< PersonGender >( data.gender, 'gender', [ 'male', 'female', 'diverse' ] );
+    if ( data.birthDate !== undefined ) data.birthDate = normalizeString( data.birthDate, 'Birth date' );
+    if ( data.street !== undefined ) data.street = normalizeString( data.street, 'Street' );
+    if ( data.addressExtra !== undefined ) data.addressExtra = normalizeString( data.addressExtra, 'Address extra' );
+    if ( data.postalCode !== undefined ) data.postalCode = normalizeString( data.postalCode, 'Postal code' );
+    if ( data.city !== undefined ) data.city = normalizeString( data.city, 'City' );
+    if ( data.region !== undefined ) data.region = normalizeString( data.region, 'Region' );
+    if ( data.country !== undefined ) data.country = normalizeString( data.country, 'Country' );
+    if ( data.email !== undefined ) data.email = normalizeString( data.email, 'Email' );
+    if ( data.phone !== undefined ) data.phone = normalizeString( data.phone, 'Phone' );
+    if ( data.website !== undefined ) data.website = normalizeString( data.website, 'Website' );
+    if ( data.notes !== undefined ) data.notes = normalizeString( data.notes, 'Notes' );
   }
 
   public static list ( userId: string ) : PersonRecord[] {
