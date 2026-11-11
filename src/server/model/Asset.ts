@@ -49,4 +49,12 @@ export class Asset {
     if ( data.icon !== undefined ) data.icon = normalizeString( data.icon, 'Icon' );
     if ( data.color !== undefined ) data.color = normalizeString( data.color, 'Color' );
   }
+
+  public static list ( portfolioId: string, userId: string ) : AssetRecord[] {
+    Portfolio.assertMember( portfolioId, userId );
+
+    return as< AssetRow[] >( conn().prepare(
+      'SELECT * FROM assets WHERE portfolio_id = ? ORDER BY name COLLATE NOCASE'
+    ).all( portfolioId ) ).map( Asset.toRecord );
+  }
 }
