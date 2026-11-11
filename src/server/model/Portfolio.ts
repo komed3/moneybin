@@ -58,7 +58,7 @@ export class Portfolio {
   }
 
   private static validateRole ( role: unknown ) : PortfolioMemberRole {
-    return parseEnum( role, 'role', [ 'owner', 'editor', 'viewer' ] );
+    return parseEnum( role, 'role', [ 'owner', 'editor', 'viewer' ], true );
   }
 
   private static assertAtLeastOneOwner (
