@@ -80,4 +80,16 @@ export class Transaction {
 
     return Transaction.getSafe( id, userId );
   }
+
+  public static update ( transactionId: string, userId: string, data: TransactionUpdateData ) : TransactionRecord {
+    const transaction = Transaction.getSafe( transactionId, userId );
+    Transaction.validate( data );
+
+    if ( data.note === undefined ) return transaction;
+
+    Portfolio.assertEditable( transaction.portfolioId, userId );
+    conn().prepare( 'UPDATE transactions SET note = ? WHERE id = ?' ).run( data.note ?? null, transactionId );
+
+    return Transaction.getSafe( transactionId, userId );
+  }
 }
