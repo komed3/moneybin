@@ -55,8 +55,10 @@ export function parseNumber ( value: unknown, label: string, min: number, max: n
   return parsed;
 }
 
-export function parseDate ( value: unknown, label: string ) : string | undefined {
-  if ( value === undefined ) return undefined;
+export function parseDate ( value: unknown, label: string ) : string | undefined;
+export function parseDate ( value: unknown, label: string, nullable: true ) : string | null | undefined;
+export function parseDate ( value: unknown, label: string, nullable = false ) : string | null | undefined {
+  if ( value === undefined || ( nullable && value === null ) ) return value;
   if ( typeof value !== 'string' || ! /^\d{4}-\d{2}-\d{2}$/.test( value ) ) throw new Error( `${ label } must be a valid date` );
 
   const date = new Date( `${ value }T00:00:00.000Z` );
