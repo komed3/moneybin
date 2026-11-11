@@ -101,19 +101,18 @@ export class Asset {
   public static update ( assetId: string, userId: string, data: AssetUpdateData ) : AssetRecord {
     const row = Asset.getRow( assetId );
     if ( ! row ) throw new Error( `Asset ${ assetId } does not exist` );
-    Portfolio.assertEditable( row.portfolio_id, userId );
 
-    const updates = { ...data };
-    Asset.validate( updates );
+    Portfolio.assertEditable( row.portfolio_id, userId );
+    Asset.validate( data );
 
     const entries = Object.entries( COLUMNS ).filter(
-      ( [ key ] ) => updates[ key as keyof AssetUpdateData ] !== undefined
+      ( [ key ] ) => data[ key as keyof AssetUpdateData ] !== undefined
     );
 
     if ( ! entries.length ) return Asset.toRecord( row );
 
     const values = entries.map( ( [ key ] ) => {
-      const value = updates[ key as keyof AssetUpdateData ];
+      const value = data[ key as keyof AssetUpdateData ];
       return key === 'archived' ? Number( value ) : value;
     } );
 
@@ -130,8 +129,8 @@ export class Asset {
   public static delete ( assetId: string, userId: string ) : void {
     const row = Asset.getRow( assetId );
     if ( ! row ) throw new Error( `Asset ${ assetId } does not exist` );
-    Portfolio.assertEditable( row.portfolio_id, userId );
 
+    Portfolio.assertEditable( row.portfolio_id, userId );
     conn().prepare( 'DELETE FROM assets WHERE id = ?' ).run( assetId );
   }
 }
