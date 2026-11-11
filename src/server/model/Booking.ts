@@ -7,3 +7,10 @@ import type {
   BookingUpdateData, BookingValueType
 } from '@/src/shared/types/booking';
 import type { SQLInputValue } from 'node:sqlite';
+
+
+const COLS = {
+  assetId: 'asset_id', transactionId: 'transaction_id', type: 'type', valueType: 'value_type',
+  amount: 'amount', minAmount: 'min_amount', maxAmount: 'max_amount', bookingDate: 'booking_date',
+  valueDate: 'value_date', reliability: 'reliability', note: 'note'
+};
