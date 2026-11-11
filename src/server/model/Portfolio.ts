@@ -64,6 +64,18 @@ export class Portfolio {
     return validateEnum( role, 'role', [ 'owner', 'editor', 'viewer' ] );
   }
 
+  private static assertAtLeastOneOwner (
+    tx: DatabaseSync, portfolioId: string, currentRole: PortfolioMemberRole, memberRole?: PortfolioMemberRole
+  ) : void {
+    if ( currentRole === 'owner' && ( ! memberRole || memberRole !== 'owner' ) ) {
+      const owners = as< { count: number } >( tx.prepare(
+        `SELECT COUNT(*) AS count FROM portfolio_members WHERE portfolio_id = ? AND role = 'owner'`
+      ).get( portfolioId ) ).count;
+
+      if ( owners <= 1 ) throw new Error( 'A portfolio must have at least one owner' );
+    }
+  }
+
   public static assertMember ( portfolioId: string, userId: string ) : PortfolioMemberRole {
     assertId( portfolioId, 'portfolio' );
     User.assertUserIdSafe( userId );
