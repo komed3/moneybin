@@ -32,8 +32,8 @@ export class Booking {
   }
 
   private static validate ( data: BookingCreateData | BookingUpdateData ) : void {
-    if ( data.assetId !== undefined ) assertId( data.assetId, 'asset' );
-    if ( data.transactionId ) assertId( data.transactionId, 'transaction' );
+    data.assetId = assertId( data.assetId, 'asset' );
+    data.transactionId = assertId( data.transactionId, 'transaction', true );
 
     data.type = parseEnum< BookingType >( data.type, 'type', [
       'deposit', 'withdrawal', 'transfer', 'direct_debit', 'purchase', 'sale',
