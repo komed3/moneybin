@@ -14,3 +14,17 @@ const COLUMNS = {
   addressExtra: 'address_extra', postalCode: 'postal_code', city: 'city', region: 'region',
   country: 'country', note: 'note', openedAt: 'opened_at', closedAt: 'closed_at'
 };
+
+
+export class Asset {
+  private static getRow ( assetId: string, userId: string ) : AssetRow | null {
+    assertId( assetId, 'asset' );
+
+    return as< AssetRow | null >( conn().prepare( `
+      SELECT a.*
+      FROM assets a
+      JOIN portfolio_members pm ON pm.portfolio_id = a.portfolio_id
+      WHERE a.id = ? AND pm.user_id = ?
+    ` ).get( assetId, userId ) );
+  }
+}
