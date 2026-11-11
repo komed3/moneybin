@@ -33,24 +33,20 @@ export class Asset {
     };
   }
 
-  private static validateName ( name: string ) : string {
-    return normalizeString( name, 'Name' );
-  }
-
-  private static validateType ( type: unknown ) : AssetType {
-    return validateEnum( type, 'type', [
+  private static validate ( data: AssetCreateData | AssetUpdateData ) : void {
+    if ( data.type !== undefined ) data.type = validateEnum< AssetType >( data.type, 'type', [
       'cash', 'account', 'depot', 'collection', 'property', 'lease', 'debt', 'receivable',
       'contract', 'investment', 'insurance', 'vehicle', 'valuable', 'right', 'other'
     ] );
-  }
 
-  private static validateLiquidationLevel ( level: unknown ) : AssetLiquidationLevel {
-    return validateEnum( level, 'liquidation level', [
-      'instant', 'very_high', 'high', 'medium', 'low', 'very_low', 'illiquid'
-    ] );
-  }
+    if ( data.liquidationLevel !== undefined ) data.liquidationLevel = validateEnum< AssetLiquidationLevel >(
+      data.liquidationLevel, 'liquidation level', [ 'instant', 'very_high', 'high', 'medium', 'low', 'very_low', 'illiquid' ]
+    );
 
-  private static validateStatus ( status: unknown ) : AssetStatus {
-    return validateEnum( status, 'status', [ 'real', 'fictional' ] );
+    if ( data.name !== undefined ) data.name = normalizeString( data.name, 'Name' );
+    if ( data.status !== undefined ) data.status = validateEnum< AssetStatus >( data.status, 'status', [ 'real', 'fictional' ] );
+    if ( data.archived !== undefined ) data.archived = validateBoolean( data.archived, 'Archived' );
+    if ( data.icon !== undefined ) data.icon = normalizeString( data.icon, 'Icon' );
+    if ( data.color !== undefined ) data.color = normalizeString( data.color, 'Color' );
   }
 }
