@@ -53,4 +53,10 @@ export class Booking {
     data.valueDate = parseDate( data.valueDate, 'Value date' );
     data.note = parseString( data.note, 'Note', true );
   }
+
+  private static validateAmounts ( amount: number, min: number | null, max: number | null ) : void {
+    if ( min !== null && min > amount ) throw new Error( 'Minimum amount must not exceed amount' );
+    if ( max !== null && max < amount ) throw new Error( 'Maximum amount must not be less than amount' );
+    if ( min !== null && max !== null && min > max ) throw new Error( 'Minimum amount must not exceed maximum amount' );
+  }
 }
