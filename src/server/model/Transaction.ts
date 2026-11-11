@@ -83,8 +83,7 @@ export class Transaction {
     Transaction.validate( data );
     if ( ! Array.isArray( data.bookings ) || ! data.bookings.length ) throw new Error( 'Transaction needs at least one booking' );
 
-    data.bookings.forEach( Booking.validateCreateData );
-
+    data.bookings.forEach( booking => Booking.validateCreateData( booking ) );
     Portfolio.assertEditable( portfolioId, userId );
 
     data.bookings.forEach( booking => {
