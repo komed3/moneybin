@@ -11,9 +11,11 @@ export function generateId ( length: number ) : string {
 
 export function assertId ( value: string | undefined, label: string ) : string | undefined;
 export function assertId ( value: string | null | undefined, label: string, nullable: true ) : string | null | undefined;
-export function assertId ( value: unknown, label: string, nullable = false ) : string | null | undefined {
-  if ( value === undefined || ( nullable && value === null ) ) return value;
-  if ( typeof value !== 'string' || ! /^[a-zA-Z0-9]{5,32}$/.test( value ) ) throw new Error( `Invalid ${ label } ID: ${ value }` );
+export function assertId ( value: unknown, label: string, nullable = false, required = false ) : string | null | undefined {
+  if ( value === undefined ) { if ( required ) throw new Error( `${ label } ID is required` ); return undefined }
+  if ( nullable && value === null ) return null;
+  if ( typeof value !== 'string' || ! /^[a-zA-Z0-9]{5,32}$/.test( value ) ) throw new Error( `Invalid ${ label } ID` );
+
   return value;
 }
 
