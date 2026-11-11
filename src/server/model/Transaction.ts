@@ -29,4 +29,8 @@ export class Transaction {
       bookings: Booking.listByTransaction( row.id, row.portfolio_id, userId )
     };
   }
+
+  private static validate ( data: TransactionCreateData | TransactionUpdateData ) : void {
+    data.note = parseString( data.note, 'Note', true );
+  }
 }
