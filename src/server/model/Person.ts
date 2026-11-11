@@ -5,11 +5,10 @@ import type { PersonCreateData, PersonGender, PersonRecord, PersonRow, PersonUpd
 import { SQLInputValue } from 'node:sqlite';
 
 
-const COLUMNS = {
-  name: 'name', description: 'description', gender: 'gender', birthDate: 'birth_date',
-  street: 'street', addressExtra: 'address_extra', postalCode: 'postal_code', city: 'city',
-  region: 'region', country: 'country', email: 'email', phone: 'phone', website: 'website',
-  notes: 'notes'
+const COLS = {
+  name: 'name', description: 'description', gender: 'gender', birthDate: 'birth_date', street: 'street',
+  addressExtra: 'address_extra', postalCode: 'postal_code', city: 'city', region: 'region', country: 'country',
+  email: 'email', phone: 'phone', website: 'website', notes: 'notes'
 };
 
 
