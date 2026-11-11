@@ -13,7 +13,7 @@ export function generateId ( length: number ) : string {
 export function assertId < T extends string | null | undefined, N extends boolean = false > (
   value: T, label: string, nullable?: N
 ) : N extends true ? T : Exclude< T, null > {
-  if ( value === undefined || ( nullable && value === null ) ) return value as N extends true ? T : Exclude< T, null >;
+  if ( nullable && ( value === undefined || value === null ) ) return value as N extends true ? T : Exclude< T, null >;
   if ( typeof value !== 'string' || ! /^[a-zA-Z0-9]{5,32}$/.test( value ) ) throw new Error( `Invalid ${ label } ID` );
 
   return value as N extends true ? T : Exclude< T, null >;
