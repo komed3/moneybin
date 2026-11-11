@@ -47,11 +47,12 @@ export class Portfolio {
     };
   }
 
-  private static validate ( data: PortfolioCreateData | PortfolioUpdateData ) : void {
-    data.name = parseString( data.name, 'Name' );
+  private static validate ( data: PortfolioCreateData | PortfolioUpdateData, create = false ) : void {
+    data.personId = assertId( create ? data.personId ?? '' : data.personId, 'person' );
+    data.name = parseString( create ? data.name ?? '' : data.name, 'Name' );
     data.description = parseString( data.description, 'Description', true );
     data.note = parseString( data.note, 'Note', true );
-    data.currency = parseString( data.currency, 'Currency' );
+    data.currency = parseString( create ? data.currency ?? '' : data.currency, 'Currency' );
 
     if ( data.currency !== undefined && ! conn().prepare( 'SELECT 1 FROM currencies WHERE code = ?' ).get( data.currency ) )
       throw new Error( `Unknown currency: ${ data.currency }` );
@@ -139,9 +140,7 @@ export class Portfolio {
   }
 
   public static create ( userId: string, data: PortfolioCreateData ) : PortfolioRecord {
-    Portfolio.validate( data );
-
-    if ( ! data.personId || ! data.name || ! data.currency ) throw new Error( 'Person, name and currency are required' );
+    Portfolio.validate( data, true );
     Person.assertPersonIdSafe( data.personId, userId );
 
     const id = db.transaction( tx => db.createWithId( id => {

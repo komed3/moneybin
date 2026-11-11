@@ -30,10 +30,10 @@ export class Person {
     };
   }
 
-  private static validate ( data: PersonCreateData | PersonUpdateData ) : void {
-    data.name = parseString( data.name, 'Name' );
+  private static validate ( data: PersonCreateData | PersonUpdateData, create = false ) : void {
+    data.name = parseString( create ? data.name ?? '' : data.name, 'Name' );
     data.description = parseString( data.description, 'Description', true );
-    data.gender = parseEnum< PersonGender >( data.gender, 'gender', [ 'male', 'female', 'diverse' ] );
+    data.gender = parseEnum< PersonGender >( data.gender ?? ( create ? '' : undefined ), 'gender', [ 'male', 'female', 'diverse' ] );
     data.birthDate = parseDate( data.birthDate, 'Birth date', true );
     data.street = parseString( data.street, 'Street', true );
     data.addressExtra = parseString( data.addressExtra, 'Address extra', true );
@@ -76,7 +76,7 @@ export class Person {
   }
 
   public static create ( userId: string, data: PersonCreateData ) : PersonRecord {
-    Person.validate( data );
+    Person.validate( data, true );
     User.assertUserIdSafe( userId );
 
     const id = db.createWithId( id => {
