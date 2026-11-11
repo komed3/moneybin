@@ -61,4 +61,23 @@ export class Transaction {
     if ( ! transaction ) throw new Error( `Transaction ${ transactionId } does not exist` );
     return transaction;
   }
+
+  public static create ( portfolioId: string, userId: string, data: TransactionCreateData ) : TransactionRecord {
+    Portfolio.assertEditable( portfolioId, userId );
+    Transaction.validate( data );
+    if ( ! Array.isArray( data.bookings ) || ! data.bookings.length ) throw new Error( 'A transaction must contain at least one booking' );
+
+    for ( const booking of data.bookings ) {
+      const asset = Asset.getSafe( booking.assetId, userId );
+      if ( asset.portfolioId !== portfolioId ) throw new Error( 'A transaction cannot contain bookings from different portfolios' );
+    }
+
+    const id = db.transaction( tx => db.createWithId( id => {
+      tx.prepare( 'INSERT INTO transactions ( id, note ) VALUES ( ?, ? )' ).run( id, data.note ?? null );
+      for ( const booking of data.bookings ) Booking.create( userId, { ...booking, transactionId: id } );
+      return id;
+    } ) );
+
+    return Transaction.getSafe( id, userId );
+  }
 }
