@@ -8,7 +8,7 @@ import type {
 import { SQLInputValue } from 'node:sqlite';
 
 
-const COLUMNS = {
+const COLS = {
   type: 'type', liquidationLevel: 'liquidation_level', name: 'name', description: 'description',
   status: 'status', archived: 'archived', icon: 'icon', color: 'color', street: 'street',
   addressExtra: 'address_extra', postalCode: 'postal_code', city: 'city', region: 'region',
@@ -69,7 +69,6 @@ export class Asset {
   public static getSafe ( assetId: string, userId: string ) : AssetRecord {
     const asset = Asset.get( assetId, userId );
     if ( ! asset ) throw new Error( `Asset ${ assetId } does not exist` );
-
     return asset;
   }
 
@@ -105,10 +104,7 @@ export class Asset {
     Portfolio.assertEditable( row.portfolio_id, userId );
     Asset.validate( data );
 
-    const entries = Object.entries( COLUMNS ).filter(
-      ( [ key ] ) => data[ key as keyof AssetUpdateData ] !== undefined
-    );
-
+    const entries = Object.entries( COLS ).filter( ( [ k ] ) => data[ k as keyof AssetUpdateData ] !== undefined );
     if ( ! entries.length ) return Asset.toRecord( row );
 
     const values = entries.map( ( [ key ] ) => {
