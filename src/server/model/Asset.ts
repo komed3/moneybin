@@ -38,4 +38,25 @@ export class Asset {
       updatedAt: row.updated_at
     };
   }
+
+  private static validateName ( name: string ) : string {
+    return normalizeString( name, 'Name' );
+  }
+
+  private static validateType ( type: unknown ) : AssetType {
+    return validateEnum( type, 'type', [
+      'cash', 'account', 'depot', 'collection', 'property', 'lease', 'debt', 'receivable',
+      'contract', 'investment', 'insurance', 'vehicle', 'valuable', 'right', 'other'
+    ] );
+  }
+
+  private static validateLiquidationLevel ( level: unknown ) : AssetLiquidationLevel {
+    return validateEnum( level, 'liquidation level', [
+      'instant', 'very_high', 'high', 'medium', 'low', 'very_low', 'illiquid'
+    ] );
+  }
+
+  private static validateStatus ( status: unknown ) : AssetStatus {
+    return validateEnum( status, 'status', [ 'real', 'fictional' ] );
+  }
 }
