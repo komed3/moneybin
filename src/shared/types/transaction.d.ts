@@ -14,3 +14,12 @@ export interface TransactionRow {
   note: string | null;
   created_at: string;
 }
+
+export interface TransactionCreateData {
+  note?: string | null;
+  bookings: BookingCreateData[];
+}
+
+export interface TransactionUpdateData {
+  note?: string | null;
+}
