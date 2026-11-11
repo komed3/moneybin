@@ -9,9 +9,12 @@ export function generateId ( length: number ) : string {
   return Array.from( { length }, () => ID_ALPHABET[ randomInt( ID_ALPHABET.length ) ] ).join( '' );
 }
 
-export function assertId ( id: string, label: string ) : void {
-  if ( typeof id !== 'string' || ! /^[a-zA-Z0-9]{5,32}$/.test( id ) )
-    throw new Error( `Invalid ${ label } ID: ${ id }` );
+export function assertId ( value: string | undefined, label: string ) : string | undefined;
+export function assertId ( value: string | null | undefined, label: string, nullable: true ) : string | null | undefined;
+export function assertId ( value: unknown, label: string, nullable = false ) : string | null | undefined {
+  if ( value === undefined || ( nullable && value === null ) ) return value;
+  if ( typeof value !== 'string' || ! /^[a-zA-Z0-9]{5,32}$/.test( value ) ) throw new Error( `Invalid ${ label } ID: ${ value }` );
+  return value;
 }
 
 export function parseString ( value: unknown, label: string ) : string | undefined;
