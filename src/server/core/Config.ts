@@ -38,13 +38,14 @@ export class Config {
 
   public static validate < K extends ConfigName > ( name: K, value: unknown ) : ConfigValue< K > {
     const key = this.resolveName( name ), def = this.schema[ key ];
-    if ( def.type === 'boolean' ) return parseBoolean( value, key, true ) as ConfigValue< K >;
-    if ( def.type === 'integer' ) return parseNumber( value, key, def.min, def.max, def.type === 'integer', true ) as ConfigValue< K >;
+    if ( def.type === 'boolean' ) return parseBoolean( value ?? '', key ) as ConfigValue< K >;
+    if ( def.type === 'integer' ) return parseNumber( value ?? NaN, key, def.min, def.max ) as ConfigValue< K >;
 
-    const parsed = parseString( value, key )!;
+    const parsed = parseString( value ?? '', key ) ?? '';
     if ( def.type === 'enum' ) return parseEnum( parsed, key, def.values ) as ConfigValue< K >;
 
-    return ( def.type === 'path' ? key === 'DB_PATH' && parsed === ':memory:' ? parsed : resolve( parsed ) : parsed ) as ConfigValue< K >;
+    return ( def.type === 'path' ? key === 'DB_PATH' && parsed === ':memory:'
+      ? parsed : resolve( parsed ) : parsed ) as ConfigValue< K >;
   }
 
   public static get < K extends ConfigName > ( name: K ) : ConfigValue< K > {
