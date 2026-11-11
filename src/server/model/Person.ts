@@ -1,6 +1,6 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { User } from '@/src/server/core/User';
-import { assertId, parseEnum, parseString } from '@/src/server/utils';
+import { assertId, parseDate, parseEnum, parseString } from '@/src/server/utils';
 import type { PersonCreateData, PersonGender, PersonRecord, PersonRow, PersonUpdateData } from '@/src/shared/types/person';
 import { SQLInputValue } from 'node:sqlite';
 
@@ -33,7 +33,8 @@ export class Person {
   private static validate ( data: PersonCreateData | PersonUpdateData ) : void {
     data.name = parseString( data.name, 'Name' );
     data.description = parseString( data.description, 'Description', true );
-    data.birthDate = parseString( data.birthDate, 'Birth date', true );
+    data.gender = parseEnum< PersonGender >( data.gender, 'gender', [ 'male', 'female', 'diverse' ] );
+    data.birthDate = parseDate( data.birthDate, 'Birth date' );
     data.street = parseString( data.street, 'Street', true );
     data.addressExtra = parseString( data.addressExtra, 'Address extra', true );
     data.postalCode = parseString( data.postalCode, 'Postal code', true );
@@ -44,10 +45,6 @@ export class Person {
     data.phone = parseString( data.phone, 'Phone', true );
     data.website = parseString( data.website, 'Website', true );
     data.notes = parseString( data.notes, 'Notes', true );
-
-    if ( data.gender !== undefined ) data.gender = parseEnum< PersonGender >(
-      data.gender, 'gender', [ 'male', 'female', 'diverse' ]
-    );
   }
 
   public static list ( userId: string ) : PersonRecord[] {
