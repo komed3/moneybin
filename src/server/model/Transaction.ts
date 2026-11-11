@@ -33,4 +33,18 @@ export class Transaction {
   private static validate ( data: TransactionCreateData | TransactionUpdateData ) : void {
     data.note = parseString( data.note, 'Note', true );
   }
+
+  public static list ( portfolioId: string, userId: string ) : TransactionRecord[] {
+    Portfolio.assertMember( portfolioId, userId );
+
+    return as< TransactionWithPortfolio[] >( conn().prepare( `
+      SELECT t.*, a.portfolio_id
+      FROM transactions t
+      JOIN bookings b ON b.transaction_id = t.id
+      JOIN assets a ON a.id = b.asset_id
+      WHERE a.portfolio_id = ?
+      GROUP BY t.id
+      ORDER BY t.created_at DESC
+    ` ).all( portfolioId ) ).map( row => Transaction.toRecord( row, userId ) );
+  }
 }
