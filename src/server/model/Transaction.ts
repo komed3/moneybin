@@ -11,7 +11,7 @@ import type {
 
 export class Transaction {
   private static getRow ( transactionId: string ) : TransactionWithPortfolio | null {
-    assertId( transactionId, 'transaction' );
+    assertId( transactionId, 'transaction', false, true );
 
     return as< TransactionWithPortfolio | null >( conn().prepare( `
       SELECT t.*, a.portfolio_id
@@ -32,6 +32,23 @@ export class Transaction {
 
   private static validate ( data: TransactionCreateData | TransactionUpdateData ) : void {
     data.note = parseString( data.note, 'Note', true );
+  }
+
+  public static assertTransactionIdSafe ( transactionId: string, portfolioId: string, excludeBookingId?: string ) : void {
+    assertId( transactionId, 'transaction', false, true );
+    Portfolio.assertPortfolioIdSafe( portfolioId );
+
+    const row = as< { id: string; portfolio_id: string | null } | null >( conn().prepare( `
+      SELECT t.id, MIN( a.portfolio_id ) AS portfolio_id
+      FROM transactions t
+      LEFT JOIN bookings b ON b.transaction_id = t.id AND b.id <> COALESCE( ?, '' )
+      LEFT JOIN assets a ON a.id = b.asset_id
+      WHERE t.id = ?
+      GROUP BY t.id
+    ` ).get( excludeBookingId ?? null, transactionId ) );
+
+    if ( ! row ) throw new Error( `Transaction ${ transactionId } does not exist` );
+    if ( row.portfolio_id && row.portfolio_id !== portfolioId ) throw new Error( 'Transaction belongs to another portfolio' );
   }
 
   public static list ( portfolioId: string, userId: string ) : TransactionRecord[] {
@@ -63,18 +80,22 @@ export class Transaction {
   }
 
   public static create ( portfolioId: string, userId: string, data: TransactionCreateData ) : TransactionRecord {
-    Portfolio.assertEditable( portfolioId, userId );
     Transaction.validate( data );
-    if ( ! Array.isArray( data.bookings ) || ! data.bookings.length ) throw new Error( 'A transaction must contain at least one booking' );
+    if ( ! Array.isArray( data.bookings ) || ! data.bookings.length ) throw new Error( 'Transaction needs at least one booking' );
 
-    for ( const booking of data.bookings ) {
+    data.bookings.forEach( Booking.validateCreateData );
+
+    Portfolio.assertEditable( portfolioId, userId );
+
+    data.bookings.forEach( booking => {
+      Asset.assertAssetIdSafe( booking.assetId, userId );
       const asset = Asset.getSafe( booking.assetId, userId );
-      if ( asset.portfolioId !== portfolioId ) throw new Error( 'A transaction cannot contain bookings from different portfolios' );
-    }
+      if ( asset.portfolioId !== portfolioId ) throw new Error( 'Bookings must belong to one portfolio' );
+    } );
 
     const id = db.transaction( tx => db.createWithId( id => {
       tx.prepare( 'INSERT INTO transactions ( id, note ) VALUES ( ?, ? )' ).run( id, data.note ?? null );
-      for ( const booking of data.bookings ) Booking.create( userId, { ...booking, transactionId: id } );
+      data.bookings.forEach( booking => Booking.create( userId, { ...booking, transactionId: id } ) );
       return id;
     } ) );
 
