@@ -13,12 +13,11 @@ const COLS = {
 
 
 export class Person {
-  private static getRow ( personId: string, userId?: string ) : PersonRow | null {
+  private static getRow ( personId: string, userId: string ) : PersonRow | null {
     assertId( personId, 'person' );
+    User.assertUserIdSafe( userId );
 
-    return as< PersonRow | null >( conn().prepare(
-      `SELECT * FROM persons WHERE id = ?${ userId ? ' AND user_id = ?' : '' }`
-    ).get( ...( userId ? [ personId, userId ] : [ personId ] ) ) );
+    return as< PersonRow | null >( conn().prepare( 'SELECT * FROM persons WHERE id = ? AND user_id = ?' ).get( personId, userId ) );
   }
 
   private static toRecord ( row: PersonRow ) : PersonRecord {
@@ -69,7 +68,7 @@ export class Person {
     return row ? Person.toRecord( row ) : null;
   }
 
-  public static getSafe ( personId: string, userId?: string ) : PersonRecord {
+  public static getSafe ( personId: string, userId: string ) : PersonRecord {
     const row = Person.getRow( personId, userId );
     if ( ! row ) throw new Error( `Person ${ personId } does not exist` );
     return Person.toRecord( row );
