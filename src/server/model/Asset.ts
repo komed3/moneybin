@@ -97,6 +97,9 @@ export class Asset {
     Asset.validate( data );
     Portfolio.assertEditable( portfolioId, userId );
 
+    if ( ! data.type || ! data.liquidationLevel || ! data.name || ! data.status || ! data.icon || ! data.color )
+      throw new Error( 'Asset is missing required fields' );
+
     const id = db.createWithId( id => {
       conn().prepare( `
         INSERT INTO assets (
