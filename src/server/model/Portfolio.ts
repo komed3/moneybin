@@ -143,6 +143,8 @@ export class Portfolio {
     Portfolio.validate( data );
     Person.assertPersonIdSafe( data.personId, userId );
 
+    if ( ! data.name || ! data.currency ) throw new Error( 'Portfolio is missing required fields' );
+
     const id = db.transaction( tx => db.createWithId( id => {
       tx.prepare( 'INSERT INTO portfolios ( id, person_id, name, description, currency, note ) VALUES ( ?, ?, ?, ?, ?, ? )' )
         .run( id, data.personId, data.name, data.description ?? null, data.currency, data.note ?? null );
