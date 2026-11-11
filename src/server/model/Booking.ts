@@ -30,4 +30,27 @@ export class Booking {
       note: row.note, createdAt: row.created_at, updatedAt: row.updated_at
     };
   }
+
+  private static validate ( data: BookingCreateData | BookingUpdateData ) : void {
+    if ( data.assetId !== undefined ) assertId( data.assetId, 'asset' );
+    if ( data.transactionId ) assertId( data.transactionId, 'transaction' );
+
+    data.type = parseEnum< BookingType >( data.type, 'type', [
+      'deposit', 'withdrawal', 'transfer', 'direct_debit', 'purchase', 'sale',
+      'fee', 'interest', 'dividend', 'tax', 'repayment', 'adjustment', 'other'
+    ] );
+
+    data.valueType = parseEnum< BookingValueType >( data.valueType, 'value type', [ 'relative', 'absolute' ] );
+
+    data.reliability = parseEnum< BookingReliability >( data.reliability, 'reliability', [
+      'documented', 'reconstructed', 'speculative', 'assumed'
+    ] );
+
+    data.amount = parseNumber( data.amount, 'Amount', Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, true );
+    data.minAmount = parseNumber( data.minAmount, 'Minimum amount', Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, true, false, true );
+    data.maxAmount = parseNumber( data.maxAmount, 'Maximum amount', Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, true, false, true );
+    data.bookingDate = parseDate( data.bookingDate, 'Booking date' );
+    data.valueDate = parseDate( data.valueDate, 'Value date' );
+    data.note = parseString( data.note, 'Note', true );
+  }
 }
