@@ -7,7 +7,7 @@ import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 
 export class User {
   private static getRow ( userId: string ) : UserRow | null {
-    assertId( userId, 'user' );
+    assertId( userId, 'user', false, true );
     return as< UserRow | null >( conn().prepare( 'SELECT * FROM users WHERE id = ?' ).get( userId ) );
   }
 
@@ -46,6 +46,7 @@ export class User {
 
   public static validateUsername ( username: string ) : string {
     const value = username.trim();
+
     if ( ! value || value.length > 64 ) throw new Error( 'Username must contain between 1 and 64 characters' );
     if ( ! /^[a-zA-Z0-9_]+$/.test( value ) ) throw new Error( 'Username can only contain letters, numbers and underscores' );
     if ( ! /^[a-zA-Z]/.test( value ) ) throw new Error( 'Username must start with a letter' );
@@ -70,7 +71,7 @@ export class User {
     ).all() ).map( User.toRecord );
   }
 
-   public static get ( userId: string ) : UserRecord | null {
+  public static get ( userId: string ) : UserRecord | null {
     const row = User.getRow( userId );
     return row ? User.toRecord( row ) : null;
   }
@@ -152,18 +153,15 @@ export class User {
   }
 
   public static assertUserIdSafe ( userId: string ) : void {
-    assertId( userId, 'user' );
-
+    assertId( userId, 'user', false, true );
     if ( ! conn().prepare( 'SELECT 1 FROM users WHERE id = ?' ).get( userId ) )
       throw new Error( `User ${ userId } does not exist` );
   }
 
   public static delete ( userId: string ) : void {
-    assertId( userId, 'user' );
+    User.assertUserIdSafe( userId );
 
     db.transaction( tx => {
-      if ( ! tx.prepare( 'SELECT 1 FROM users WHERE id = ?' ).get( userId ) ) throw new Error( 'User does not exist' );
-
       const persons = as< { count: number } >( tx.prepare(
         'SELECT COUNT(*) AS count FROM persons WHERE user_id = ?'
       ).get( userId ) ).count;
@@ -172,10 +170,7 @@ export class User {
         'SELECT COUNT(*) AS count FROM portfolio_members WHERE user_id = ?'
       ).get( userId ) ).count;
 
-      if ( persons || memberships ) throw new Error(
-        'Cannot delete user while persons or portfolio memberships are assigned to this account'
-      );
-
+      if ( persons || memberships ) throw new Error( 'User still owns persons or portfolio memberships' );
       tx.prepare( 'DELETE FROM users WHERE id = ?' ).run( userId );
     } );
   }
