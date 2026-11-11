@@ -1,10 +1,7 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { Portfolio } from '@/src/server/model/Portfolio';
-import { assertId, parseBoolean, parseEnum, parseString } from '@/src/server/utils';
-import type {
-  AssetCreateData, AssetLiquidationLevel, AssetRecord, AssetRow, AssetStatus,
-  AssetType, AssetUpdateData
-} from '@/src/shared/types/asset';
+import { assertId, parseBoolean, parseDate, parseEnum, parseString } from '@/src/server/utils';
+import type { AssetCreateData, AssetLiquidationLevel, AssetRecord, AssetRow, AssetStatus, AssetType, AssetUpdateData } from '@/src/shared/types/asset';
 import { SQLInputValue } from 'node:sqlite';
 
 
