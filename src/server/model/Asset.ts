@@ -31,8 +31,19 @@ export class Asset {
   }
 
   private static validate ( data: AssetCreateData | AssetUpdateData ) : void {
+    data.type = parseEnum< AssetType >( data.type, 'type', [
+      'cash', 'account', 'depot', 'collection', 'property', 'lease', 'debt', 'receivable',
+      'contract', 'investment', 'insurance', 'vehicle', 'valuable', 'right', 'other'
+    ] );
+
+    data.liquidationLevel = parseEnum< AssetLiquidationLevel >( data.liquidationLevel, 'liquidation level', [
+      'instant', 'very_high', 'high', 'medium', 'low', 'very_low', 'illiquid'
+    ] );
+
     data.name = parseString( data.name, 'Name' );
     data.description = parseString( data.description, 'Description', true );
+    data.status = parseEnum< AssetStatus >( data.status, 'status', [ 'real', 'fictional' ] );
+    data.archived = parseBoolean( data.archived, 'Archived' );
     data.icon = parseString( data.icon, 'Icon' );
     data.color = parseString( data.color, 'Color' );
     data.street = parseString( data.street, 'Street', true );
@@ -42,20 +53,8 @@ export class Asset {
     data.region = parseString( data.region, 'Region', true );
     data.country = parseString( data.country, 'Country', true );
     data.note = parseString( data.note, 'Note', true );
-    data.openedAt = parseString( data.openedAt, 'Opened at', true );
-    data.closedAt = parseString( data.closedAt, 'Closed at', true );
-
-    if ( data.type !== undefined ) data.type = parseEnum< AssetType >( data.type, 'type', [
-      'cash', 'account', 'depot', 'collection', 'property', 'lease', 'debt', 'receivable',
-      'contract', 'investment', 'insurance', 'vehicle', 'valuable', 'right', 'other'
-    ] );
-
-    if ( data.liquidationLevel !== undefined ) data.liquidationLevel = parseEnum< AssetLiquidationLevel >(
-      data.liquidationLevel, 'liquidation level', [ 'instant', 'very_high', 'high', 'medium', 'low', 'very_low', 'illiquid' ]
-    );
-
-    if ( data.status !== undefined ) data.status = parseEnum< AssetStatus >( data.status, 'status', [ 'real', 'fictional' ] );
-    if ( data.archived !== undefined ) data.archived = parseBoolean( data.archived, 'Archived' );
+    data.openedAt = parseDate( data.openedAt, 'Opened at' );
+    data.closedAt = parseDate( data.closedAt, 'Closed at' );
   }
 
   public static list ( portfolioId: string, userId: string ) : AssetRecord[] {
