@@ -1,8 +1,11 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { Portfolio } from '@/src/server/model/Portfolio';
 import { assertId, parseBoolean, parseDate, parseEnum, parseString } from '@/src/server/utils';
-import type { AssetCreateData, AssetLiquidationLevel, AssetRecord, AssetRow, AssetStatus, AssetType, AssetUpdateData } from '@/src/shared/types/asset';
-import { SQLInputValue } from 'node:sqlite';
+import type {
+  AssetCreateData, AssetLiquidationLevel, AssetRecord, AssetRow,
+  AssetStatus, AssetType, AssetUpdateData
+} from '@/src/shared/types/asset';
+import type { SQLInputValue } from 'node:sqlite';
 
 
 const COLS = {
@@ -15,7 +18,7 @@ const COLS = {
 
 export class Asset {
   private static getRow ( assetId: string ) : AssetRow | null {
-    assertId( assetId, 'asset' );
+    assertId( assetId, 'asset', false, true );
     return as< AssetRow | null >( conn().prepare( 'SELECT * FROM assets WHERE id = ?' ).get( assetId ) );
   }
 
@@ -47,14 +50,25 @@ export class Asset {
     data.icon = parseString( data.icon, 'Icon' );
     data.color = parseString( data.color, 'Color' );
     data.street = parseString( data.street, 'Street', true );
-    data.addressExtra = parseString( data.addressExtra, 'Address Extra', true );
-    data.postalCode = parseString( data.postalCode, 'Postal Code', true );
+    data.addressExtra = parseString( data.addressExtra, 'Address extra', true );
+    data.postalCode = parseString( data.postalCode, 'Postal code', true );
     data.city = parseString( data.city, 'City', true );
     data.region = parseString( data.region, 'Region', true );
     data.country = parseString( data.country, 'Country', true );
     data.note = parseString( data.note, 'Note', true );
     data.openedAt = parseDate( data.openedAt, 'Opened at', true );
     data.closedAt = parseDate( data.closedAt, 'Closed at', true );
+  }
+
+  public static assertAssetIdSafe ( assetId: string, userId: string ) : void {
+    assertId( assetId, 'asset', false, true );
+
+    if ( ! conn().prepare( `
+      SELECT 1
+      FROM assets a
+      JOIN portfolio_members pm ON pm.portfolio_id = a.portfolio_id
+      WHERE a.id = ? AND pm.user_id = ?
+    ` ).get( assetId, userId ) ) throw new Error( `Asset ${ assetId } does not exist` );
   }
 
   public static list ( portfolioId: string, userId: string ) : AssetRecord[] {
@@ -80,8 +94,8 @@ export class Asset {
   }
 
   public static create ( portfolioId: string, userId: string, data: AssetCreateData ) : AssetRecord {
-    Portfolio.assertEditable( portfolioId, userId );
     Asset.validate( data );
+    Portfolio.assertEditable( portfolioId, userId );
 
     const id = db.createWithId( id => {
       conn().prepare( `
