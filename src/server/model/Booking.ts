@@ -83,4 +83,37 @@ export class Booking {
       SELECT 1 FROM bookings WHERE transaction_id = ?
     )` ).run( transactionId, transactionId );
   }
+
+  public static list ( assetId: string, userId: string ) : BookingRecord[] {
+    Asset.getSafe( assetId, userId );
+
+    return as< BookingRow[] >( conn().prepare(
+      'SELECT * FROM bookings WHERE asset_id = ? ORDER BY value_date DESC, booking_date DESC, created_at DESC'
+    ).all( assetId ) ).map( Booking.toRecord );
+  }
+
+  public static listByPortfolio ( portfolioId: string, userId: string ) : BookingRecord[] {
+    Portfolio.assertMember( portfolioId, userId );
+
+    return as< BookingRow[] >( conn().prepare( `
+      SELECT b.*
+      FROM bookings b
+      JOIN assets a ON a.id = b.asset_id
+      WHERE a.portfolio_id = ?
+      ORDER BY b.value_date DESC, b.booking_date DESC, b.created_at DESC
+    ` ).all( portfolioId ) ).map( Booking.toRecord );
+  }
+
+  public static listByTransaction ( transactionId: string, portfolioId: string, userId: string ) : BookingRecord[] {
+    assertId( transactionId, 'transaction' );
+    Portfolio.assertMember( portfolioId, userId );
+
+    return as< BookingRow[] >( conn().prepare( `
+      SELECT b.*
+      FROM bookings b
+      JOIN assets a ON a.id = b.asset_id
+      WHERE b.transaction_id = ? AND a.portfolio_id = ?
+      ORDER BY b.value_date, b.booking_date, b.created_at
+    ` ).all( transactionId, portfolioId ) ).map( Booking.toRecord );
+  }
 }
