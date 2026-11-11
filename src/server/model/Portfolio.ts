@@ -217,16 +217,7 @@ export class Portfolio {
 
       const currentRole = Portfolio.getMemberRole( portfolioId, memberId );
       if ( ! currentRole ) throw new Error( 'Portfolio member does not exist' );
-
-      if ( currentRole === 'owner' && memberRole !== 'owner' ) {
-        const owners = as< { count: number } >( tx.prepare( `
-          SELECT COUNT(*) AS count
-          FROM portfolio_members
-          WHERE portfolio_id = ? AND role = 'owner'
-        ` ).get( portfolioId ) ).count;
-
-        if ( owners <= 1 ) throw new Error( 'A portfolio must have at least one owner' );
-      }
+      Portfolio.assertAtLeastOneOwner( tx, portfolioId, currentRole, memberRole );
 
       tx.prepare( 'UPDATE portfolio_members SET role = ? WHERE portfolio_id = ? AND user_id = ?' )
         .run( memberRole, portfolioId, memberId );
@@ -245,16 +236,7 @@ export class Portfolio {
 
       const currentRole = Portfolio.getMemberRole( portfolioId, memberId );
       if ( ! currentRole ) throw new Error( 'Portfolio member does not exist' );
-
-      if ( currentRole === 'owner' ) {
-        const owners = as< { count: number } >( tx.prepare( `
-          SELECT COUNT(*) AS count
-          FROM portfolio_members
-          WHERE portfolio_id = ? AND role = 'owner'
-        ` ).get( portfolioId ) ).count;
-
-        if ( owners <= 1 ) throw new Error( 'A portfolio must have at least one owner' );
-      }
+      Portfolio.assertAtLeastOneOwner( tx, portfolioId, currentRole );
 
       const result = tx.prepare( 'DELETE FROM portfolio_members WHERE portfolio_id = ? AND user_id = ?' )
         .run( portfolioId, memberId );
