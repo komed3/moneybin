@@ -34,6 +34,20 @@ export class Asset {
   }
 
   private static validate ( data: AssetCreateData | AssetUpdateData ) : void {
+    data.name = normalizeString( data.name, 'Name' );
+    data.description = normalizeString( data.description, 'Description', true );
+    data.icon = normalizeString( data.icon, 'Icon' );
+    data.color = normalizeString( data.color, 'Color' );
+    data.street = normalizeString( data.street, 'Street', true );
+    data.addressExtra = normalizeString( data.addressExtra, 'Address Extra', true );
+    data.postalCode = normalizeString( data.postalCode, 'Postal Code', true );
+    data.city = normalizeString( data.city, 'City', true );
+    data.region = normalizeString( data.region, 'Region', true );
+    data.country = normalizeString( data.country, 'Country', true );
+    data.note = normalizeString( data.note, 'Note', true );
+    data.openedAt = normalizeString( data.openedAt, 'Opened at', true );
+    data.closedAt = normalizeString( data.closedAt, 'Closed at', true );
+
     if ( data.type !== undefined ) data.type = validateEnum< AssetType >( data.type, 'type', [
       'cash', 'account', 'depot', 'collection', 'property', 'lease', 'debt', 'receivable',
       'contract', 'investment', 'insurance', 'vehicle', 'valuable', 'right', 'other'
@@ -43,19 +57,8 @@ export class Asset {
       data.liquidationLevel, 'liquidation level', [ 'instant', 'very_high', 'high', 'medium', 'low', 'very_low', 'illiquid' ]
     );
 
-    if ( data.name !== undefined ) data.name = normalizeString( data.name, 'Name' );
-    if ( data.description !== undefined ) data.description = normalizeString( data.description, 'Description' );
     if ( data.status !== undefined ) data.status = validateEnum< AssetStatus >( data.status, 'status', [ 'real', 'fictional' ] );
     if ( data.archived !== undefined ) data.archived = validateBoolean( data.archived, 'Archived' );
-    if ( data.icon !== undefined ) data.icon = normalizeString( data.icon, 'Icon' );
-    if ( data.color !== undefined ) data.color = normalizeString( data.color, 'Color' );
-    if ( data.street !== undefined ) data.street = normalizeString( data.street, 'Street' );
-    if ( data.addressExtra !== undefined ) data.addressExtra = normalizeString( data.addressExtra, 'Address Extra' );
-    if ( data.postalCode !== undefined ) data.postalCode = normalizeString( data.postalCode, 'Postal Code' );
-    if ( data.city !== undefined ) data.city = normalizeString( data.city, 'City' );
-    if ( data.region !== undefined ) data.region = normalizeString( data.region, 'Region' );
-    if ( data.country !== undefined ) data.country = normalizeString( data.country, 'Country' );
-    if ( data.note !== undefined ) data.note = normalizeString( data.note, 'Note' );
   }
 
   public static list ( portfolioId: string, userId: string ) : AssetRecord[] {
