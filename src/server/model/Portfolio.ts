@@ -14,7 +14,7 @@ const COLS = { personId: 'person_id', name: 'name', description: 'description', 
 
 export class Portfolio {
   private static getRow ( portfolioId: string ) : PortfolioRow | null {
-    assertId( portfolioId, 'portfolio' );
+    assertId( portfolioId, 'portfolio', false, true );
     return as< PortfolioRow | null >( conn().prepare( 'SELECT * FROM portfolios WHERE id = ?' ).get( portfolioId ) );
   }
 
@@ -64,22 +64,27 @@ export class Portfolio {
   private static assertAtLeastOneOwner (
     tx: DatabaseSync, portfolioId: string, currentRole: PortfolioMemberRole, memberRole?: PortfolioMemberRole
   ) : void {
-    if ( currentRole === 'owner' && ( ! memberRole || memberRole !== 'owner' ) ) {
+    if ( currentRole === 'owner' && memberRole !== 'owner' ) {
       const owners = as< { count: number } >( tx.prepare(
         `SELECT COUNT(*) AS count FROM portfolio_members WHERE portfolio_id = ? AND role = 'owner'`
       ).get( portfolioId ) ).count;
 
-      if ( owners <= 1 ) throw new Error( 'A portfolio must have at least one owner' );
+      if ( owners <= 1 ) throw new Error( 'A portfolio must have an owner' );
     }
   }
 
+  public static assertPortfolioIdSafe ( portfolioId: string ) : void {
+    assertId( portfolioId, 'portfolio', false, true );
+    if ( ! conn().prepare( 'SELECT 1 FROM portfolios WHERE id = ?' ).get( portfolioId ) )
+      throw new Error( `Portfolio ${ portfolioId } does not exist` );
+  }
+
   public static assertMember ( portfolioId: string, userId: string ) : PortfolioMemberRole {
-    assertId( portfolioId, 'portfolio' );
+    assertId( portfolioId, 'portfolio', false, true );
     User.assertUserIdSafe( userId );
 
     const role = Portfolio.getMemberRole( portfolioId, userId );
-    if ( ! role ) throw new Error( 'User is not a member of this portfolio' );
-
+    if ( ! role ) throw new Error( 'User is not a portfolio member' );
     return role;
   }
 
@@ -90,7 +95,7 @@ export class Portfolio {
 
   public static assertEditable ( portfolioId: string, userId: string ) : void {
     if ( ! [ 'owner', 'editor' ].includes( Portfolio.assertMember( portfolioId, userId ) ) )
-      throw new Error( 'Only portfolio owners and editors can modify this portfolio' );
+      throw new Error( 'Only portfolio owners and editors can modify it' );
   }
 
   public static list ( userId: string ) : PortfolioRecord[] {
@@ -106,7 +111,7 @@ export class Portfolio {
   }
 
   public static listByPerson ( personId: string, userId: string ) : PortfolioRecord[] {
-    Person.getSafe( personId, userId );
+    Person.assertPersonIdSafe( personId, userId );
 
     return as< PortfolioRow[] >( conn().prepare(
       'SELECT * FROM portfolios WHERE person_id = ? ORDER BY name COLLATE NOCASE'
@@ -114,7 +119,7 @@ export class Portfolio {
   }
 
   public static get ( portfolioId: string, userId: string ) : PortfolioRecord | null {
-    assertId( portfolioId, 'portfolio' );
+    assertId( portfolioId, 'portfolio', false, true );
     User.assertUserIdSafe( userId );
 
     const row = as< PortfolioRow | null >( conn().prepare( `
@@ -134,9 +139,10 @@ export class Portfolio {
   }
 
   public static create ( userId: string, data: PortfolioCreateData ) : PortfolioRecord {
-    User.assertUserIdSafe( userId );
-    Person.getSafe( data.personId, userId );
     Portfolio.validate( data );
+
+    if ( ! data.personId || ! data.name || ! data.currency ) throw new Error( 'Person, name and currency are required' );
+    Person.assertPersonIdSafe( data.personId, userId );
 
     const id = db.transaction( tx => db.createWithId( id => {
       tx.prepare( 'INSERT INTO portfolios ( id, person_id, name, description, currency, note ) VALUES ( ?, ?, ?, ?, ?, ? )' )
@@ -152,13 +158,14 @@ export class Portfolio {
   public static update ( portfolioId: string, userId: string, data: PortfolioUpdateData ) : PortfolioRecord {
     Portfolio.assertOwner( portfolioId, userId );
     const portfolio = Portfolio.getSafe( portfolioId );
-    if ( data.personId !== undefined ) Person.getSafe( data.personId, userId );
     Portfolio.validate( data );
 
-    const entries = Object.entries( COLS ).filter( ( [ k ] ) => data[ k as keyof PortfolioUpdateData ] !== undefined );
+    if ( data.personId !== undefined ) Person.assertPersonIdSafe( data.personId, userId );
+
+    const entries = Object.entries( COLS ).filter( ( [ key ] ) => data[ key as keyof PortfolioUpdateData ] !== undefined );
     if ( ! entries.length ) return portfolio;
 
-    const values = entries.map( ( [ k ] ) => data[ k as keyof PortfolioUpdateData ] );
+    const values = entries.map( ( [ key ] ) => data[ key as keyof PortfolioUpdateData ] );
     const result = conn().prepare( `
       UPDATE portfolios
       SET ${ entries.map( ( [ , column ] ) => `${ column } = ?` ).join( ', ' ) },
@@ -172,8 +179,7 @@ export class Portfolio {
 
   public static delete ( portfolioId: string, userId: string ) : void {
     Portfolio.assertOwner( portfolioId, userId );
-    const result = conn().prepare( 'DELETE FROM portfolios WHERE id = ?' ).run( portfolioId );
-    if ( ! result.changes ) throw new Error( 'Portfolio does not exist' );
+    conn().prepare( 'DELETE FROM portfolios WHERE id = ?' ).run( portfolioId );
   }
 
   public static listMembers ( portfolioId: string, userId: string ) : PortfolioMemberRecord[] {
@@ -193,7 +199,6 @@ export class Portfolio {
   public static addMember ( portfolioId: string, userId: string, memberId: string, role: PortfolioMemberRole = 'viewer' ) : PortfolioMemberRecord {
     Portfolio.assertOwner( portfolioId, userId );
     User.assertUserIdSafe( memberId );
-
     const memberRole = Portfolio.validateRole( role );
 
     conn().prepare( 'INSERT INTO portfolio_members ( portfolio_id, user_id, role ) VALUES ( ?, ?, ? )' )
