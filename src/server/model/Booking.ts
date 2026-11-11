@@ -157,7 +157,7 @@ export class Booking {
         ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
       ` ).run(
         id, data.assetId, data.transactionId ?? null, data.type, data.valueType, data.amount,
-        data.minAmount ?? null, data.maxAmount ?? null, bookingDate, valueDate,
+        data.minAmount ?? null, data.maxAmount ?? null, data.bookingDate!, data.valueDate!,
         data.reliability, data.note ?? null
       );
 
