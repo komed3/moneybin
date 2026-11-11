@@ -48,16 +48,13 @@ export class Portfolio {
   }
 
   private static validate ( data: PortfolioCreateData | PortfolioUpdateData ) : void {
-    if ( data.name ) data.name = normalizeString( data.name, 'Name' );
-    if ( data.description ) data.description = normalizeString( data.description, 'Description' );
-    if ( data.note ) data.note = normalizeString( data.note, 'Note' );
+    data.name = normalizeString( data.name, 'Name' );
+    data.description = normalizeString( data.description, 'Description', true );
+    data.note = normalizeString( data.note, 'Note', true );
+    data.currency = normalizeString( data.currency, 'Currency' );
 
-    if ( data.currency ) {
-      data.currency = normalizeString( data.currency, 'Currency' );
-
-      if ( ! conn().prepare( 'SELECT 1 FROM currencies WHERE code = ?' ).get( data.currency ) )
-        throw new Error( `Unknown currency: ${ data.currency }` );
-    }
+    if ( data.currency !== undefined && ! conn().prepare( 'SELECT 1 FROM currencies WHERE code = ?' ).get( data.currency ) )
+      throw new Error( `Unknown currency: ${ data.currency }` );
   }
 
   private static validateRole ( role: unknown ) : PortfolioMemberRole {
