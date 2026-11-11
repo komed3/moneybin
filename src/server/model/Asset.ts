@@ -18,7 +18,7 @@ const COLS = {
 
 export class Asset {
   private static getRow ( assetId: string ) : AssetRow | null {
-    assertId( assetId, 'asset', false, true );
+    assertId( assetId, 'asset' );
     return as< AssetRow | null >( conn().prepare( 'SELECT * FROM assets WHERE id = ?' ).get( assetId ) );
   }
 
@@ -61,7 +61,7 @@ export class Asset {
   }
 
   public static assertAssetIdSafe ( assetId: string, userId: string ) : void {
-    assertId( assetId, 'asset', false, true );
+    assertId( assetId, 'asset' );
 
     if ( ! conn().prepare( `
       SELECT 1

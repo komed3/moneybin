@@ -7,7 +7,7 @@ import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
 
 export class User {
   private static getRow ( userId: string ) : UserRow | null {
-    assertId( userId, 'user', false, true );
+    assertId( userId, 'user' );
     return as< UserRow | null >( conn().prepare( 'SELECT * FROM users WHERE id = ?' ).get( userId ) );
   }
 
@@ -153,7 +153,7 @@ export class User {
   }
 
   public static assertUserIdSafe ( userId: string ) : void {
-    assertId( userId, 'user', false, true );
+    assertId( userId, 'user' );
     if ( ! conn().prepare( 'SELECT 1 FROM users WHERE id = ?' ).get( userId ) )
       throw new Error( `User ${ userId } does not exist` );
   }

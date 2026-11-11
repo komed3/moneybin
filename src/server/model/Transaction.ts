@@ -11,7 +11,7 @@ import type {
 
 export class Transaction {
   private static getRow ( transactionId: string ) : TransactionWithPortfolio | null {
-    assertId( transactionId, 'transaction', false, true );
+    assertId( transactionId, 'transaction' );
 
     return as< TransactionWithPortfolio | null >( conn().prepare( `
       SELECT t.*, a.portfolio_id
@@ -35,7 +35,7 @@ export class Transaction {
   }
 
   public static assertTransactionIdSafe ( transactionId: string, portfolioId: string, excludeBookingId?: string ) : void {
-    assertId( transactionId, 'transaction', false, true );
+    assertId( transactionId, 'transaction' );
     Portfolio.assertPortfolioIdSafe( portfolioId );
 
     const row = as< { id: string; portfolio_id: string | null } | null >( conn().prepare( `

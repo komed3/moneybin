@@ -14,7 +14,7 @@ const COLS = {
 
 export class Person {
   private static getRow ( personId: string, userId?: string ) : PersonRow | null {
-    assertId( personId, 'person', false, true );
+    assertId( personId, 'person' );
 
     return as< PersonRow | null >( conn().prepare(
       `SELECT * FROM persons WHERE id = ?${ userId ? ' AND user_id = ?' : '' }`
@@ -48,7 +48,7 @@ export class Person {
   }
 
   public static assertPersonIdSafe ( personId: string, userId: string ) : void {
-    assertId( personId, 'person', false, true );
+    assertId( personId, 'person' );
     User.assertUserIdSafe( userId );
 
     if ( ! conn().prepare( 'SELECT 1 FROM persons WHERE id = ? AND user_id = ?' ).get( personId, userId ) )

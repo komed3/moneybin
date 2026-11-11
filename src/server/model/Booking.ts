@@ -19,7 +19,7 @@ const MIN = Number.MIN_SAFE_INTEGER, MAX = Number.MAX_SAFE_INTEGER, COLS = {
 
 export class Booking {
   private static getRow ( bookingId: string ) : BookingRow | null {
-    assertId( bookingId, 'booking', false, true );
+    assertId( bookingId, 'booking' );
     return as< BookingRow | null >( conn().prepare( 'SELECT * FROM bookings WHERE id = ?' ).get( bookingId ) );
   }
 
@@ -77,7 +77,7 @@ export class Booking {
   }
 
   public static assertBookingIdSafe ( bookingId: string, userId: string ) : void {
-    assertId( bookingId, 'booking', false, true );
+    assertId( bookingId, 'booking' );
 
     if ( ! conn().prepare( `
       SELECT 1
@@ -109,7 +109,7 @@ export class Booking {
   }
 
   public static listByTransaction ( transactionId: string, portfolioId: string, userId: string ) : BookingRecord[] {
-    assertId( transactionId, 'transaction', false, true );
+    assertId( transactionId, 'transaction' );
     Portfolio.assertMember( portfolioId, userId );
 
     return as< BookingRow[] >( conn().prepare( `

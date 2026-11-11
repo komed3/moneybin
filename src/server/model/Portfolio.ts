@@ -14,7 +14,7 @@ const COLS = { personId: 'person_id', name: 'name', description: 'description', 
 
 export class Portfolio {
   private static getRow ( portfolioId: string ) : PortfolioRow | null {
-    assertId( portfolioId, 'portfolio', false, true );
+    assertId( portfolioId, 'portfolio' );
     return as< PortfolioRow | null >( conn().prepare( 'SELECT * FROM portfolios WHERE id = ?' ).get( portfolioId ) );
   }
 
@@ -74,13 +74,13 @@ export class Portfolio {
   }
 
   public static assertPortfolioIdSafe ( portfolioId: string ) : void {
-    assertId( portfolioId, 'portfolio', false, true );
+    assertId( portfolioId, 'portfolio' );
     if ( ! conn().prepare( 'SELECT 1 FROM portfolios WHERE id = ?' ).get( portfolioId ) )
       throw new Error( `Portfolio ${ portfolioId } does not exist` );
   }
 
   public static assertMember ( portfolioId: string, userId: string ) : PortfolioMemberRole {
-    assertId( portfolioId, 'portfolio', false, true );
+    assertId( portfolioId, 'portfolio' );
     User.assertUserIdSafe( userId );
 
     const role = Portfolio.getMemberRole( portfolioId, userId );
@@ -119,7 +119,7 @@ export class Portfolio {
   }
 
   public static get ( portfolioId: string, userId: string ) : PortfolioRecord | null {
-    assertId( portfolioId, 'portfolio', false, true );
+    assertId( portfolioId, 'portfolio' );
     User.assertUserIdSafe( userId );
 
     const row = as< PortfolioRow | null >( conn().prepare( `
