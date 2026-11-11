@@ -47,21 +47,6 @@ export class Portfolio {
     };
   }
 
-  private static assertMember ( portfolioId: string, userId: string ) : PortfolioMemberRole {
-    assertId( portfolioId, 'portfolio' );
-    User.assertUserIdSafe( userId );
-
-    const role = Portfolio.getMemberRole( portfolioId, userId );
-    if ( ! role ) throw new Error( 'User is not a member of this portfolio' );
-
-    return role;
-  }
-
-  private static assertOwner ( portfolioId: string, userId: string ) : void {
-    if ( Portfolio.assertMember( portfolioId, userId ) !== 'owner' )
-      throw new Error( 'Only portfolio owners can perform this action' );
-  }
-
   private static validateName ( name: string ) : string {
     return normalizeString( name, 'Name' );
   }
@@ -77,6 +62,26 @@ export class Portfolio {
 
   private static validateRole ( role: unknown ) : PortfolioMemberRole {
     return validateEnum( role, 'role', [ 'owner', 'editor', 'viewer' ] );
+  }
+
+  public static assertMember ( portfolioId: string, userId: string ) : PortfolioMemberRole {
+    assertId( portfolioId, 'portfolio' );
+    User.assertUserIdSafe( userId );
+
+    const role = Portfolio.getMemberRole( portfolioId, userId );
+    if ( ! role ) throw new Error( 'User is not a member of this portfolio' );
+
+    return role;
+  }
+
+  public static assertOwner ( portfolioId: string, userId: string ) : void {
+    if ( Portfolio.assertMember( portfolioId, userId ) !== 'owner' )
+      throw new Error( 'Only portfolio owners can perform this action' );
+  }
+
+  public static assertEditable ( portfolioId: string, userId: string ) : void {
+    if ( ! [ 'owner', 'editor' ].includes( Portfolio.assertMember( portfolioId, userId ) ) )
+      throw new Error( 'Only portfolio owners and editors can modify this portfolio' );
   }
 
   public static list ( userId: string ) : PortfolioRecord[] {
