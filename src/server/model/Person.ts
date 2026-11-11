@@ -70,9 +70,7 @@ export class Person {
 
   public static create ( userId: string, data: PersonCreateData ) : PersonRecord {
     User.assertUserIdSafe( userId );
-
-    const name = Person.validateName( data.name );
-    const gender = Person.validateGender( data.gender );
+    Person.validate( data );
 
     const id = db.createWithId( id => {
       conn().prepare( `
@@ -82,7 +80,7 @@ export class Person {
           email, phone, website, notes
         ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
       ` ).run(
-        id, userId, name, data.description ?? null, gender, data.birthDate ?? null,
+        id, userId, data.name, data.description ?? null, data.gender, data.birthDate ?? null,
         data.street ?? null, data.addressExtra ?? null, data.postalCode ?? null,
         data.city ?? null, data.region ?? null, data.country ?? null,
         data.email ?? null, data.phone ?? null, data.website ?? null, data.notes ?? null
@@ -95,18 +93,13 @@ export class Person {
   }
 
   public static update ( personId: string, userId: string, data: PersonUpdateData ) : PersonRecord {
-    const person = Person.getSafe( personId, userId ), updates = { ...data };
+    const person = Person.getSafe( personId, userId );
+    Person.validate( data );
 
-    if ( updates.name !== undefined ) updates.name = Person.validateName( updates.name );
-    if ( updates.gender !== undefined ) updates.gender = Person.validateGender( updates.gender );
-
-    const entries = Object.entries( COLUMNS ).filter(
-      ( [ key ] ) => updates[ key as keyof PersonUpdateData ] !== undefined
-    );
-
+    const entries = Object.entries( COLS ).filter( ( [ k ] ) => data[ k as keyof PersonUpdateData ] !== undefined );
     if ( ! entries.length ) return person;
 
-    const values = entries.map( ( [ key ] ) => updates[ key as keyof PersonUpdateData ] );
+    const values = entries.map( ( [ key ] ) => data[ key as keyof PersonUpdateData ] );
 
     const result = conn().prepare( `
       UPDATE persons
