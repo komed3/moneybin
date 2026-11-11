@@ -1,3 +1,4 @@
+import type { Optional } from '@/src/shared/types/utils';
 import { randomInt } from 'node:crypto';
 
 
@@ -9,25 +10,23 @@ export function generateId ( length: number ) : string {
   return Array.from( { length }, () => ID_ALPHABET[ randomInt( ID_ALPHABET.length ) ] ).join( '' );
 }
 
-export function assertId ( value: string | undefined, label: string ) : string | undefined;
-export function assertId ( value: string | null | undefined, label: string, nullable: true ) : string | null | undefined;
-export function assertId ( value: unknown, label: string, nullable = false ) : string | null | undefined {
-  if ( value === undefined || ( nullable && value === null ) ) return value;
+export function assertId < T extends string | null | undefined, N extends boolean = false > (
+  value: T, label: string, nullable?: N
+) : N extends true ? T : Exclude< T, null > {
+  if ( value === undefined || ( nullable && value === null ) ) return value as N extends true ? T : Exclude< T, null >;
   if ( typeof value !== 'string' || ! /^[a-zA-Z0-9]{5,32}$/.test( value ) ) throw new Error( `Invalid ${ label } ID` );
 
-  return value;
+  return value as N extends true ? T : Exclude< T, null >;
 }
 
-export function parseString ( value: unknown, label: string ) : string | undefined;
-export function parseString ( value: unknown, label: string, nullable: true ) : string | null | undefined;
-export function parseString ( value: unknown, label: string, nullable = false ) : string | null | undefined {
-  if ( value === undefined || ( nullable && value === null ) ) return value;
+export function parseString < T, N extends boolean = false > ( value: T, label: string, nullable?: N ) : string | Optional< T, N > {
+  if ( value === undefined || ( nullable && value === null ) ) return value as Optional< T, N >;
   if ( typeof value !== 'string' || ! value.trim() || value.includes( '\0' ) ) throw new Error( `${ label } must not be empty` );
   return value.trim();
 }
 
-export function parseBoolean ( value: unknown, label: string ) : boolean | undefined {
-  if ( value === undefined ) return undefined;
+export function parseBoolean < T > ( value: T, label: string ) : boolean | ( T extends undefined ? undefined : never ) {
+  if ( value === undefined ) return undefined as T extends undefined ? undefined : never;
   if ( typeof value === 'boolean' ) return value;
 
   if ( typeof value === 'string' ) {
@@ -41,8 +40,10 @@ export function parseBoolean ( value: unknown, label: string ) : boolean | undef
   throw new Error( `${ label } must be true or false` );
 }
 
-export function parseNumber ( value: unknown, label: string, min: number, max: number, nullable = false ) : number | null | undefined {
-  if ( value === undefined || ( nullable && value === null ) ) return value;
+export function parseNumber < T, N extends boolean = false > (
+  value: T, label: string, min: number, max: number, nullable?: N
+) : number | Optional< T, N > {
+  if ( value === undefined || ( nullable && value === null ) ) return value as Optional< T, N >;
 
   const parsed = typeof value === 'number' ? value : typeof value === 'string' && value.trim() ? Number( value ) : NaN;
 
@@ -52,10 +53,8 @@ export function parseNumber ( value: unknown, label: string, min: number, max: n
   return parsed;
 }
 
-export function parseDate ( value: unknown, label: string ) : string | undefined;
-export function parseDate ( value: unknown, label: string, nullable: true ) : string | null | undefined;
-export function parseDate ( value: unknown, label: string, nullable = false ) : string | null | undefined {
-  if ( value === undefined || ( nullable && value === null ) ) return value;
+export function parseDate < T, N extends boolean = false > ( value: T, label: string, nullable?: N ) : string | Optional< T, N > {
+  if ( value === undefined || ( nullable && value === null ) ) return value as Optional< T, N >;
   if ( typeof value !== 'string' || ! /^\d{4}-\d{2}-\d{2}$/.test( value ) ) throw new Error( `${ label } must be a valid date` );
 
   const date = new Date( `${ value }T00:00:00.000Z` );
@@ -64,8 +63,14 @@ export function parseDate ( value: unknown, label: string, nullable = false ) : 
   return value;
 }
 
-export function parseEnum < T extends string > ( value: unknown, label: string, values: readonly T[] ) : T | undefined {
-  if ( value === undefined ) return undefined;
+export function parseEnum < T extends string, R extends boolean = false > (
+  value: unknown, label: string, values: readonly T[], required?: R
+) : R extends true ? T : T | undefined {
+  if ( value === undefined ) {
+    if ( required ) throw new Error( `${ label } is required` );
+    return undefined as R extends true ? T : T | undefined;
+  }
+
   if ( typeof value !== 'string' || ! values.includes( value as T ) ) throw new Error( `Invalid value for ${ label }: ${ String( value ) }` );
-  return value as T;
+  return value as R extends true ? T : T | undefined;
 }
