@@ -9,7 +9,7 @@ import type {
 import type { DatabaseSync, SQLInputValue } from 'node:sqlite';
 
 
-const COLUMNS = { personId: 'person_id', name: 'name', description: 'description', currency: 'currency', note: 'note' };
+const COLS = { personId: 'person_id', name: 'name', description: 'description', currency: 'currency', note: 'note' };
 
 
 export class Portfolio {
