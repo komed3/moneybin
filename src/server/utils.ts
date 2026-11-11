@@ -22,7 +22,10 @@ export function parseString ( value: unknown, label: string, nullable = false ) 
   return value.trim();
 }
 
-export function parseBoolean ( value: unknown, label: string, coerce = false ) : boolean {
+export function parseBoolean ( value: unknown, label: string, coerce?: boolean ) : boolean | undefined;
+export function parseBoolean ( value: unknown, label: string, coerce: boolean, nullable: true ) : boolean | null | undefined;
+export function parseBoolean ( value: unknown, label: string, coerce = false, nullable = false ) : boolean | null | undefined {
+  if ( value === undefined || ( nullable && value === null ) ) return value;
   if ( typeof value === 'boolean' ) return value;
 
   if ( coerce && typeof value === 'string' ) {
@@ -36,7 +39,11 @@ export function parseBoolean ( value: unknown, label: string, coerce = false ) :
   throw new Error( `${ label } must be true or false` );
 }
 
-export function parseNumber ( value: unknown, label: string, min: number, max: number, integer = false, coerce = false ) : number {
+export function parseNumber ( value: unknown, label: string, min: number, max: number, integer?: boolean, coerce?: boolean ) : number | undefined;
+export function parseNumber ( value: unknown, label: string, min: number, max: number, integer: boolean, coerce: boolean, nullable: true ) : number | null | undefined;
+export function parseNumber ( value: unknown, label: string, min: number, max: number, integer = false, coerce = false, nullable = false ) : number | null | undefined {
+  if ( value === undefined || ( nullable && value === null ) ) return value;
+
   const parsed = typeof value === 'number' ? value : coerce && typeof value === 'string' && value.trim() ? Number( value ) : NaN;
 
   if ( ! Number.isFinite( parsed ) || ( integer && ! Number.isInteger( parsed ) ) || parsed < min || parsed > max )
@@ -45,9 +52,20 @@ export function parseNumber ( value: unknown, label: string, min: number, max: n
   return parsed;
 }
 
-export function parseEnum < T extends string > ( value: unknown, label: string, values: readonly T[] ) : T {
-  if ( typeof value !== 'string' || ! values.includes( value as T ) )
-    throw new Error( `Invalid value for ${ label }: ${ String( value ) }` );
+export function parseDate ( value: unknown, label: string ) : string | undefined {
+  if ( value === undefined ) return undefined;
+  if ( typeof value !== 'string' || ! /^\d{4}-\d{2}-\d{2}$/.test( value ) ) throw new Error( `${ label } must be a valid date` );
 
+  const date = new Date( `${ value }T00:00:00.000Z` );
+  if ( Number.isNaN( date.getTime() ) || date.toISOString().slice( 0, 10 ) !== value ) throw new Error( `${ label } must be a valid date` );
+
+  return value;
+}
+
+export function parseEnum < T extends string > ( value: unknown, label: string, values: readonly T[], required?: false ) : T | undefined;
+export function parseEnum < T extends string > ( value: unknown, label: string, values: readonly T[], required: true ) : T;
+export function parseEnum < T extends string > ( value: unknown, label: string, values: readonly T[], required = false ) : T | undefined {
+  if ( value === undefined && ! required ) return undefined;
+  if ( typeof value !== 'string' || ! values.includes( value as T ) ) throw new Error( `Invalid value for ${ label }: ${ String( value ) }` );
   return value as T;
 }
