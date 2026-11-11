@@ -1,0 +1,16 @@
+import type { BookingCreateData, BookingRecord } from '@/src/shared/types/booking';
+
+
+export interface TransactionRecord {
+  id: string;
+  portfolioId: string;
+  note: string | null;
+  bookings: BookingRecord[];
+  createdAt: string;
+}
+
+export interface TransactionRow {
+  id: string;
+  note: string | null;
+  created_at: string;
+}
