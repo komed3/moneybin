@@ -39,3 +39,19 @@ export interface BookingRow {
   created_at: string;
   updated_at: string;
 }
+
+export interface BookingCreateData {
+  assetId: string;
+  transactionId?: string | null;
+  type: BookingType;
+  valueType: BookingValueType;
+  amount: number;
+  minAmount?: number | null;
+  maxAmount?: number | null;
+  bookingDate?: string;
+  valueDate?: string;
+  reliability: BookingReliability;
+  note?: string | null;
+}
+
+export type BookingUpdateData = Partial< BookingCreateData >;
