@@ -57,4 +57,19 @@ export class Asset {
       'SELECT * FROM assets WHERE portfolio_id = ? ORDER BY name COLLATE NOCASE'
     ).all( portfolioId ) ).map( Asset.toRecord );
   }
+
+  public static get ( assetId: string, userId: string ) : AssetRecord | null {
+    const row = Asset.getRow( assetId );
+    if ( ! row ) return null;
+
+    Portfolio.assertMember( row.portfolio_id, userId );
+    return Asset.toRecord( row );
+  }
+
+  public static getSafe ( assetId: string, userId: string ) : AssetRecord {
+    const asset = Asset.get( assetId, userId );
+    if ( ! asset ) throw new Error( `Asset ${ assetId } does not exist` );
+
+    return asset;
+  }
 }
