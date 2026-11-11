@@ -14,10 +14,11 @@ export function assertId ( id: string, label: string ) : void {
     throw new Error( `Invalid ${ label } ID: ${ id }` );
 }
 
-export function normalizeString ( value: unknown, label: string ) : string {
-  if ( typeof value !== 'string' || ! value.trim() || value.includes( '\0' ) )
-    throw new Error( `${ label } must not be empty` );
-
+export function normalizeString ( value: string | undefined, label: string ) : string | undefined;
+export function normalizeString ( value: string | null | undefined, label: string, nullable: true ) : string | null | undefined;
+export function normalizeString ( value: unknown, label: string, nullable = false ) : string | null | undefined {
+  if ( value === undefined || ( nullable && value === null ) ) return value;
+  if ( typeof value !== 'string' || ! value.trim() || value.includes( '\0' ) ) throw new Error( `${ label } must not be empty` );
   return value.trim();
 }
 
