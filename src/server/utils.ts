@@ -14,15 +14,15 @@ export function assertId ( id: string, label: string ) : void {
     throw new Error( `Invalid ${ label } ID: ${ id }` );
 }
 
-export function normalizeString ( value: string | undefined, label: string ) : string | undefined;
-export function normalizeString ( value: string | null | undefined, label: string, nullable: true ) : string | null | undefined;
-export function normalizeString ( value: unknown, label: string, nullable = false ) : string | null | undefined {
+export function parseString ( value: unknown, label: string ) : string | undefined;
+export function parseString ( value: unknown, label: string, nullable: true ) : string | null | undefined;
+export function parseString ( value: unknown, label: string, nullable = false ) : string | null | undefined {
   if ( value === undefined || ( nullable && value === null ) ) return value;
   if ( typeof value !== 'string' || ! value.trim() || value.includes( '\0' ) ) throw new Error( `${ label } must not be empty` );
   return value.trim();
 }
 
-export function validateBoolean ( value: unknown, label: string, coerce = false ) : boolean {
+export function parseBoolean ( value: unknown, label: string, coerce = false ) : boolean {
   if ( typeof value === 'boolean' ) return value;
 
   if ( coerce && typeof value === 'string' ) {
@@ -36,7 +36,7 @@ export function validateBoolean ( value: unknown, label: string, coerce = false 
   throw new Error( `${ label } must be true or false` );
 }
 
-export function validateNumber ( value: unknown, label: string, min: number, max: number, integer = false, coerce = false ) : number {
+export function parseNumber ( value: unknown, label: string, min: number, max: number, integer = false, coerce = false ) : number {
   const parsed = typeof value === 'number' ? value : coerce && typeof value === 'string' && value.trim() ? Number( value ) : NaN;
 
   if ( ! Number.isFinite( parsed ) || ( integer && ! Number.isInteger( parsed ) ) || parsed < min || parsed > max )
@@ -45,7 +45,7 @@ export function validateNumber ( value: unknown, label: string, min: number, max
   return parsed;
 }
 
-export function validateEnum < T extends string > ( value: unknown, label: string, values: readonly T[] ) : T {
+export function parseEnum < T extends string > ( value: unknown, label: string, values: readonly T[] ) : T {
   if ( typeof value !== 'string' || ! values.includes( value as T ) )
     throw new Error( `Invalid value for ${ label }: ${ String( value ) }` );
 
