@@ -2,7 +2,7 @@ import { as, conn, db } from '@/src/server/core/Database';
 import { User } from '@/src/server/core/User';
 import { assertId, parseDate, parseEnum, parseString } from '@/src/server/utils';
 import type { PersonCreateData, PersonGender, PersonRecord, PersonRow, PersonUpdateData } from '@/src/shared/types/person';
-import { SQLInputValue } from 'node:sqlite';
+import type { SQLInputValue } from 'node:sqlite';
 
 
 const COLS = {
@@ -14,7 +14,7 @@ const COLS = {
 
 export class Person {
   private static getRow ( personId: string, userId?: string ) : PersonRow | null {
-    assertId( personId, 'person' );
+    assertId( personId, 'person', false, true );
 
     return as< PersonRow | null >( conn().prepare(
       `SELECT * FROM persons WHERE id = ?${ userId ? ' AND user_id = ?' : '' }`
@@ -47,6 +47,14 @@ export class Person {
     data.notes = parseString( data.notes, 'Notes', true );
   }
 
+  public static assertPersonIdSafe ( personId: string, userId: string ) : void {
+    assertId( personId, 'person', false, true );
+    User.assertUserIdSafe( userId );
+
+    if ( ! conn().prepare( 'SELECT 1 FROM persons WHERE id = ? AND user_id = ?' ).get( personId, userId ) )
+      throw new Error( `Person ${ personId } does not exist` );
+  }
+
   public static list ( userId: string ) : PersonRecord[] {
     User.assertUserIdSafe( userId );
 
@@ -57,20 +65,19 @@ export class Person {
 
   public static get ( personId: string, userId: string ) : PersonRecord | null {
     User.assertUserIdSafe( userId );
-
     const row = Person.getRow( personId, userId );
     return row ? Person.toRecord( row ) : null;
   }
 
   public static getSafe ( personId: string, userId?: string ) : PersonRecord {
     const row = Person.getRow( personId, userId );
-    if ( ! row ) throw new Error( `Person ${ personId } does not exist${ userId ? ' or is not assigned to this user' : '' }` );
+    if ( ! row ) throw new Error( `Person ${ personId } does not exist` );
     return Person.toRecord( row );
   }
 
   public static create ( userId: string, data: PersonCreateData ) : PersonRecord {
-    User.assertUserIdSafe( userId );
     Person.validate( data );
+    User.assertUserIdSafe( userId );
 
     const id = db.createWithId( id => {
       conn().prepare( `
@@ -107,13 +114,12 @@ export class Person {
       WHERE id = ? AND user_id = ?
     ` ).run( ...values as SQLInputValue[], personId, userId );
 
-    if ( ! result.changes ) throw new Error( 'Person does not exist or is not assigned to this user' );
+    if ( ! result.changes ) throw new Error( 'Person does not exist' );
     return Person.getSafe( personId, userId );
   }
 
   public static delete ( personId: string, userId: string ) : void {
-    Person.getSafe( personId, userId );
-    const result = conn().prepare( 'DELETE FROM persons WHERE id = ? AND user_id = ?' ).run( personId, userId );
-    if ( ! result.changes ) throw new Error( 'Person does not exist or is not assigned to this user' );
+    Person.assertPersonIdSafe( personId, userId );
+    conn().prepare( 'DELETE FROM persons WHERE id = ? AND user_id = ?' ).run( personId, userId );
   }
 }
