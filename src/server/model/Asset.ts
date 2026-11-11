@@ -17,15 +17,9 @@ const COLUMNS = {
 
 
 export class Asset {
-  private static getRow ( assetId: string, userId: string ) : AssetRow | null {
+  private static getRow ( assetId: string ) : AssetRow | null {
     assertId( assetId, 'asset' );
-
-    return as< AssetRow | null >( conn().prepare( `
-      SELECT a.*
-      FROM assets a
-      JOIN portfolio_members pm ON pm.portfolio_id = a.portfolio_id
-      WHERE a.id = ? AND pm.user_id = ?
-    ` ).get( assetId, userId ) );
+    return as< AssetRow | null >( conn().prepare( 'SELECT * FROM assets WHERE id = ?' ).get( assetId ) );
   }
 
   private static toRecord ( row: AssetRow ) : AssetRecord {
@@ -34,8 +28,8 @@ export class Asset {
       name: row.name, description: row.description, status: row.status, archived: !! row.archived,
       icon: row.icon, color: row.color, street: row.street, addressExtra: row.address_extra,
       postalCode: row.postal_code, city: row.city, region: row.region, country: row.country,
-      note: row.note, openedAt: row.opened_at, closedAt: row.closed_at, createdAt: row.created_at,
-      updatedAt: row.updated_at
+      note: row.note, openedAt: row.opened_at, closedAt: row.closed_at,
+      createdAt: row.created_at, updatedAt: row.updated_at
     };
   }
 
