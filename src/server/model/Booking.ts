@@ -59,4 +59,20 @@ export class Booking {
     if ( max !== null && max < amount ) throw new Error( 'Maximum amount must not be less than amount' );
     if ( min !== null && max !== null && min > max ) throw new Error( 'Minimum amount must not exceed maximum amount' );
   }
+
+  private static assertTransaction ( transactionId: string, portfolioId: string, excludeBookingId?: string ) : void {
+    if ( ! conn().prepare( 'SELECT 1 FROM transactions WHERE id = ?' ).get( transactionId ) )
+      throw new Error( `Transaction ${ transactionId } does not exist` );
+
+    const booking = as< { portfolio_id: string } | null >( conn().prepare( `
+      SELECT a.portfolio_id
+      FROM bookings b
+      JOIN assets a ON a.id = b.asset_id
+      WHERE b.transaction_id = ? AND b.id <> COALESCE( ?, '' )
+      LIMIT 1
+    ` ).get( transactionId, excludeBookingId ?? null ) );
+
+    if ( booking && booking.portfolio_id !== portfolioId )
+      throw new Error( 'A transaction cannot contain bookings from different portfolios' );
+  }
 }
