@@ -1,6 +1,6 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { Portfolio } from '@/src/server/model/Portfolio';
-import { assertId, normalizeString, validateBoolean, validateEnum } from '@/src/server/utils';
+import { assertId, parseBoolean, parseEnum, parseString } from '@/src/server/utils';
 import type {
   AssetCreateData, AssetLiquidationLevel, AssetRecord, AssetRow, AssetStatus,
   AssetType, AssetUpdateData
@@ -34,31 +34,31 @@ export class Asset {
   }
 
   private static validate ( data: AssetCreateData | AssetUpdateData ) : void {
-    data.name = normalizeString( data.name, 'Name' );
-    data.description = normalizeString( data.description, 'Description', true );
-    data.icon = normalizeString( data.icon, 'Icon' );
-    data.color = normalizeString( data.color, 'Color' );
-    data.street = normalizeString( data.street, 'Street', true );
-    data.addressExtra = normalizeString( data.addressExtra, 'Address Extra', true );
-    data.postalCode = normalizeString( data.postalCode, 'Postal Code', true );
-    data.city = normalizeString( data.city, 'City', true );
-    data.region = normalizeString( data.region, 'Region', true );
-    data.country = normalizeString( data.country, 'Country', true );
-    data.note = normalizeString( data.note, 'Note', true );
-    data.openedAt = normalizeString( data.openedAt, 'Opened at', true );
-    data.closedAt = normalizeString( data.closedAt, 'Closed at', true );
+    data.name = parseString( data.name, 'Name' );
+    data.description = parseString( data.description, 'Description', true );
+    data.icon = parseString( data.icon, 'Icon' );
+    data.color = parseString( data.color, 'Color' );
+    data.street = parseString( data.street, 'Street', true );
+    data.addressExtra = parseString( data.addressExtra, 'Address Extra', true );
+    data.postalCode = parseString( data.postalCode, 'Postal Code', true );
+    data.city = parseString( data.city, 'City', true );
+    data.region = parseString( data.region, 'Region', true );
+    data.country = parseString( data.country, 'Country', true );
+    data.note = parseString( data.note, 'Note', true );
+    data.openedAt = parseString( data.openedAt, 'Opened at', true );
+    data.closedAt = parseString( data.closedAt, 'Closed at', true );
 
-    if ( data.type !== undefined ) data.type = validateEnum< AssetType >( data.type, 'type', [
+    if ( data.type !== undefined ) data.type = parseEnum< AssetType >( data.type, 'type', [
       'cash', 'account', 'depot', 'collection', 'property', 'lease', 'debt', 'receivable',
       'contract', 'investment', 'insurance', 'vehicle', 'valuable', 'right', 'other'
     ] );
 
-    if ( data.liquidationLevel !== undefined ) data.liquidationLevel = validateEnum< AssetLiquidationLevel >(
+    if ( data.liquidationLevel !== undefined ) data.liquidationLevel = parseEnum< AssetLiquidationLevel >(
       data.liquidationLevel, 'liquidation level', [ 'instant', 'very_high', 'high', 'medium', 'low', 'very_low', 'illiquid' ]
     );
 
-    if ( data.status !== undefined ) data.status = validateEnum< AssetStatus >( data.status, 'status', [ 'real', 'fictional' ] );
-    if ( data.archived !== undefined ) data.archived = validateBoolean( data.archived, 'Archived' );
+    if ( data.status !== undefined ) data.status = parseEnum< AssetStatus >( data.status, 'status', [ 'real', 'fictional' ] );
+    if ( data.archived !== undefined ) data.archived = parseBoolean( data.archived, 'Archived' );
   }
 
   public static list ( portfolioId: string, userId: string ) : AssetRecord[] {

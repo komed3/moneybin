@@ -1,6 +1,6 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { User } from '@/src/server/core/User';
-import { assertId, normalizeString, validateEnum } from '@/src/server/utils';
+import { assertId, parseEnum, parseString } from '@/src/server/utils';
 import type { PersonCreateData, PersonGender, PersonRecord, PersonRow, PersonUpdateData } from '@/src/shared/types/person';
 import { SQLInputValue } from 'node:sqlite';
 
@@ -31,21 +31,21 @@ export class Person {
   }
 
   private static validate ( data: PersonCreateData | PersonUpdateData ) : void {
-    data.name = normalizeString( data.name, 'Name' );
-    data.description = normalizeString( data.description, 'Description', true );
-    data.birthDate = normalizeString( data.birthDate, 'Birth date', true );
-    data.street = normalizeString( data.street, 'Street', true );
-    data.addressExtra = normalizeString( data.addressExtra, 'Address extra', true );
-    data.postalCode = normalizeString( data.postalCode, 'Postal code', true );
-    data.city = normalizeString( data.city, 'City', true );
-    data.region = normalizeString( data.region, 'Region', true );
-    data.country = normalizeString( data.country, 'Country', true );
-    data.email = normalizeString( data.email, 'Email', true );
-    data.phone = normalizeString( data.phone, 'Phone', true );
-    data.website = normalizeString( data.website, 'Website', true );
-    data.notes = normalizeString( data.notes, 'Notes', true );
+    data.name = parseString( data.name, 'Name' );
+    data.description = parseString( data.description, 'Description', true );
+    data.birthDate = parseString( data.birthDate, 'Birth date', true );
+    data.street = parseString( data.street, 'Street', true );
+    data.addressExtra = parseString( data.addressExtra, 'Address extra', true );
+    data.postalCode = parseString( data.postalCode, 'Postal code', true );
+    data.city = parseString( data.city, 'City', true );
+    data.region = parseString( data.region, 'Region', true );
+    data.country = parseString( data.country, 'Country', true );
+    data.email = parseString( data.email, 'Email', true );
+    data.phone = parseString( data.phone, 'Phone', true );
+    data.website = parseString( data.website, 'Website', true );
+    data.notes = parseString( data.notes, 'Notes', true );
 
-    if ( data.gender !== undefined ) data.gender = validateEnum< PersonGender >(
+    if ( data.gender !== undefined ) data.gender = parseEnum< PersonGender >(
       data.gender, 'gender', [ 'male', 'female', 'diverse' ]
     );
   }

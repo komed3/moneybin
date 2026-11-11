@@ -1,7 +1,7 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { User } from '@/src/server/core/User';
 import { Person } from '@/src/server/model/Person';
-import { assertId, normalizeString, validateEnum } from '@/src/server/utils';
+import { assertId, parseEnum, parseString } from '@/src/server/utils';
 import type {
   PortfolioCreateData, PortfolioMemberRecord, PortfolioMemberRole, PortfolioMemberRow,
   PortfolioRecord, PortfolioRow, PortfolioUpdateData
@@ -48,17 +48,17 @@ export class Portfolio {
   }
 
   private static validate ( data: PortfolioCreateData | PortfolioUpdateData ) : void {
-    data.name = normalizeString( data.name, 'Name' );
-    data.description = normalizeString( data.description, 'Description', true );
-    data.note = normalizeString( data.note, 'Note', true );
-    data.currency = normalizeString( data.currency, 'Currency' );
+    data.name = parseString( data.name, 'Name' );
+    data.description = parseString( data.description, 'Description', true );
+    data.note = parseString( data.note, 'Note', true );
+    data.currency = parseString( data.currency, 'Currency' );
 
     if ( data.currency !== undefined && ! conn().prepare( 'SELECT 1 FROM currencies WHERE code = ?' ).get( data.currency ) )
       throw new Error( `Unknown currency: ${ data.currency }` );
   }
 
   private static validateRole ( role: unknown ) : PortfolioMemberRole {
-    return validateEnum( role, 'role', [ 'owner', 'editor', 'viewer' ] );
+    return parseEnum( role, 'role', [ 'owner', 'editor', 'viewer' ] );
   }
 
   private static assertAtLeastOneOwner (

@@ -1,4 +1,4 @@
-import { normalizeString, validateBoolean, validateEnum, validateNumber } from '@/src/server/utils';
+import { parseBoolean, parseEnum, parseNumber, parseString } from '@/src/server/utils';
 import type { ConfigName, ConfigSchema, ConfigTable, ConfigValue } from '@/src/shared/types/config';
 import dotenv from 'dotenv';
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -38,11 +38,11 @@ export class Config {
 
   public static validate < K extends ConfigName > ( name: K, value: unknown ) : ConfigValue< K > {
     const key = this.resolveName( name ), def = this.schema[ key ];
-    if ( def.type === 'boolean' ) return validateBoolean( value, key, true ) as ConfigValue< K >;
-    if ( def.type === 'integer' ) return validateNumber( value, key, def.min, def.max, def.type === 'integer', true ) as ConfigValue< K >;
+    if ( def.type === 'boolean' ) return parseBoolean( value, key, true ) as ConfigValue< K >;
+    if ( def.type === 'integer' ) return parseNumber( value, key, def.min, def.max, def.type === 'integer', true ) as ConfigValue< K >;
 
-    const parsed = normalizeString( value, key );
-    if ( def.type === 'enum' ) return validateEnum( parsed, key, def.values ) as ConfigValue< K >;
+    const parsed = parseString( value, key )!;
+    if ( def.type === 'enum' ) return parseEnum( parsed, key, def.values ) as ConfigValue< K >;
 
     return ( def.type === 'path' ? key === 'DB_PATH' && parsed === ':memory:' ? parsed : resolve( parsed ) : parsed ) as ConfigValue< K >;
   }
