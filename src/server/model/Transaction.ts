@@ -82,8 +82,6 @@ export class Transaction {
   public static create ( portfolioId: string, userId: string, data: TransactionCreateData ) : TransactionRecord {
     Transaction.validate( data );
     if ( ! Array.isArray( data.bookings ) || ! data.bookings.length ) throw new Error( 'Transaction needs at least one booking' );
-
-    data.bookings.forEach( booking => Booking.validateCreateData( booking ) );
     Portfolio.assertEditable( portfolioId, userId );
 
     data.bookings.forEach( booking => {
