@@ -78,6 +78,8 @@ export class Person {
     Person.validate( data );
     User.assertUserIdSafe( userId );
 
+    if ( ! data.name || ! data.gender ) throw new Error( 'Person is missing required fields' );
+
     const id = db.createWithId( id => {
       conn().prepare( `
         INSERT INTO persons (
