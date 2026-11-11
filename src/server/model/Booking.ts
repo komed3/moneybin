@@ -9,7 +9,7 @@ import type {
 import type { SQLInputValue } from 'node:sqlite';
 
 
-const COLS = {
+const MIN = Number.MIN_SAFE_INTEGER, MAX = Number.MAX_SAFE_INTEGER, COLS = {
   assetId: 'asset_id', transactionId: 'transaction_id', type: 'type', valueType: 'value_type',
   amount: 'amount', minAmount: 'min_amount', maxAmount: 'max_amount', bookingDate: 'booking_date',
   valueDate: 'value_date', reliability: 'reliability', note: 'note'
@@ -46,9 +46,9 @@ export class Booking {
       'documented', 'reconstructed', 'speculative', 'assumed'
     ] );
 
-    data.amount = parseNumber( data.amount, 'Amount', Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, true );
-    data.minAmount = parseNumber( data.minAmount, 'Minimum amount', Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, true, false, true );
-    data.maxAmount = parseNumber( data.maxAmount, 'Maximum amount', Number.MIN_SAFE_INTEGER, Number.MAX_SAFE_INTEGER, true, false, true );
+    data.amount = parseNumber( data.amount, 'Amount', MIN, MAX, true );
+    data.minAmount = parseNumber( data.minAmount, 'Minimum amount', MIN, MAX, true, false, true );
+    data.maxAmount = parseNumber( data.maxAmount, 'Maximum amount', MIN, MAX, true, false, true );
     data.bookingDate = parseDate( data.bookingDate, 'Booking date' );
     data.valueDate = parseDate( data.valueDate, 'Value date' );
     data.note = parseString( data.note, 'Note', true );
