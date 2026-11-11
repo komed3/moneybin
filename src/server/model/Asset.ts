@@ -33,22 +33,22 @@ export class Asset {
     };
   }
 
-  private static validate ( data: AssetCreateData | AssetUpdateData ) : void {
-    data.type = parseEnum< AssetType >( data.type, 'type', [
+  private static validate ( data: AssetCreateData | AssetUpdateData, create = false ) : void {
+    data.type = parseEnum< AssetType >( data.type ?? ( create ? '' : undefined ), 'type', [
       'cash', 'account', 'depot', 'collection', 'property', 'lease', 'debt', 'receivable',
       'contract', 'investment', 'insurance', 'vehicle', 'valuable', 'right', 'other'
     ] );
 
-    data.liquidationLevel = parseEnum< AssetLiquidationLevel >( data.liquidationLevel, 'liquidation level', [
+    data.liquidationLevel = parseEnum< AssetLiquidationLevel >( data.liquidationLevel ?? ( create ? '' : undefined ), 'liquidation level', [
       'instant', 'very_high', 'high', 'medium', 'low', 'very_low', 'illiquid'
     ] );
 
-    data.name = parseString( data.name, 'Name' );
+    data.name = parseString( create ? data.name ?? '' : data.name, 'Name' );
     data.description = parseString( data.description, 'Description', true );
-    data.status = parseEnum< AssetStatus >( data.status, 'status', [ 'real', 'fictional' ] );
+    data.status = parseEnum< AssetStatus >( data.status ?? ( create ? '' : undefined ), 'status', [ 'real', 'fictional' ] );
     data.archived = parseBoolean( data.archived, 'Archived' );
-    data.icon = parseString( data.icon, 'Icon' );
-    data.color = parseString( data.color, 'Color' );
+    data.icon = parseString( create ? data.icon ?? '' : data.icon, 'Icon' );
+    data.color = parseString( create ? data.color ?? '' : data.color, 'Color' );
     data.street = parseString( data.street, 'Street', true );
     data.addressExtra = parseString( data.addressExtra, 'Address extra', true );
     data.postalCode = parseString( data.postalCode, 'Postal code', true );
@@ -94,7 +94,7 @@ export class Asset {
   }
 
   public static create ( portfolioId: string, userId: string, data: AssetCreateData ) : AssetRecord {
-    Asset.validate( data );
+    Asset.validate( data, true );
     Portfolio.assertEditable( portfolioId, userId );
 
     const id = db.createWithId( id => {
