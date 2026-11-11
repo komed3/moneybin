@@ -44,10 +44,18 @@ export class Asset {
     );
 
     if ( data.name !== undefined ) data.name = normalizeString( data.name, 'Name' );
+    if ( data.description !== undefined ) data.description = normalizeString( data.description, 'Description' );
     if ( data.status !== undefined ) data.status = validateEnum< AssetStatus >( data.status, 'status', [ 'real', 'fictional' ] );
     if ( data.archived !== undefined ) data.archived = validateBoolean( data.archived, 'Archived' );
     if ( data.icon !== undefined ) data.icon = normalizeString( data.icon, 'Icon' );
     if ( data.color !== undefined ) data.color = normalizeString( data.color, 'Color' );
+    if ( data.street !== undefined ) data.street = normalizeString( data.street, 'Street' );
+    if ( data.addressExtra !== undefined ) data.addressExtra = normalizeString( data.addressExtra, 'Address Extra' );
+    if ( data.postalCode !== undefined ) data.postalCode = normalizeString( data.postalCode, 'Postal Code' );
+    if ( data.city !== undefined ) data.city = normalizeString( data.city, 'City' );
+    if ( data.region !== undefined ) data.region = normalizeString( data.region, 'Region' );
+    if ( data.country !== undefined ) data.country = normalizeString( data.country, 'Country' );
+    if ( data.note !== undefined ) data.note = normalizeString( data.note, 'Note' );
   }
 
   public static list ( portfolioId: string, userId: string ) : AssetRecord[] {
