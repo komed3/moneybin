@@ -27,4 +27,15 @@ export class Asset {
       WHERE a.id = ? AND pm.user_id = ?
     ` ).get( assetId, userId ) );
   }
+
+  private static toRecord ( row: AssetRow ) : AssetRecord {
+    return {
+      id: row.id, portfolioId: row.portfolio_id, type: row.type, liquidationLevel: row.liquidation_level,
+      name: row.name, description: row.description, status: row.status, archived: !! row.archived,
+      icon: row.icon, color: row.color, street: row.street, addressExtra: row.address_extra,
+      postalCode: row.postal_code, city: row.city, region: row.region, country: row.country,
+      note: row.note, openedAt: row.opened_at, closedAt: row.closed_at, createdAt: row.created_at,
+      updatedAt: row.updated_at
+    };
+  }
 }
