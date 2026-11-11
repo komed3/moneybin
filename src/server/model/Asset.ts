@@ -72,4 +72,29 @@ export class Asset {
 
     return asset;
   }
+
+  public static create ( portfolioId: string, userId: string, data: AssetCreateData ) : AssetRecord {
+    Portfolio.assertEditable( portfolioId, userId );
+    Asset.validate( data );
+
+    const id = db.createWithId( id => {
+      conn().prepare( `
+        INSERT INTO assets (
+          id, portfolio_id, type, liquidation_level, name, description, status, archived,
+          icon, color, street, address_extra, postal_code, city, region, country, note,
+          opened_at, closed_at
+        ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+      ` ).run(
+        id, portfolioId, data.type, data.liquidationLevel, data.name, data.description ?? null,
+        data.status, Number( data.archived ?? false ), data.icon, data.color,
+        data.street ?? null, data.addressExtra ?? null, data.postalCode ?? null,
+        data.city ?? null, data.region ?? null, data.country ?? null, data.note ?? null,
+        data.openedAt ?? null, data.closedAt ?? null
+      );
+
+      return id;
+    } );
+
+    return Asset.toRecord( Asset.getRow( id )! );
+  }
 }
