@@ -162,7 +162,7 @@ export class Portfolio {
 
     if ( data.personId !== undefined ) Person.assertPersonIdSafe( data.personId, userId );
 
-    const entries = Object.entries( COLS ).filter( ( [ key ] ) => data[ key as keyof PortfolioUpdateData ] !== undefined );
+    const entries = Object.entries( COLS ).filter( ( [ k ] ) => data[ k as keyof PortfolioUpdateData ] !== undefined );
     if ( ! entries.length ) return portfolio;
 
     const values = entries.map( ( [ key ] ) => data[ key as keyof PortfolioUpdateData ] );
