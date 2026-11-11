@@ -99,8 +99,7 @@ export class Person {
     const entries = Object.entries( COLS ).filter( ( [ k ] ) => data[ k as keyof PersonUpdateData ] !== undefined );
     if ( ! entries.length ) return person;
 
-    const values = entries.map( ( [ key ] ) => data[ key as keyof PersonUpdateData ] );
-
+    const values = entries.map( ( [ k ] ) => data[ k as keyof PersonUpdateData ] );
     const result = conn().prepare( `
       UPDATE persons
       SET ${ entries.map( ( [ , column ] ) => `${ column } = ?` ).join( ', ' ) },
