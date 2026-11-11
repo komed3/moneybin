@@ -34,7 +34,7 @@ export class Person {
     data.name = parseString( data.name, 'Name' );
     data.description = parseString( data.description, 'Description', true );
     data.gender = parseEnum< PersonGender >( data.gender, 'gender', [ 'male', 'female', 'diverse' ] );
-    data.birthDate = parseDate( data.birthDate, 'Birth date' );
+    data.birthDate = parseDate( data.birthDate, 'Birth date', true );
     data.street = parseString( data.street, 'Street', true );
     data.addressExtra = parseString( data.addressExtra, 'Address extra', true );
     data.postalCode = parseString( data.postalCode, 'Postal code', true );

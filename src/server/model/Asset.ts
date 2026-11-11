@@ -53,8 +53,8 @@ export class Asset {
     data.region = parseString( data.region, 'Region', true );
     data.country = parseString( data.country, 'Country', true );
     data.note = parseString( data.note, 'Note', true );
-    data.openedAt = parseDate( data.openedAt, 'Opened at' );
-    data.closedAt = parseDate( data.closedAt, 'Closed at' );
+    data.openedAt = parseDate( data.openedAt, 'Opened at', true );
+    data.closedAt = parseDate( data.closedAt, 'Closed at', true );
   }
 
   public static list ( portfolioId: string, userId: string ) : AssetRecord[] {
