@@ -32,23 +32,23 @@ export class Booking {
     };
   }
 
-  private static validate ( data: BookingCreateData | BookingUpdateData ) : void {
-    data.type = parseEnum< BookingType >( data.type, 'type', [
+  private static validate ( data: BookingCreateData | BookingUpdateData, create = false ) : void {
+    data.type = parseEnum< BookingType >( data.type ?? ( create ? '' : undefined ), 'type', [
       'deposit', 'withdrawal', 'transfer', 'direct_debit', 'purchase', 'sale',
       'fee', 'interest', 'dividend', 'tax', 'repayment', 'adjustment', 'other'
     ] );
 
-    data.valueType = parseEnum< BookingValueType >( data.valueType, 'value type', [ 'relative', 'absolute' ] );
+    data.valueType = parseEnum< BookingValueType >( data.valueType ?? ( create ? '' : undefined ), 'value type', [ 'relative', 'absolute' ] );
 
-    data.reliability = parseEnum< BookingReliability >( data.reliability, 'reliability', [
+    data.reliability = parseEnum< BookingReliability >( data.reliability ?? ( create ? '' : undefined ), 'reliability', [
       'documented', 'reconstructed', 'speculative', 'assumed'
     ] );
 
-    data.assetId = assertId( data.assetId, 'asset' );
+    data.assetId = assertId( create ? data.assetId ?? '' : data.assetId, 'asset' );
     data.transactionId = assertId( data.transactionId, 'transaction', true );
-    data.amount = parseNumber( data.amount, 'Amount', MIN, MAX, true );
-    data.minAmount = parseNumber( data.minAmount, 'Minimum amount', MIN, MAX, true, false, true );
-    data.maxAmount = parseNumber( data.maxAmount, 'Maximum amount', MIN, MAX, true, false, true );
+    data.amount = parseNumber( create ? data.amount ?? NaN : data.amount, 'Amount', MIN, MAX );
+    data.minAmount = parseNumber( data.minAmount, 'Minimum amount', MIN, MAX, true );
+    data.maxAmount = parseNumber( data.maxAmount, 'Maximum amount', MIN, MAX, true );
     data.bookingDate = parseDate( data.bookingDate, 'Booking date' );
     data.valueDate = parseDate( data.valueDate, 'Value date' );
     data.note = parseString( data.note, 'Note', true );
@@ -60,12 +60,17 @@ export class Booking {
     if ( min !== null && max !== null && min > max ) throw new Error( 'Minimum amount exceeds maximum' );
   }
 
-  public static validateCreateData ( data: BookingCreateData ) : void {
-    if ( ! data.bookingDate && ! data.valueDate ) throw new Error( 'A booking date is required' );
-    data.bookingDate ??= data.valueDate, data.valueDate ??= data.bookingDate;
+  public static validateCreateData ( data: BookingCreateData ) : [ string, string ] {
+    Booking.validate( data, true );
 
-    Booking.validate( data );
+    const bookingDate = data.bookingDate ?? data.valueDate;
+    if ( ! bookingDate ) throw new Error( 'A booking date is required' );
+
+    const valueDate = data.valueDate ?? bookingDate;
+    data.bookingDate = bookingDate, data.valueDate = valueDate;
+
     Booking.validateAmounts( data.amount, data.minAmount ?? null, data.maxAmount ?? null );
+    return [ bookingDate, valueDate ];
   }
 
   private static cleanupTransaction ( transactionId: string | null ) : void {
@@ -136,7 +141,7 @@ export class Booking {
   }
 
   public static create ( userId: string, data: BookingCreateData ) : BookingRecord {
-    Booking.validateCreateData( data );
+    const [ bookingDate, valueDate ] = Booking.validateCreateData( data );
 
     Asset.assertAssetIdSafe( data.assetId, userId );
     const asset = Asset.getSafe( data.assetId, userId );
@@ -152,7 +157,7 @@ export class Booking {
         ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
       ` ).run(
         id, data.assetId, data.transactionId ?? null, data.type, data.valueType, data.amount,
-        data.minAmount ?? null, data.maxAmount ?? null, data.bookingDate!, data.valueDate!,
+        data.minAmount ?? null, data.maxAmount ?? null, bookingDate, valueDate,
         data.reliability, data.note ?? null
       );
 
