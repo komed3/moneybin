@@ -28,8 +28,8 @@ export class Asset {
       name: row.name, description: row.description, status: row.status, archived: !! row.archived,
       icon: row.icon, color: row.color, street: row.street, addressExtra: row.address_extra,
       postalCode: row.postal_code, city: row.city, region: row.region, country: row.country,
-      note: row.note, openedAt: row.opened_at, closedAt: row.closed_at,
-      createdAt: row.created_at, updatedAt: row.updated_at
+      note: row.note, openedAt: row.opened_at, closedAt: row.closed_at, createdAt: row.created_at,
+      updatedAt: row.updated_at
     };
   }
 
