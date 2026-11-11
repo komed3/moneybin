@@ -111,11 +111,9 @@ export class Portfolio {
   public static listByPerson ( personId: string, userId: string ) : PortfolioRecord[] {
     Person.getSafe( personId, userId );
 
-    return as< PortfolioRow[] >( conn().prepare( `
-      SELECT * FROM portfolios
-      WHERE person_id = ?
-      ORDER BY name COLLATE NOCASE
-    ` ).all( personId ) ).map( Portfolio.toRecord );
+    return as< PortfolioRow[] >( conn().prepare(
+      'SELECT * FROM portfolios WHERE person_id = ? ORDER BY name COLLATE NOCASE'
+    ).all( personId ) ).map( Portfolio.toRecord );
   }
 
   public static get ( portfolioId: string, userId: string ) : PortfolioRecord | null {
@@ -141,21 +139,13 @@ export class Portfolio {
   public static create ( userId: string, data: PortfolioCreateData ) : PortfolioRecord {
     User.assertUserIdSafe( userId );
     Person.getSafe( data.personId, userId );
-
-    const name = Portfolio.validateName( data.name );
-    const currency = Portfolio.validateCurrency( data.currency );
+    Portfolio.validate( data );
 
     const id = db.transaction( tx => db.createWithId( id => {
-      tx.prepare( `
-        INSERT INTO portfolios ( id, person_id, name, description, currency, note )
-        VALUES ( ?, ?, ?, ?, ?, ? )
-      ` ).run( id, data.personId, name, data.description ?? null, currency, data.note ?? null );
+      tx.prepare( 'INSERT INTO portfolios ( id, person_id, name, description, currency, note ) VALUES ( ?, ?, ?, ?, ?, ? )' )
+        .run( id, data.personId, data.name, data.description ?? null, data.currency, data.note ?? null );
 
-      tx.prepare( `
-        INSERT INTO portfolio_members ( portfolio_id, user_id, role )
-        VALUES ( ?, ?, 'owner' )
-      ` ).run( id, userId );
-
+      tx.prepare( `INSERT INTO portfolio_members ( portfolio_id, user_id, role ) VALUES ( ?, ?, 'owner' )` ).run( id, userId );
       return id;
     } ) );
 
