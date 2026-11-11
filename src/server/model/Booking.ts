@@ -130,4 +130,34 @@ export class Booking {
     if ( ! booking ) throw new Error( `Booking ${ bookingId } does not exist` );
     return booking;
   }
+
+  public static create ( userId: string, data: BookingCreateData ) : BookingRecord {
+    Booking.validate( data );
+
+    if ( ! data.bookingDate && ! data.valueDate ) throw new Error( 'Booking date or value date is required' );
+    data.bookingDate ??= data.valueDate;
+    data.valueDate ??= data.bookingDate;
+
+    const asset = Asset.getSafe( data.assetId, userId );
+    Portfolio.assertEditable( asset.portfolioId, userId );
+    if ( data.transactionId ) Booking.assertTransaction( data.transactionId, asset.portfolioId );
+    Booking.validateAmounts( data.amount, data.minAmount ?? null, data.maxAmount ?? null );
+
+    const id = db.createWithId( id => {
+      conn().prepare( `
+        INSERT INTO bookings (
+          id, asset_id, transaction_id, type, value_type, amount, min_amount, max_amount,
+          booking_date, value_date, reliability, note
+        ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+      ` ).run(
+        id, data.assetId, data.transactionId ?? null, data.type, data.valueType, data.amount,
+        data.minAmount ?? null, data.maxAmount ?? null, data.bookingDate!, data.valueDate!,
+        data.reliability, data.note ?? null
+      );
+
+      return id;
+    } );
+
+    return Booking.getSafe( id, userId );
+  }
 }
