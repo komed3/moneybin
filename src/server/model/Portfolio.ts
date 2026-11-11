@@ -154,22 +154,14 @@ export class Portfolio {
 
   public static update ( portfolioId: string, userId: string, data: PortfolioUpdateData ) : PortfolioRecord {
     Portfolio.assertOwner( portfolioId, userId );
-
     const portfolio = Portfolio.getSafe( portfolioId );
-    const updates = { ...data };
+    if ( data.personId !== undefined ) Person.getSafe( data.personId, userId );
+    Portfolio.validate( data );
 
-    if ( updates.personId !== undefined ) Person.getSafe( updates.personId, userId );
-    if ( updates.name !== undefined ) updates.name = Portfolio.validateName( updates.name );
-    if ( updates.currency !== undefined ) updates.currency = Portfolio.validateCurrency( updates.currency );
-
-    const entries = Object.entries( COLUMNS ).filter(
-      ( [ key ] ) => updates[ key as keyof PortfolioUpdateData ] !== undefined
-    );
-
+    const entries = Object.entries( COLS ).filter( ( [ k ] ) => data[ k as keyof PortfolioUpdateData ] !== undefined );
     if ( ! entries.length ) return portfolio;
 
-    const values = entries.map( ( [ key ] ) => updates[ key as keyof PortfolioUpdateData ] );
-
+    const values = entries.map( ( [ k ] ) => data[ k as keyof PortfolioUpdateData ] );
     const result = conn().prepare( `
       UPDATE portfolios
       SET ${ entries.map( ( [ , column ] ) => `${ column } = ?` ).join( ', ' ) },
