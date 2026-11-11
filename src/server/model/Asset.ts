@@ -2,8 +2,8 @@ import { as, conn, db } from '@/src/server/core/Database';
 import { Portfolio } from '@/src/server/model/Portfolio';
 import { assertId, normalizeString, validateBoolean, validateEnum } from '@/src/server/utils';
 import type {
-  AssetCreateData, AssetLiquidationLevel, AssetRecord, AssetRow,
-  AssetStatus, AssetType, AssetUpdateData
+  AssetCreateData, AssetLiquidationLevel, AssetRecord, AssetRow, AssetStatus,
+  AssetType, AssetUpdateData
 } from '@/src/shared/types/asset';
 import { SQLInputValue } from 'node:sqlite';
 
@@ -101,7 +101,6 @@ export class Asset {
   public static update ( assetId: string, userId: string, data: AssetUpdateData ) : AssetRecord {
     const row = Asset.getRow( assetId );
     if ( ! row ) throw new Error( `Asset ${ assetId } does not exist` );
-
     Portfolio.assertEditable( row.portfolio_id, userId );
 
     const updates = { ...data };
@@ -126,5 +125,13 @@ export class Asset {
     ` ).run( ...values as SQLInputValue[], assetId );
 
     return Asset.toRecord( Asset.getRow( assetId )! );
+  }
+
+  public static delete ( assetId: string, userId: string ) : void {
+    const row = Asset.getRow( assetId );
+    if ( ! row ) throw new Error( `Asset ${ assetId } does not exist` );
+    Portfolio.assertEditable( row.portfolio_id, userId );
+
+    conn().prepare( 'DELETE FROM assets WHERE id = ?' ).run( assetId );
   }
 }
