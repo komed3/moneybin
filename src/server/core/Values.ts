@@ -23,4 +23,12 @@ export class Values {
       code: row.code, symbol: row.symbol, decimalPlaces: row.decimal_places
     } ) );
   }
+
+  public static getCurrency ( code: string ) : CurrencyRecord {
+    const currencyCode = parseString( code, 'Currency' ).toUpperCase();
+    const row = as< CurrencyRow | null >( conn().prepare( 'SELECT * FROM currencies WHERE code = ?' ).get( currencyCode ) );
+
+    if ( ! row ) throw new Error( `Unknown currency: ${ currencyCode }` );
+    return { code: row.code, symbol: row.symbol, decimalPlaces: row.decimal_places };
+  }
 }
