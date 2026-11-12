@@ -1,5 +1,5 @@
 import { Values } from '@/src/server/core/Values';
-import { parseBoolean, parseEnum, parseNumber, parseString } from '@/src/server/utils';
+import { parseBoolean, parseNumber, parseString } from '@/src/server/utils';
 import type { ConfigName, ConfigSchema, ConfigTable, ConfigValue } from '@/src/shared/types/config';
 import dotenv from 'dotenv';
 import { chmodSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
@@ -14,9 +14,9 @@ if ( nodeEnv !== undefined ) process.env.NODE_ENV = nodeEnv;
 export class Config {
   public static readonly schema = {
     APP_NAME: { type: 'string', desc: 'Platform name', default: 'MoneyBin' },
-    APP_DEFAULT_LANG: { type: 'enum', desc: 'Default language', default: 'en', values: Values.languages },
-    APP_DEFAULT_CURRENCY: { type: 'enum', desc: 'Default currency', default: 'EUR', values: Values.currencyCodes },
-    NODE_ENV: { type: 'enum', desc: 'Runtime environment', default: 'dev', values: Values.nodeEnvironments },
+    APP_DEFAULT_LANG: { type: 'string', desc: 'Default language', default: 'en', validate: Values.validateLanguage },
+    APP_DEFAULT_CURRENCY: { type: 'string', desc: 'Default currency', default: 'EUR', validate: Values.validateCurrencyCode },
+    NODE_ENV: { type: 'string', desc: 'Runtime environment', default: 'dev', validate: Values.validateNodeEnvironment },
     ID_LENGTH: { type: 'integer', desc: 'Length of generated IDs', default: 7, min: 5, max: 32 },
 
     HOST: { type: 'string', desc: 'HTTP bind address', default: '0.0.0.0' },
@@ -46,15 +46,11 @@ export class Config {
   public static validate < K extends ConfigName > ( name: K, value: unknown ) : ConfigValue< K > {
     const key = this.resolveName( name ), def = this.schema[ key ];
 
-    if ( key === 'APP_DEFAULT_LANG' ) return Values.validateLanguage( value ) as ConfigValue< K >;
-    if ( key === 'APP_DEFAULT_CURRENCY' ) return Values.validateCurrencyCode( value ) as ConfigValue< K >;
-    if ( key === 'NODE_ENV' ) return Values.validateNodeEnvironment( value ) as ConfigValue< K >;
-
     if ( def.type === 'boolean' ) return parseBoolean( value ?? '', key ) as ConfigValue< K >;
     if ( def.type === 'integer' ) return parseNumber( value ?? NaN, key, def.min, def.max ) as ConfigValue< K >;
 
     const parsed = parseString( value ?? '', key ) ?? '';
-    if ( def.type === 'enum' ) return parseEnum( parsed, key, def.values ) as ConfigValue< K >;
+    if ( def.validate ) return def.validate( parsed ) as ConfigValue< K >;
 
     return ( def.type === 'path' ? key === 'DB_PATH' && parsed === ':memory:'
       ? parsed : resolve( parsed ) : parsed ) as ConfigValue< K >;
