@@ -1,9 +1,12 @@
+import type { CurrencyCode, LanguageCode, NodeEnvironment } from '@/src/shared/types/values';
+
+
 export interface ConfigSchema {
   APP_NAME: string;
-  APP_DEFAULT_LANG: 'en' | 'de';
-  APP_DEFAULT_CURRENCY: 'EUR';
+  APP_DEFAULT_LANG: LanguageCode;
+  APP_DEFAULT_CURRENCY: CurrencyCode;
 
-  NODE_ENV: 'dev' | 'development' | 'test' | 'prod' | 'production';
+  NODE_ENV: NodeEnvironment;
   ID_LENGTH: number;
 
   HOST: string;
