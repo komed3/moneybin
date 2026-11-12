@@ -5,3 +5,12 @@ import type { BookingReliability, BookingType, BookingValueType } from '@/src/sh
 import type { CurrencyRecord, CurrencyRow } from '@/src/shared/types/values';
 import type { PersonGender } from '@/src/shared/types/person';
 import type { PortfolioMemberRole } from '@/src/shared/types/portfolio';
+
+
+export class Values {
+  private static readonly ASSET_STATUSES = [ 'real', 'fictional' ] as const;
+  private static readonly BOOKING_VALUE_TYPES = [ 'relative', 'absolute' ] as const;
+  private static readonly BOOKING_RELIABILITIES = [ 'documented', 'reconstructed', 'speculative', 'assumed' ] as const;
+  private static readonly PERSON_GENDERS = [ 'male', 'female', 'diverse' ] as const;
+  private static readonly PORTFOLIO_MEMBER_ROLES = [ 'owner', 'editor', 'viewer' ] as const;
+}
