@@ -33,4 +33,12 @@ export class AssetValue {
       change: row.change, changePercent: row.change_percent
     };
   }
+
+  public static list ( assetId: string, userId: string ) : AssetValueRecord[] {
+    Portfolio.assertMember( AssetValue.getPortfolioId( assetId ), userId );
+
+    return as< AssetValueRow[] >( conn().prepare(
+      'SELECT * FROM asset_daily_values WHERE asset_id = ? ORDER BY value_date'
+    ).all( assetId ) ).map( AssetValue.toRecord );
+  }
 }
