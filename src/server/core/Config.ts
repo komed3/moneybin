@@ -14,20 +14,17 @@ if ( nodeEnv !== undefined ) process.env.NODE_ENV = nodeEnv;
 export class Config {
   public static readonly schema: ConfigTable = {
     APP_NAME: { type: 'string', desc: 'Platform name', default: 'MoneyBin' },
-    APP_DEFAULT_LANG: {
-      type: 'string', desc: 'Default language', default: 'en',
-      validate: Values.validateLanguage,
-      values: () => Values.languages
+        APP_DEFAULT_LANG: {
+      type: 'string', desc: 'Default language', default: 'en', values: () => Values.languages,
+      validate: value => Values.validateLanguage( value, true ) as ConfigValue< 'APP_DEFAULT_LANG' >
     },
     APP_DEFAULT_CURRENCY: {
-      type: 'string', desc: 'Default currency', default: 'EUR',
-      validate: Values.validateCurrencyCode,
-      values: () => Values.currencyCodes
+      type: 'string', desc: 'Default currency', default: 'EUR', values: () => Values.currencyCodes,
+      validate: value => Values.validateCurrencyCode( value, true ) as ConfigValue< 'APP_DEFAULT_CURRENCY' >
     },
     NODE_ENV: {
-      type: 'string', desc: 'Runtime environment', default: 'dev',
-      validate: Values.validateNodeEnvironment,
-      values: () => Values.nodeEnvironments
+      type: 'string', desc: 'Runtime environment', default: 'dev', values: () => Values.nodeEnvironments,
+      validate: value => Values.validateNodeEnvironment( value, true ) as ConfigValue< 'NODE_ENV' >
     },
     ID_LENGTH: { type: 'integer', desc: 'Length of generated IDs', default: 7, min: 5, max: 32 },
 

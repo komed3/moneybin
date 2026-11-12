@@ -10,11 +10,11 @@ export class UserPrefs {
   public static readonly schema: UserPrefTable = {
     APP_LANGUAGE: {
       type: 'string', desc: 'Application language', default: Config.get( 'APP_DEFAULT_LANG' ),
-      validate: Values.validateLanguage
+      validate: value => Values.validateLanguage( value, true ) as UserPrefValue< 'APP_LANGUAGE' >
     },
     DEFAULT_CURRENCY: {
-      type: 'string', desc: 'Default currency for new portfolios',
-      default: Config.get( 'APP_DEFAULT_CURRENCY' ), validate: Values.validateCurrencyCode
+      type: 'string', desc: 'Default currency for new portfolios', default: Config.get( 'APP_DEFAULT_CURRENCY' ),
+      validate: value => Values.validateCurrencyCode( value, true ) as UserPrefValue< 'DEFAULT_CURRENCY' >
     }
   };
 

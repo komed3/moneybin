@@ -79,47 +79,47 @@ export class Values {
     return Values.all< BookingType >( 'SELECT id FROM booking_types ORDER BY id' );
   }
 
-  public static validateLanguage ( value: unknown ) : LanguageCode {
-    return parseEnum( value, 'Language', Values.languages, true );
+  public static validateLanguage ( value: unknown, required?: boolean ) : LanguageCode | null | undefined {
+    return parseEnum( value, 'Language', Values.languages, required );
   }
 
-  public static validateNodeEnvironment ( value: unknown ) : NodeEnvironment {
-    return parseEnum( value, 'Node environment', Values.nodeEnvironments, true );
+  public static validateNodeEnvironment ( value: unknown, required?: boolean ) : NodeEnvironment | null | undefined {
+    return parseEnum( value, 'Node environment', Values.nodeEnvironments, required );
   }
 
-  public static validatePersonGender ( value: unknown ) : PersonGender {
-    return parseEnum( value, 'Person gender', Values.personGenders, true );
+  public static validatePersonGender ( value: unknown, required?: boolean ) : PersonGender | null | undefined {
+    return parseEnum( value, 'Person gender', Values.personGenders, required );
   }
 
-  public static validatePortfolioMemberRole ( value: unknown ) : PortfolioMemberRole {
-    return parseEnum( value, 'Portfolio member role', Values.portfolioMemberRoles, true );
+  public static validatePortfolioMemberRole ( value: unknown, required?: boolean ) : PortfolioMemberRole | null | undefined {
+    return parseEnum( value, 'Portfolio member role', Values.portfolioMemberRoles, required );
   }
 
-  public static validateAssetStatus ( value: unknown ) : AssetStatus {
-    return parseEnum( value, 'Asset status', Values.assetStatuses, true );
+  public static validateAssetStatus ( value: unknown, required?: boolean ) : AssetStatus | null | undefined {
+    return parseEnum( value, 'Asset status', Values.assetStatuses, required );
   }
 
-  public static validateBookingValueType ( value: unknown ) : BookingValueType {
-    return parseEnum( value, 'Booking value type', Values.bookingValueTypes, true );
+  public static validateBookingValueType ( value: unknown, required?: boolean ) : BookingValueType | null | undefined {
+    return parseEnum( value, 'Booking value type', Values.bookingValueTypes, required );
   }
 
-  public static validateBookingReliability ( value: unknown ) : BookingReliability {
-    return parseEnum( value, 'Booking reliability', Values.bookingReliabilities, true );
+  public static validateBookingReliability ( value: unknown, required?: boolean ) : BookingReliability | null | undefined {
+    return parseEnum( value, 'Booking reliability', Values.bookingReliabilities, required );
   }
 
-  public static validateCurrencyCode ( value: unknown ) : CurrencyCode {
-    return parseEnum( value, 'Currency code', Values.currencyCodes, true );
+  public static validateCurrencyCode ( value: unknown, required?: boolean ) : CurrencyCode | null | undefined {
+    return parseEnum( value, 'Currency code', Values.currencyCodes, required );
   }
 
-  public static validateAssetType ( value: unknown ) : AssetType {
-    return parseEnum( value, 'Asset type', Values.assetTypes, true );
+  public static validateAssetType ( value: unknown, required?: boolean ) : AssetType | null | undefined {
+    return parseEnum( value, 'Asset type', Values.assetTypes, required );
   }
 
-  public static validateLiquidationLevel ( value: unknown ) : LiquidationLevel {
-    return parseEnum( value, 'Liquidation level', Values.liquidationLevels, true );
+  public static validateLiquidationLevel ( value: unknown, required?: boolean ) : LiquidationLevel | null | undefined {
+    return parseEnum( value, 'Liquidation level', Values.liquidationLevels, required );
   }
 
-  public static validateBookingType ( value: unknown ) : BookingType {
-    return parseEnum( value, 'Booking type', Values.bookingTypes, true );
+  public static validateBookingType ( value: unknown, required?: boolean ) : BookingType | null | undefined {
+    return parseEnum( value, 'Booking type', Values.bookingTypes, required );
   }
 }
