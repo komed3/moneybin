@@ -28,10 +28,22 @@ export class Config {
     DB_PATH: { type: 'path', desc: 'SQLite database path', default: 'data/moneybin.sqlite' },
     DB_BUSY_TIMEOUT_MS: { type: 'integer', desc: 'SQLite busy timeout', default: 5000, min: 0, max: 60000 },
 
-    QUALITY_DOCUMENTED: { type: 'integer', desc: 'Asset quality factor for documented bookings (percent)', default: 100, min: 0, max: 100 },
-    QUALITY_RECONSTRUCTED: { type: 'integer', desc: 'Asset quality factor for reconstructed bookings (percent)', default: 75, min: 0, max: 100 },
-    QUALITY_SPECULATIVE: { type: 'integer', desc: 'Asset quality factor for speculative bookings (percent)', default: 25, min: 0, max: 100 },
-    QUALITY_ASSUMED: { type: 'integer', desc: 'Asset quality factor for assumed bookings (percent)', default: 0, min: 0, max: 100 },
+    QUALITY_DOCUMENTED: {
+      type: 'integer', desc: 'Asset quality factor for documented bookings (percent)',
+      default: 100, min: 0, max: 100
+    },
+    QUALITY_RECONSTRUCTED: {
+      type: 'integer', desc: 'Asset quality factor for reconstructed bookings (percent)',
+      default: 75, min: 0, max: 100
+    },
+    QUALITY_SPECULATIVE: {
+      type: 'integer', desc: 'Asset quality factor for speculative bookings (percent)',
+      default: 25, min: 0, max: 100
+    },
+    QUALITY_ASSUMED: {
+      type: 'integer', desc: 'Asset quality factor for assumed bookings (percent)',
+      default: 0, min: 0, max: 100
+    },
 
     SESSION_LIFETIME_MS: { type: 'integer', desc: 'Session lifetime', default: 2592e6, min: 60000, max: 31536e6 },
     PASSWORD_STRICT: { type: 'boolean', desc: 'Enforce strong password requirements', default: true }
@@ -68,7 +80,7 @@ export class Config {
     const file = resolve( '.env' );
     const lines = ( existsSync( file ) ? readFileSync( file, 'utf8' ) : '' ).split( /\r?\n/ );
     const pattern = new RegExp( `^\\s*(?:export\\s+)?${ key }\\s*=` );
-    const matches = lines.reduce( ( idx, line, i ) => pattern.test( line ) ? [ ...idx, i ] : idx, [] as number[] );
+    const matches = lines.reduce( ( idx, l, i ) => pattern.test( l ) ? [ ...idx, i ] : idx, [] as number[] );
     const line = `${ key }=${ JSON.stringify( parsed ) }`;
 
     if ( matches.length ) {
