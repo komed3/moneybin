@@ -93,4 +93,55 @@ export class Stats {
 
     return new Map( rows.map( row => [ row.year, row.booking_count ] ) );
   }
+
+  private static getPortfolioValues ( portfolioId: string ) : StatsDailyValue[] {
+    const assets = as< { id: string }[] >( conn().prepare( 'SELECT id FROM assets WHERE portfolio_id = ?' ).all( portfolioId ) );
+    const rows = as< StatsDailyValueRow[] >( conn().prepare( `
+      SELECT v.*
+      FROM asset_daily_values v
+      JOIN assets a ON a.id = v.asset_id
+      WHERE a.portfolio_id = ?
+      ORDER BY v.value_date, v.asset_id
+    ` ).all( portfolioId ) );
+
+    const dates = Array.from( new Set( rows.map( ( { value_date } ) => value_date ) ) );
+    const updates = new Map< string, StatsDailyValueRow[] >();
+
+    rows.forEach( row => {
+      const entries = updates.get( row.value_date ) ?? [];
+      entries.push( row ), updates.set( row.value_date, entries );
+    } );
+
+    const latest = new Map< string, StatsDailyValueRow >();
+
+    return dates.map( valueDate => {
+      updates.get( valueDate )!.forEach( row => latest.set( row.asset_id, row ) );
+      let quality = 0, weight = 0, open = 0, high = 0, low = 0, close = 0;
+
+      assets.forEach( asset => {
+        const value = latest.get( asset.id );
+        if ( ! value ) return;
+
+        const exact = value.value_date === valueDate;
+        const assetOpen = exact ? value.open ?? value.close : value.close;
+        const assetHigh = exact ? value.high : value.close;
+        const assetLow = exact ? value.low : value.close;
+        const assetClose = value.close;
+
+        open += assetOpen, high += assetHigh;
+        low += assetLow, close += assetClose;
+
+        const assetWeight = Math.abs( assetClose );
+        quality += value.quality * assetWeight;
+        weight += assetWeight;
+      } );
+
+      const change = close - open;
+
+      return {
+        valueDate, quality: weight === 0 ? 0 : quality / weight, open, high, low,
+        close, change, changePercent: open === 0 ? null : change / open * 100
+      };
+    } );
+  }
 }
