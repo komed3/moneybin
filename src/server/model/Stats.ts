@@ -3,7 +3,8 @@ import { Asset } from '@/src/server/model/Asset';
 import { Portfolio } from '@/src/server/model/Portfolio';
 import type {
   StatsBookingCountRow, StatsDailyValue, StatsDailyValueRow,
-  StatsPortfolioBookingCountRow, StatsPortfolioYearlyRow, StatsYearlyRow
+  StatsPortfolioBookingCountRow,
+  StatsYearlyRow
 } from '@/src/shared/types/stats';
 
 
@@ -223,6 +224,20 @@ export class Stats {
     } catch ( err ) {
       conn().exec( 'ROLLBACK TO SAVEPOINT asset_stats_recalculation' );
       conn().exec( 'RELEASE SAVEPOINT asset_stats_recalculation' );
+      throw err;
+    }
+  }
+
+  public static recalculatePortfolio ( portfolioId: string, userId: string ) : void {
+    Portfolio.assertMember( portfolioId, userId );
+    conn().exec( 'SAVEPOINT portfolio_stats_recalculation' );
+
+    try {
+      Stats.recalculatePortfolioData( portfolioId );
+      conn().exec( 'RELEASE SAVEPOINT portfolio_stats_recalculation' );
+    } catch ( err ) {
+      conn().exec( 'ROLLBACK TO SAVEPOINT portfolio_stats_recalculation' );
+      conn().exec( 'RELEASE SAVEPOINT portfolio_stats_recalculation' );
       throw err;
     }
   }
