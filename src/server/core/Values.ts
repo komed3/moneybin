@@ -64,7 +64,7 @@ export class Values {
   }
 
   public static get currencyCodes () : CurrencyCode[] {
-    return this.currencies.map( ( { code } ) => code );
+    return Values.currencies.map( ( { code } ) => code );
   }
 
   public static get assetTypes () : AssetType[] {
@@ -80,46 +80,46 @@ export class Values {
   }
 
   public static validateLanguage ( value: unknown ) : LanguageCode {
-    return parseEnum( value, 'Language', this.languages, true );
+    return parseEnum( value, 'Language', Values.languages, true );
   }
 
   public static validateNodeEnvironment ( value: unknown ) : NodeEnvironment {
-    return parseEnum( value, 'Node environment', this.nodeEnvironments, true );
+    return parseEnum( value, 'Node environment', Values.nodeEnvironments, true );
   }
 
   public static validatePersonGender ( value: unknown ) : PersonGender {
-    return parseEnum( value, 'Person gender', this.personGenders, true );
+    return parseEnum( value, 'Person gender', Values.personGenders, true );
   }
 
   public static validatePortfolioMemberRole ( value: unknown ) : PortfolioMemberRole {
-    return parseEnum( value, 'Portfolio member role', this.portfolioMemberRoles, true );
+    return parseEnum( value, 'Portfolio member role', Values.portfolioMemberRoles, true );
   }
 
   public static validateAssetStatus ( value: unknown ) : AssetStatus {
-    return parseEnum( value, 'Asset status', this.assetStatuses, true );
+    return parseEnum( value, 'Asset status', Values.assetStatuses, true );
   }
 
   public static validateBookingValueType ( value: unknown ) : BookingValueType {
-    return parseEnum( value, 'Booking value type', this.bookingValueTypes, true );
+    return parseEnum( value, 'Booking value type', Values.bookingValueTypes, true );
   }
 
   public static validateBookingReliability ( value: unknown ) : BookingReliability {
-    return parseEnum( value, 'Booking reliability', this.bookingReliabilities, true );
+    return parseEnum( value, 'Booking reliability', Values.bookingReliabilities, true );
   }
 
   public static validateCurrencyCode ( value: unknown ) : CurrencyCode {
-    return parseEnum( value, 'Currency code', this.currencyCodes, true );
+    return parseEnum( value, 'Currency code', Values.currencyCodes, true );
   }
 
   public static validateAssetType ( value: unknown ) : AssetType {
-    return parseEnum( value, 'Asset type', this.assetTypes, true );
+    return parseEnum( value, 'Asset type', Values.assetTypes, true );
   }
 
   public static validateLiquidationLevel ( value: unknown ) : LiquidationLevel {
-    return parseEnum( value, 'Liquidation level', this.liquidationLevels, true );
+    return parseEnum( value, 'Liquidation level', Values.liquidationLevels, true );
   }
 
   public static validateBookingType ( value: unknown ) : BookingType {
-    return parseEnum( value, 'Booking type', this.bookingTypes, true );
+    return parseEnum( value, 'Booking type', Values.bookingTypes, true );
   }
 }
