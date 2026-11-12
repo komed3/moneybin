@@ -35,10 +35,8 @@ export function parseString < T, N extends boolean = false > (
   return value.trim();
 }
 
-export function parseBoolean < T > ( value: T, label: string ) : boolean | (
-  T extends undefined ? undefined : never
-) {
-  if ( value === undefined ) return undefined as T extends undefined ? undefined : never;
+export function parseBoolean < T > ( value: T, label: string ) : boolean | ( undefined extends T ? undefined : never ) {
+  if ( value === undefined ) return undefined as undefined extends T ? undefined : never;
   if ( typeof value === 'boolean' ) return value;
 
   if ( typeof value === 'string' ) {
