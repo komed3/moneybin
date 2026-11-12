@@ -1,7 +1,7 @@
 import { Config } from '@/src/server/core/Config';
 import { as, conn, db } from '@/src/server/core/Database';
 import { User } from '@/src/server/core/User';
-import { parseEnum, parseString } from '@/src/server/utils';
+import { parseEnum } from '@/src/server/utils';
 import type { UserPrefName, UserPrefRow, UserPrefSchema, UserPrefTable, UserPrefValue } from '@/src/shared/types/prefs';
 
 
@@ -80,5 +80,20 @@ export class UserPrefs {
     ` ).run( id, userId, key, JSON.stringify( parsed ) ) );
 
     return parsed;
+  }
+
+  public static reset ( userId: string, name: UserPrefName ) : boolean {
+    User.assertUserIdSafe( userId );
+
+    const key = this.resolveName( name );
+    const result = conn().prepare( 'DELETE FROM user_preferences WHERE user_id = ? AND key = ?' ).run( userId, key );
+
+    return Number( result.changes ) > 0;
+  }
+
+  public static resetAll ( userId: string ) : number {
+    User.assertUserIdSafe( userId );
+    const result = conn().prepare( 'DELETE FROM user_preferences WHERE user_id = ?' ).run( userId );
+    return Number( result.changes );
   }
 }
