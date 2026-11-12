@@ -39,4 +39,14 @@ export class UserPrefs {
     const key = this.resolveName( name ), def = this.schema[ key ];
     return parseEnum( value, key, def.values! ) as UserPrefValue< K >;
   }
+
+  public static get < K extends UserPrefName > ( userId: string, name: K ) : UserPrefValue< K > {
+    User.assertUserIdSafe( userId );
+
+    const key = this.resolveName( name ), row = as< UserPrefRow | null >( conn().prepare(
+      'SELECT * FROM user_preferences WHERE user_id = ? AND key = ?'
+    ).get( userId, key ) );
+
+    return ( row ? this.parseValue( key, row.value ) : this.schema[ key ].default ) as UserPrefValue< K >;
+  }
 }
