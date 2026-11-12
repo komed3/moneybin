@@ -142,7 +142,6 @@ export class Booking {
     if ( ! data.type || ! data.valueType || data.amount === undefined || ! data.reliability )
       throw new Error( 'Booking is missing required fields' );
 
-    Asset.assertAssetIdSafe( data.assetId, userId );
     const asset = Asset.getSafe( data.assetId, userId );
     Portfolio.assertEditable( asset.portfolioId, userId );
 
@@ -172,8 +171,6 @@ export class Booking {
     Booking.validate( data );
 
     const assetId = data.assetId ?? booking.assetId;
-    Asset.assertAssetIdSafe( assetId, userId );
-
     const asset = Asset.getSafe( assetId, userId );
     Portfolio.assertEditable( asset.portfolioId, userId );
 
