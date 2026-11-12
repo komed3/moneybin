@@ -1,33 +1,12 @@
-export interface StatsDailyValue {
-  valueDate: string;
-  quality: number;
-  open: number | null;
-  high: number;
-  low: number;
-  close: number;
-  change: number | null;
-  changePercent: number | null;
-}
+import type { AssetValueRecord } from '@/src/shared/types/asset-value';
 
-export interface StatsDailyValueRow {
-  asset_id: string;
-  value_date: string;
-  quality: number;
-  open: number | null;
-  high: number;
-  low: number;
-  close: number;
-  change: number | null;
-  change_percent: number | null;
-}
 
-export interface StatsBookingCountRow {
+export type StatsDailyValue = Omit< AssetValueRecord, 'assetId' >;
+
+export interface StatsBookingRow {
   year: number;
   booking_count: number;
-}
-
-export interface StatsPortfolioBookingCountRow extends StatsBookingCountRow {
-  active_asset_count: number;
+  active_asset_count?: number;
 }
 
 export interface StatsYearlyRow {
@@ -37,7 +16,7 @@ export interface StatsYearlyRow {
   high: number;
   low: number;
   close: number;
-  change: number | null;
+  change: number;
   change_percent: number | null;
   average_value: number;
   volatility: number | null;
@@ -51,9 +30,4 @@ export interface StatsYearlyRow {
   worst_day: number | null;
   best_day_percent: number | null;
   worst_day_percent: number | null;
-}
-
-export interface StatsPortfolioYearlyRow extends StatsYearlyRow {
-  asset_count: number;
-  active_asset_count: number;
 }
