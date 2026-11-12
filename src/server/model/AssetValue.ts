@@ -41,4 +41,15 @@ export class AssetValue {
       'SELECT * FROM asset_daily_values WHERE asset_id = ? ORDER BY value_date'
     ).all( assetId ) ).map( AssetValue.toRecord );
   }
+
+  public static get ( assetId: string, valueDate: string, userId: string ) : AssetValueRecord | null {
+    valueDate = parseDate( valueDate, 'Value date' );
+    Portfolio.assertMember( AssetValue.getPortfolioId( assetId ), userId );
+
+    const row = as< AssetValueRow | null >( conn().prepare(
+      'SELECT * FROM asset_daily_values WHERE asset_id = ? AND value_date = ?'
+    ).get( assetId, valueDate ) );
+
+    return row ? AssetValue.toRecord( row ) : null;
+  }
 }
