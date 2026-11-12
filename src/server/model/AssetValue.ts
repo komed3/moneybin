@@ -52,4 +52,9 @@ export class AssetValue {
 
     return row ? AssetValue.toRecord( row ) : null;
   }
+
+  public static delete ( assetId: string, userId: string ) : void {
+    Portfolio.assertEditable( AssetValue.getPortfolioId( assetId ), userId );
+    conn().prepare( 'DELETE FROM asset_daily_values WHERE asset_id = ?' ).run( assetId );
+  }
 }
