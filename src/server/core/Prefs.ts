@@ -65,4 +65,20 @@ export class UserPrefs {
 
     return result;
   }
+
+  public static set < K extends UserPrefName > ( userId: string, name: K, value: UserPrefValue< K > ) : UserPrefValue< K > {
+    User.assertUserIdSafe( userId );
+
+    const key = this.resolveName( name );
+    const parsed = this.validate( key, value ) as UserPrefValue< K >;
+
+    db.createWithId( id => conn().prepare( `
+      INSERT INTO user_preferences ( id, user_id, key, value )
+      VALUES ( ?, ?, ?, ? )
+      ON CONFLICT ( user_id, key ) DO UPDATE SET
+        value = excluded.value
+    ` ).run( id, userId, key, JSON.stringify( parsed ) ) );
+
+    return parsed;
+  }
 }
