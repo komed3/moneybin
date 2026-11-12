@@ -33,7 +33,8 @@ export type ConfigDefinition< T > = {
 } & (
   T extends number ? { type: 'integer', min: number, max: number } :
   T extends boolean ? { type: 'boolean' } :
-  { type: 'string' | 'path' | 'enum', values?: readonly string[] }
+  string extends T ? { type: 'string' | 'path', validate?: ( value: string ) => T } :
+  { type: 'string', validate: ( value: string ) => T }
 );
 
 export type ConfigTable = {

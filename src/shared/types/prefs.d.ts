@@ -15,7 +15,8 @@ export type UserPrefDefinition< T > = {
 } & (
   T extends boolean ? { type: 'boolean' } :
   T extends number ? { type: 'number', min: number, max: number } :
-  { type: 'enum', values?: readonly string[] }
+  string extends T ? { type: 'string', validate?: ( value: string ) => T } :
+  { type: 'string', validate: ( value: string ) => T }
 );
 
 export type UserPrefTable = {
