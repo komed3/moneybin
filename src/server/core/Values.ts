@@ -31,4 +31,17 @@ export class Values {
     if ( ! row ) throw new Error( `Unknown currency: ${ currencyCode }` );
     return { code: row.code, symbol: row.symbol, decimalPlaces: row.decimal_places };
   }
+
+  public static parseCurrency ( value: string | undefined ) : string | undefined {
+    const code = parseString( value, 'Currency' );
+    return code === undefined ? undefined : this.getCurrency( code ).code;
+  }
+
+  public static listAssetTypes () : AssetType[] {
+    return this.listIds< AssetType >( 'asset_types' );
+  }
+
+  public static parseAssetType ( value: unknown ) : AssetType | undefined {
+    return parseEnum< AssetType >( value, 'type', this.listAssetTypes() );
+  }
 }
