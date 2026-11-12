@@ -20,3 +20,19 @@ export interface ConfigSchema {
   SESSION_LIFETIME_MS: number;
   PASSWORD_STRICT: boolean;
 }
+
+export type ConfigName = keyof ConfigSchema;
+export type ConfigValue< K extends ConfigName > = ConfigSchema[ K ];
+
+export type ConfigDefinition< T > = {
+  default: T;
+  desc: string;
+} & (
+  T extends number ? { type: 'integer', min: number, max: number } :
+  T extends boolean ? { type: 'boolean' } :
+  { type: 'string' | 'path' | 'enum', values?: readonly string[] }
+);
+
+export type ConfigTable = {
+  [ K in ConfigName ]: ConfigDefinition< ConfigSchema[ K ] >
+};
