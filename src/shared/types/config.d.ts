@@ -31,10 +31,10 @@ export type ConfigDefinition< T > = {
   default: T;
   desc: string;
 } & (
-  T extends number ? { type: 'integer', min: number, max: number } :
-  T extends boolean ? { type: 'boolean' } :
-  string extends T ? { type: 'string' | 'path', validate?: ( value: string ) => T } :
-  { type: 'string', validate: ( value: string ) => T }
+  [ T ] extends [ number ] ? { type: 'integer', min: number, max: number } :
+  [ T ] extends [ boolean ] ? { type: 'boolean' } :
+  string extends T ? { type: 'string' | 'path', validate?: ( value: unknown ) => T } :
+  { type: 'string', validate: ( value: unknown ) => T }
 );
 
 export type ConfigTable = {

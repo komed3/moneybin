@@ -13,10 +13,10 @@ export type UserPrefDefinition< T > = {
   default: T;
   desc: string;
 } & (
-  T extends boolean ? { type: 'boolean' } :
-  T extends number ? { type: 'number', min: number, max: number } :
-  string extends T ? { type: 'string', validate?: ( value: string ) => T } :
-  { type: 'string', validate: ( value: string ) => T }
+  [ T ] extends [ boolean ] ? { type: 'boolean' } :
+  [ T ] extends [ number ] ? { type: 'number', min: number, max: number } :
+  string extends T ? { type: 'string', validate?: ( value: unknown ) => T } :
+  { type: 'string', validate: ( value: unknown ) => T }
 );
 
 export type UserPrefTable = {
