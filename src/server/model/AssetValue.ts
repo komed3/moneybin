@@ -55,12 +55,12 @@ export class AssetValue {
   }
 
   public static delete ( assetId: string, userId: string ) : void {
-    Asset.getSafe( assetId, userId );
+    const asset = Asset.getSafe( assetId, userId );
     conn().exec( 'SAVEPOINT asset_value_deletion' );
 
     try {
       conn().prepare( 'DELETE FROM asset_daily_values WHERE asset_id = ?' ).run( assetId );
-      Stats.recalculateAsset( assetId, userId );
+      Stats.recalculateAsset( asset );
 
       conn().exec( 'RELEASE SAVEPOINT asset_value_deletion' );
     } catch ( err ) {
@@ -71,19 +71,17 @@ export class AssetValue {
   }
 
   public static recalculate ( assetId: string, userId: string ) : void {
-    Asset.getSafe( assetId, userId );
-
+    const asset = Asset.getSafe( assetId, userId );
     const bookings = as< BookingRow[] >( conn().prepare( `
       SELECT * FROM bookings WHERE asset_id = ? ORDER BY value_date, rowid
     ` ).all( assetId ) );
 
-    const database = conn();
-    database.exec( 'SAVEPOINT asset_value_recalculation' );
+    conn().exec( 'SAVEPOINT asset_value_recalculation' );
 
     try {
-      database.prepare( 'DELETE FROM asset_daily_values WHERE asset_id = ?' ).run( assetId );
+      conn().prepare( 'DELETE FROM asset_daily_values WHERE asset_id = ?' ).run( assetId );
 
-      const insert = database.prepare( `
+      const insert = conn().prepare( `
         INSERT INTO asset_daily_values (
           asset_id, value_date, quality, open, high, low, close, change, change_percent
         ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )
@@ -110,11 +108,11 @@ export class AssetValue {
         insert.run( assetId, valueDate, quality, open, high, low, value, change, changePercent );
       }
 
-      Stats.recalculateAsset( assetId, userId );
-      database.exec( 'RELEASE SAVEPOINT asset_value_recalculation' );
+      Stats.recalculateAsset( asset );
+      conn().exec( 'RELEASE SAVEPOINT asset_value_recalculation' );
     } catch ( err ) {
-      database.exec( 'ROLLBACK TO SAVEPOINT asset_value_recalculation' );
-      database.exec( 'RELEASE SAVEPOINT asset_value_recalculation' );
+      conn().exec( 'ROLLBACK TO SAVEPOINT asset_value_recalculation' );
+      conn().exec( 'RELEASE SAVEPOINT asset_value_recalculation' );
       throw err;
     }
   }
