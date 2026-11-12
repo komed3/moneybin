@@ -23,6 +23,10 @@ export {
 
 
 export class Values {
+  private static all < T > ( query: string ) : T[] {
+    return as< { id: T }[] >( conn().prepare( query ).all() ).map( ( { id } ) => id );
+  }
+
   public static get languages () : readonly LanguageCode[] {
     return LANGUAGES;
   }
@@ -61,5 +65,17 @@ export class Values {
 
   public static get currencyCodes () : CurrencyCode[] {
     return this.currencies.map( ( { code } ) => code );
+  }
+
+  public static get assetTypes () : AssetType[] {
+    return Values.all< AssetType >( 'SELECT id FROM asset_types ORDER BY id' );
+  }
+
+  public static get liquidationLevels () : LiquidationLevel[] {
+    return Values.all< LiquidationLevel >( 'SELECT id FROM liquidation_levels ORDER BY id' );
+  }
+
+  public static get bookingTypes () : BookingType[] {
+    return Values.all< BookingType >( 'SELECT id FROM booking_types ORDER BY id' );
   }
 }
