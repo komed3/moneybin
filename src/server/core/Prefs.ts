@@ -34,4 +34,9 @@ export class UserPrefs {
 
     return this.validate( name, value );
   }
+
+  public static validate < K extends UserPrefName > ( name: K, value: unknown ) : UserPrefValue< K > {
+    const key = this.resolveName( name ), def = this.schema[ key ];
+    return parseEnum( value, key, def.values! ) as UserPrefValue< K >;
+  }
 }
