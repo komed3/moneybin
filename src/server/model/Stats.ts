@@ -82,4 +82,15 @@ export class Stats {
       close: row.close, change: row.change, changePercent: row.change_percent
     } ) );
   }
+
+  private static getAssetBookings ( assetId: string ) : Map< number, number > {
+    const rows = as< StatsBookingCountRow[] >( conn().prepare( `
+      SELECT CAST( substr( value_date, 1, 4 ) AS INTEGER ) AS year, COUNT(*) AS booking_count
+      FROM bookings
+      WHERE asset_id = ?
+      GROUP BY year
+    ` ).all( assetId ) );
+
+    return new Map( rows.map( row => [ row.year, row.booking_count ] ) );
+  }
 }
