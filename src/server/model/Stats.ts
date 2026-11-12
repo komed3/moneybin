@@ -3,8 +3,7 @@ import { Asset } from '@/src/server/model/Asset';
 import { Portfolio } from '@/src/server/model/Portfolio';
 import type {
   StatsBookingCountRow, StatsDailyValue, StatsDailyValueRow,
-  StatsPortfolioBookingCountRow,
-  StatsYearlyRow
+  StatsPortfolioBookingCountRow, StatsYearlyRow
 } from '@/src/shared/types/stats';
 
 
