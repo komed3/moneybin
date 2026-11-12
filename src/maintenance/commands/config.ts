@@ -15,7 +15,8 @@ export const registerConfigCommands = ( program: Command ) : void => {
       const key = Config.resolveName( name ), def = Config.schema[ key ];
 
       return {
-        name: key, value: Config.get( key ), default: def.default, type: def.type, description: def.desc,
+        name: key, value: Config.get( key ), default: def.default, type: def.type,
+        values: def.values?.().join( ', ' ) ?? '', description: def.desc,
         min: def.type === 'integer' ? def.min : '', max: def.type === 'integer' ? def.max : ''
       };
     } ) ) );
@@ -27,6 +28,8 @@ export const registerConfigCommands = ( program: Command ) : void => {
       const key = Config.resolveName( name ), def = Config.schema[ key ];
 
       ui.info( def.desc );
+      if ( def.values ) ui.info( `Allowed values: ${ def.values().join( ', ' ) }` );
+
       console.log( `${ ui.key( key ) }=${ ui.value( JSON.stringify( Config.get( key ) ) ) }` );
     } );
 
@@ -50,4 +53,4 @@ export const registerConfigCommands = ( program: Command ) : void => {
       ui.success( `Reset ${ key } to ${ JSON.stringify( Config.get( key ) ) }` );
       ui.warning( 'Restart MoneyBin for changes to take effect.' );
     } );
-}
+};
