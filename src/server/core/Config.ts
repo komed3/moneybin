@@ -14,9 +14,21 @@ if ( nodeEnv !== undefined ) process.env.NODE_ENV = nodeEnv;
 export class Config {
   public static readonly schema: ConfigTable = {
     APP_NAME: { type: 'string', desc: 'Platform name', default: 'MoneyBin' },
-    APP_DEFAULT_LANG: { type: 'string', desc: 'Default language', default: 'en', validate: Values.validateLanguage },
-    APP_DEFAULT_CURRENCY: { type: 'string', desc: 'Default currency', default: 'EUR', validate: Values.validateCurrencyCode },
-    NODE_ENV: { type: 'string', desc: 'Runtime environment', default: 'dev', validate: Values.validateNodeEnvironment },
+    APP_DEFAULT_LANG: {
+      type: 'string', desc: 'Default language', default: 'en',
+      validate: Values.validateLanguage,
+      values: () => Values.languages
+    },
+    APP_DEFAULT_CURRENCY: {
+      type: 'string', desc: 'Default currency', default: 'EUR',
+      validate: Values.validateCurrencyCode,
+      values: () => Values.currencyCodes
+    },
+    NODE_ENV: {
+      type: 'string', desc: 'Runtime environment', default: 'dev',
+      validate: Values.validateNodeEnvironment,
+      values: () => Values.nodeEnvironments
+    },
     ID_LENGTH: { type: 'integer', desc: 'Length of generated IDs', default: 7, min: 5, max: 32 },
 
     HOST: { type: 'string', desc: 'HTTP bind address', default: '0.0.0.0' },
