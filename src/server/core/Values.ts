@@ -2,9 +2,9 @@ import { as, conn } from '@/src/server/core/Database';
 import { parseEnum, parseString } from '@/src/server/utils';
 import type { AssetLiquidationLevel, AssetStatus, AssetType } from '@/src/shared/types/asset';
 import type { BookingReliability, BookingType, BookingValueType } from '@/src/shared/types/booking';
-import type { CurrencyRecord, CurrencyRow } from '@/src/shared/types/values';
 import type { PersonGender } from '@/src/shared/types/person';
 import type { PortfolioMemberRole } from '@/src/shared/types/portfolio';
+import type { CurrencyRecord, CurrencyRow } from '@/src/shared/types/values';
 
 
 export class Values {
@@ -59,5 +59,45 @@ export class Values {
 
   public static parseBookingType ( value: unknown ) : BookingType | undefined {
     return parseEnum< BookingType >( value, 'type', this.listBookingTypes() );
+  }
+
+  public static listAssetStatuses () : AssetStatus[] {
+    return [ ...this.ASSET_STATUSES ];
+  }
+
+  public static parseAssetStatus ( value: unknown ) : AssetStatus | undefined {
+    return parseEnum< AssetStatus >( value, 'status', this.ASSET_STATUSES );
+  }
+
+  public static listBookingValueTypes () : BookingValueType[] {
+    return [ ...this.BOOKING_VALUE_TYPES ];
+  }
+
+  public static parseBookingValueType ( value: unknown ) : BookingValueType | undefined {
+    return parseEnum< BookingValueType >( value, 'value type', this.BOOKING_VALUE_TYPES );
+  }
+
+  public static listBookingReliabilities () : BookingReliability[] {
+    return [ ...this.BOOKING_RELIABILITIES ];
+  }
+
+  public static parseBookingReliability ( value: unknown ) : BookingReliability | undefined {
+    return parseEnum< BookingReliability >( value, 'reliability', this.BOOKING_RELIABILITIES );
+  }
+
+  public static listPersonGenders () : PersonGender[] {
+    return [ ...this.PERSON_GENDERS ];
+  }
+
+  public static parsePersonGender ( value: unknown ) : PersonGender | undefined {
+    return parseEnum< PersonGender >( value, 'gender', this.PERSON_GENDERS );
+  }
+
+  public static listPortfolioMemberRoles () : PortfolioMemberRole[] {
+    return [ ...this.PORTFOLIO_MEMBER_ROLES ];
+  }
+
+  public static parsePortfolioMemberRole ( value: unknown ) : PortfolioMemberRole {
+    return parseEnum< PortfolioMemberRole, true >( value, 'role', this.PORTFOLIO_MEMBER_ROLES, true );
   }
 }
