@@ -6,20 +6,16 @@ const ID_ALPHABET = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456
 
 
 export function generateId ( length: number ) : string {
-  if ( ! Number.isInteger( length ) || length < 5 || length > 32 )
-    throw new Error( `Invalid ID length: ${ length }` );
-
+  if ( ! Number.isInteger( length ) || length < 5 || length > 32 ) throw new Error( `Invalid ID length: ${ length }` );
   return Array.from( { length }, () => ID_ALPHABET[ randomInt( ID_ALPHABET.length ) ] ).join( '' );
 }
 
 export function assertId < T extends string | null | undefined, N extends boolean = false > (
   value: T, label: string, nullable?: N
 ) : N extends true ? T : Exclude< T, null > {
-  if ( value === undefined || ( nullable && value === null ) )
-    return value as N extends true ? T : Exclude< T, null >;
-
-  if ( typeof value !== 'string' || ! /^[a-zA-Z0-9]{5,32}$/.test( value ) )
-    throw new Error( `Invalid ${ label } ID` );
+  if ( value === undefined ) return value as N extends true ? T : Exclude< T, null >;
+  if ( value === null && nullable ) return value as N extends true ? T : Exclude< T, null >;
+  if ( typeof value !== 'string' || ! /^[a-zA-Z0-9]{5,32}$/.test( value ) ) throw new Error( `Invalid ${ label } ID` );
 
   return value as N extends true ? T : Exclude< T, null >;
 }
@@ -35,7 +31,9 @@ export function parseString < T, N extends boolean = false > (
   return value.trim();
 }
 
-export function parseBoolean < T > ( value: T, label: string ) : boolean | ( undefined extends T ? undefined : never ) {
+export function parseBoolean < T > ( value: T, label: string ) : boolean | (
+  undefined extends T ? undefined : never
+) {
   if ( value === undefined ) return undefined as undefined extends T ? undefined : never;
   if ( typeof value === 'boolean' ) return value;
 
@@ -55,8 +53,12 @@ export function parseNumber < T, N extends boolean = false > (
 ) : number | Optional< T, N > {
   if ( value === undefined || ( nullable && value === null ) ) return value as Optional< T, N >;
 
-  const parsed = typeof value === 'number' ? value : typeof value === 'string' && value.trim()
-    ? Number( value ) : NaN;
+  if ( ! Number.isSafeInteger( min ) || ! Number.isSafeInteger( max ) || min > max )
+    throw new Error( `Invalid range for ${ label }` );
+
+  const input = typeof value === 'string' ? value.trim() : value;
+  const parsed = typeof input === 'number' ? input : typeof input === 'string' &&
+    /^[+-]?\d+(?:\.\d+)?(?:e[+-]?\d+)?$/i.test( input ) ? Number( input ) : NaN;
 
   if ( ! Number.isSafeInteger( parsed ) || parsed < min || parsed > max )
     throw new Error( `${ label } must be an integer between ${ min } and ${ max }` );
@@ -80,16 +82,16 @@ export function parseDate < T, N extends boolean = false > (
   return value;
 }
 
-export function parseEnum < T extends string, R extends boolean = false > (
-  value: unknown, label: string, values: readonly T[], required?: R
-) : R extends true ? T : T | null | undefined {
+export function parseEnum < T extends string > (
+  value: unknown, label: string, values: readonly T[], required?: boolean
+) : T | null | undefined {
   if ( value === undefined || value === null ) {
     if ( required ) throw new Error( `${ label } is required` );
-    return value as R extends true ? T : T | null | undefined;
+    return value;
   }
 
   if ( typeof value !== 'string' || ! values.includes( value as T ) )
     throw new Error( `Invalid value for ${ label }: ${ String( value ) }` );
 
-  return value as R extends true ? T : T | null | undefined;
+  return value as T;
 }
