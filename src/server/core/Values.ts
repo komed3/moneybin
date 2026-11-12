@@ -17,4 +17,10 @@ export class Values {
   private static listIds < T extends string > ( table: 'asset_types' | 'liquidation_levels' | 'booking_types' ) : T[] {
     return as< { id: T }[] >( conn().prepare( `SELECT id FROM ${ table } ORDER BY rowid` ).all() ).map( ( { id } ) => id );
   }
+
+  public static listCurrencies () : CurrencyRecord[] {
+    return as< CurrencyRow[] >( conn().prepare( 'SELECT * FROM currencies ORDER BY code' ).all() ).map( row => ( {
+      code: row.code, symbol: row.symbol, decimalPlaces: row.decimal_places
+    } ) );
+  }
 }
