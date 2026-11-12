@@ -12,3 +12,25 @@ const QUALITY = {
   speculative: Config.get( 'QUALITY_SPECULATIVE' ) / 100,
   assumed: Config.get( 'QUALITY_ASSUMED' ) / 100
 } as const satisfies Record< BookingReliability, number >;
+
+
+export class AssetValue {
+  private static getPortfolioId ( assetId: string ) : string {
+    assertId( assetId, 'asset' );
+
+    const row = as< { portfolio_id: string } | null >( conn().prepare(
+      'SELECT portfolio_id FROM assets WHERE id = ?'
+    ).get( assetId ) );
+
+    if ( ! row ) throw new Error( `Asset ${ assetId } does not exist` );
+    return row.portfolio_id;
+  }
+
+  private static toRecord ( row: AssetValueRow ) : AssetValueRecord {
+    return {
+      assetId: row.asset_id, valueDate: row.value_date, quality: row.quality,
+      open: row.open, high: row.high, low: row.low, close: row.close,
+      change: row.change, changePercent: row.change_percent
+    };
+  }
+}
