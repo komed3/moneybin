@@ -44,4 +44,20 @@ export class Values {
   public static parseAssetType ( value: unknown ) : AssetType | undefined {
     return parseEnum< AssetType >( value, 'type', this.listAssetTypes() );
   }
+
+  public static listLiquidationLevels () : AssetLiquidationLevel[] {
+    return this.listIds< AssetLiquidationLevel >( 'liquidation_levels' );
+  }
+
+  public static parseLiquidationLevel ( value: unknown ) : AssetLiquidationLevel | undefined {
+    return parseEnum< AssetLiquidationLevel >( value, 'liquidation level', this.listLiquidationLevels() );
+  }
+
+  public static listBookingTypes () : BookingType[] {
+    return this.listIds< BookingType >( 'booking_types' );
+  }
+
+  public static parseBookingType ( value: unknown ) : BookingType | undefined {
+    return parseEnum< BookingType >( value, 'type', this.listBookingTypes() );
+  }
 }
