@@ -1,8 +1,8 @@
 import { as, conn } from '@/src/server/core/Database';
 import { Portfolio } from '@/src/server/model/Portfolio';
 import type { AssetRecord } from '@/src/shared/types/asset';
+import type { AssetValueRecord, AssetValueRow } from '@/src/shared/types/asset-value';
 import type { StatsBookingRow, StatsYearlyRow } from '@/src/shared/types/stats';
-import type { AssetValueRecord, AssetValueRow } from '@/src/shared/types/value';
 
 
 export class Stats {

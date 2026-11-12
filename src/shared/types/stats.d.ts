@@ -1,4 +1,4 @@
-import type { AssetValueRecord } from '@/src/shared/types/value';
+import type { AssetValueRecord } from '@/src/shared/types/asset-value';
 
 
 export type StatsDailyValue = Omit< AssetValueRecord, 'assetId' >;
