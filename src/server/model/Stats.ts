@@ -159,4 +159,28 @@ export class Stats {
 
     return new Map( rows.map( row => [ row.year, row ] ) );
   }
+
+  private static recalculateAssetData ( assetId: string ) : void {
+    const values = Stats.getAssetValues( assetId );
+    const bookings = Stats.getAssetBookings( assetId );
+    const stats = Stats.calculate( values, bookings );
+
+    conn().prepare( 'DELETE FROM asset_yearly_stats WHERE asset_id = ?' ).run( assetId );
+
+    const insert = conn().prepare( `
+      INSERT INTO asset_yearly_stats (
+        asset_id, year, quality, open, high, low, close, change, change_percent,
+        average_value, volatility, max_drawdown, max_drawdown_percent,
+        booking_count, positive_change, negative_change, average_change,
+        best_day, worst_day, best_day_percent, worst_day_percent
+      ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+    ` );
+
+    stats.forEach( v => insert.run(
+      assetId, v.year, v.quality, v.open, v.high, v.low, v.close, v.change, v.change_percent,
+      v.average_value, v.volatility, v.max_drawdown, v.max_drawdown_percent, v.booking_count,
+      v.positive_change, v.negative_change, v.average_change, v.best_day, v.worst_day,
+      v.best_day_percent, v.worst_day_percent
+    ) );
+  }
 }
