@@ -78,4 +78,48 @@ export class Values {
   public static get bookingTypes () : BookingType[] {
     return Values.all< BookingType >( 'SELECT id FROM booking_types ORDER BY id' );
   }
+
+  public static validateLanguage ( value: unknown ) : LanguageCode {
+    return parseEnum( value, 'Language', this.languages, true );
+  }
+
+  public static validateNodeEnvironment ( value: unknown ) : NodeEnvironment {
+    return parseEnum( value, 'Node environment', this.nodeEnvironments, true );
+  }
+
+  public static validatePersonGender ( value: unknown ) : PersonGender {
+    return parseEnum( value, 'Person gender', this.personGenders, true );
+  }
+
+  public static validatePortfolioMemberRole ( value: unknown ) : PortfolioMemberRole {
+    return parseEnum( value, 'Portfolio member role', this.portfolioMemberRoles, true );
+  }
+
+  public static validateAssetStatus ( value: unknown ) : AssetStatus {
+    return parseEnum( value, 'Asset status', this.assetStatuses, true );
+  }
+
+  public static validateBookingValueType ( value: unknown ) : BookingValueType {
+    return parseEnum( value, 'Booking value type', this.bookingValueTypes, true );
+  }
+
+  public static validateBookingReliability ( value: unknown ) : BookingReliability {
+    return parseEnum( value, 'Booking reliability', this.bookingReliabilities, true );
+  }
+
+  public static validateCurrencyCode ( value: unknown ) : CurrencyCode {
+    return parseEnum( value, 'Currency code', this.currencyCodes, true );
+  }
+
+  public static validateAssetType ( value: unknown ) : AssetType {
+    return parseEnum( value, 'Asset type', this.assetTypes, true );
+  }
+
+  public static validateLiquidationLevel ( value: unknown ) : LiquidationLevel {
+    return parseEnum( value, 'Liquidation level', this.liquidationLevels, true );
+  }
+
+  public static validateBookingType ( value: unknown ) : BookingType {
+    return parseEnum( value, 'Booking type', this.bookingTypes, true );
+  }
 }
