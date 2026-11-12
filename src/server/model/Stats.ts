@@ -211,4 +211,19 @@ export class Stats {
       v.average_change, v.best_day, v.worst_day, v.best_day_percent, v.worst_day_percent
     ) );
   }
+
+  public static recalculateAsset ( assetId: string, userId: string ) : void {
+    const asset = Asset.getSafe( assetId, userId );
+    conn().exec( 'SAVEPOINT asset_stats_recalculation' );
+
+    try {
+      Stats.recalculateAssetData( assetId );
+      Stats.recalculatePortfolioData( asset.portfolioId );
+      conn().exec( 'RELEASE SAVEPOINT asset_stats_recalculation' );
+    } catch ( err ) {
+      conn().exec( 'ROLLBACK TO SAVEPOINT asset_stats_recalculation' );
+      conn().exec( 'RELEASE SAVEPOINT asset_stats_recalculation' );
+      throw err;
+    }
+  }
 }
