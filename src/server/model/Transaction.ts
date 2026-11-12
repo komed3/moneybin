@@ -86,7 +86,6 @@ export class Transaction {
     if ( ! Array.isArray( data.bookings ) || ! data.bookings.length ) throw new Error( 'Transaction needs at least one booking' );
 
     data.bookings.forEach( booking => {
-      Asset.assertAssetIdSafe( booking.assetId, userId );
       const asset = Asset.getSafe( booking.assetId, userId );
       if ( asset.portfolioId !== portfolioId ) throw new Error( 'Bookings must belong to one portfolio' );
     } );
