@@ -16,4 +16,22 @@ export class UserPrefs {
       values: [ 'EUR', 'USD', 'GBP', 'CHF', 'RUB', 'JPY', 'CNY', 'CAD', 'AUD', 'SEK', 'PLN' ]
     }
   } satisfies UserPrefTable;
+
+  private static isName ( name: string ) : name is UserPrefName {
+    return Object.hasOwn( this.schema, name );
+  }
+
+  public static resolveName ( name: string ) : UserPrefName {
+    if ( ! this.isName( name ) ) throw new Error( `Unknown preference key: ${ name }` );
+    return name;
+  }
+
+  private static parseValue < K extends UserPrefName > ( name: K, valueJson: string | null ) : UserPrefValue< K > {
+    let value: unknown;
+
+    try { value = JSON.parse( valueJson ?? '' ) }
+    catch { throw new Error( `Stored preference ${ name } contains invalid JSON` ) }
+
+    return this.validate( name, value );
+  }
 }
