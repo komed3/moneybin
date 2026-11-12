@@ -183,4 +183,32 @@ export class Stats {
       v.best_day_percent, v.worst_day_percent
     ) );
   }
+
+  private static recalculatePortfolioData ( portfolioId: string ) : void {
+    const values = Stats.getPortfolioValues( portfolioId );
+    const bookings = Stats.getPortfolioBookings( portfolioId );
+    const stats = Stats.calculate( values, new Map( Array.from( bookings, ( [ y, v ] ) => [ y, v.booking_count ] ) ) );
+
+    const assetCount = as< { count: number } >( conn().prepare(
+      'SELECT COUNT(*) AS count FROM assets WHERE portfolio_id = ?'
+    ).get( portfolioId ) ).count;
+
+    conn().prepare( 'DELETE FROM portfolio_yearly_stats WHERE portfolio_id = ?' ).run( portfolioId );
+
+    const insert = conn().prepare( `
+      INSERT INTO portfolio_yearly_stats (
+        portfolio_id, year, quality, open, high, low, close, change, change_percent,
+        average_value, volatility, max_drawdown, max_drawdown_percent,
+        asset_count, active_asset_count, booking_count, positive_change, negative_change,
+        average_change, best_day, worst_day, best_day_percent, worst_day_percent
+      ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+    ` );
+
+    stats.forEach( v => insert.run(
+      portfolioId, v.year, v.quality, v.open, v.high, v.low, v.close, v.change, v.change_percent,
+      v.average_value, v.volatility, v.max_drawdown, v.max_drawdown_percent, assetCount,
+      bookings.get( v.year )?.active_asset_count ?? 0, v.booking_count, v.positive_change, v.negative_change,
+      v.average_change, v.best_day, v.worst_day, v.best_day_percent, v.worst_day_percent
+    ) );
+  }
 }
