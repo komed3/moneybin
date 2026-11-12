@@ -12,7 +12,7 @@ if ( nodeEnv !== undefined ) process.env.NODE_ENV = nodeEnv;
 
 
 export class Config {
-  public static readonly schema = {
+  public static readonly schema: ConfigTable = {
     APP_NAME: { type: 'string', desc: 'Platform name', default: 'MoneyBin' },
     APP_DEFAULT_LANG: { type: 'string', desc: 'Default language', default: 'en', validate: Values.validateLanguage },
     APP_DEFAULT_CURRENCY: { type: 'string', desc: 'Default currency', default: 'EUR', validate: Values.validateCurrencyCode },
@@ -32,7 +32,7 @@ export class Config {
 
     SESSION_LIFETIME_MS: { type: 'integer', desc: 'Session lifetime', default: 2592e6, min: 60000, max: 31536e6 },
     PASSWORD_STRICT: { type: 'boolean', desc: 'Enforce strong password requirements', default: true }
-  } satisfies ConfigTable;
+  };
 
   private static isName ( name: string ) : name is ConfigName {
     return Object.hasOwn( this.schema, name );

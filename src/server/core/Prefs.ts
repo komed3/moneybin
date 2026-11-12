@@ -7,7 +7,7 @@ import type { UserPrefName, UserPrefRow, UserPrefSchema, UserPrefTable, UserPref
 
 
 export class UserPrefs {
-  public static readonly schema = {
+  public static readonly schema: UserPrefTable = {
     APP_LANGUAGE: {
       type: 'string', desc: 'Application language', default: Config.get( 'APP_DEFAULT_LANG' ),
       validate: Values.validateLanguage
@@ -16,7 +16,7 @@ export class UserPrefs {
       type: 'string', desc: 'Default currency for new portfolios',
       default: Config.get( 'APP_DEFAULT_CURRENCY' ), validate: Values.validateCurrencyCode
     }
-  } satisfies UserPrefTable;
+  };
 
   private static isName ( name: string ) : name is UserPrefName {
     return Object.hasOwn( this.schema, name );
