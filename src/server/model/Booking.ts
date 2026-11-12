@@ -1,5 +1,6 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { Asset } from '@/src/server/model/Asset';
+import { AssetValue } from '@/src/server/model/AssetValue';
 import { Portfolio } from '@/src/server/model/Portfolio';
 import { Transaction } from '@/src/server/model/Transaction';
 import { assertId, parseDate, parseEnum, parseNumber, parseString } from '@/src/server/utils';
@@ -162,6 +163,7 @@ export class Booking {
       return id;
     } );
 
+    AssetValue.recalculate( data.assetId );
     return Booking.getSafe( id, userId );
   }
 
@@ -202,7 +204,12 @@ export class Booking {
     if ( booking.transactionId && booking.transactionId !== transactionId )
       Booking.cleanupTransaction( booking.transactionId );
 
-    return Booking.getSafe( bookingId, userId );
+    const updated = Booking.getSafe( bookingId, userId );
+
+    if ( booking.assetId !== updated.assetId ) AssetValue.recalculate( booking.assetId );
+    AssetValue.recalculate( updated.assetId );
+
+    return updated;
   }
 
   public static delete ( bookingId: string, userId: string ) : void {
@@ -212,5 +219,6 @@ export class Booking {
     Portfolio.assertEditable( asset.portfolioId, userId );
     conn().prepare( 'DELETE FROM bookings WHERE id = ?' ).run( bookingId );
     Booking.cleanupTransaction( booking.transactionId );
+    AssetValue.recalculate( booking.assetId );
   }
 }
