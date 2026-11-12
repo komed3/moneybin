@@ -31,6 +31,7 @@ export type ConfigDefinition< T > = {
   default: T;
   desc: string;
   validate?: ( value: unknown ) => T;
+  values?: () => readonly string[];
 } & (
   [ T ] extends [ number ] ? { type: 'integer', min: number, max: number } :
   [ T ] extends [ boolean ] ? { type: 'boolean' } :
