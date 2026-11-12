@@ -11,10 +11,10 @@ export interface ConfigSchema {
   DB_PATH: string;
   DB_BUSY_TIMEOUT_MS: number;
 
-  ASSET_QUALITY_DOCUMENTED: number;
-  ASSET_QUALITY_RECONSTRUCTED: number;
-  ASSET_QUALITY_SPECULATIVE: number;
-  ASSET_QUALITY_ASSUMED: number;
+  QUALITY_DOCUMENTED: number;
+  QUALITY_RECONSTRUCTED: number;
+  QUALITY_SPECULATIVE: number;
+  QUALITY_ASSUMED: number;
 
   SESSION_LIFETIME_MS: number;
   PASSWORD_STRICT: boolean;
