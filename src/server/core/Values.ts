@@ -20,3 +20,34 @@ export {
   NODE_ENVIRONMENTS, LANGUAGES, PERSON_GENDERS, PORTFOLIO_MEMBER_ROLES,
   ASSET_STATUSES, BOOKING_VALUE_TYPES, BOOKING_RELIABILITIES
 };
+
+
+export class Values {
+  public static get languages () : readonly LanguageCode[] {
+    return LANGUAGES;
+  }
+
+  public static get nodeEnvironments () : readonly NodeEnvironment[] {
+    return NODE_ENVIRONMENTS;
+  }
+
+  public static get personGenders () : readonly PersonGender[] {
+    return PERSON_GENDERS;
+  }
+
+  public static get portfolioMemberRoles () : readonly PortfolioMemberRole[] {
+    return PORTFOLIO_MEMBER_ROLES;
+  }
+
+  public static get assetStatuses () : readonly AssetStatus[] {
+    return ASSET_STATUSES;
+  }
+
+  public static get bookingValueTypes () : readonly BookingValueType[] {
+    return BOOKING_VALUE_TYPES;
+  }
+
+  public static get bookingReliabilities () : readonly BookingReliability[] {
+    return BOOKING_RELIABILITIES;
+  }
+}
