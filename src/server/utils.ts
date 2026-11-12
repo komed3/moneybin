@@ -82,14 +82,14 @@ export function parseDate < T, N extends boolean = false > (
 
 export function parseEnum < T extends string, R extends boolean = false > (
   value: unknown, label: string, values: readonly T[], required?: R
-) : R extends true ? T : T | undefined {
-  if ( value === undefined ) {
+) : R extends true ? T : T | null | undefined {
+  if ( value === undefined || value === null ) {
     if ( required ) throw new Error( `${ label } is required` );
-    return undefined as R extends true ? T : T | undefined;
+    return value as R extends true ? T : T | null | undefined;
   }
 
   if ( typeof value !== 'string' || ! values.includes( value as T ) )
     throw new Error( `Invalid value for ${ label }: ${ String( value ) }` );
 
-  return value as R extends true ? T : T | undefined;
+  return value as R extends true ? T : T | null | undefined;
 }
