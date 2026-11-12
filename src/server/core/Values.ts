@@ -13,4 +13,8 @@ export class Values {
   private static readonly BOOKING_RELIABILITIES = [ 'documented', 'reconstructed', 'speculative', 'assumed' ] as const;
   private static readonly PERSON_GENDERS = [ 'male', 'female', 'diverse' ] as const;
   private static readonly PORTFOLIO_MEMBER_ROLES = [ 'owner', 'editor', 'viewer' ] as const;
+
+  private static listIds < T extends string > ( table: 'asset_types' | 'liquidation_levels' | 'booking_types' ) : T[] {
+    return as< { id: T }[] >( conn().prepare( `SELECT id FROM ${ table } ORDER BY rowid` ).all() ).map( ( { id } ) => id );
+  }
 }
