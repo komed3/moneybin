@@ -7,8 +7,8 @@ import type {
 } from '@/src/shared/types/values';
 
 
-const LANGUAGES = [ 'en', 'de' ] as const;
 const NODE_ENVIRONMENTS = [ 'dev', 'development', 'test', 'prod', 'production' ] as const;
+const LANGUAGES = [ 'en', 'de' ] as const;
 const PERSON_GENDERS = [ 'male', 'female', 'diverse' ] as const;
 const PORTFOLIO_MEMBER_ROLES = [ 'owner', 'editor', 'viewer' ] as const;
 const ASSET_STATUSES = [ 'real', 'fictional' ] as const;
@@ -17,6 +17,6 @@ const BOOKING_RELIABILITIES = [ 'documented', 'reconstructed', 'speculative', 'a
 
 
 export {
-  LANGUAGES, NODE_ENVIRONMENTS, PERSON_GENDERS, PORTFOLIO_MEMBER_ROLES,
+  NODE_ENVIRONMENTS, LANGUAGES, PERSON_GENDERS, PORTFOLIO_MEMBER_ROLES,
   ASSET_STATUSES, BOOKING_VALUE_TYPES, BOOKING_RELIABILITIES
 };
