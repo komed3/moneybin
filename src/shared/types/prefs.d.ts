@@ -1,6 +1,9 @@
+import type { CurrencyCode, LanguageCode } from '@/src/shared/types/values';
+
+
 export interface UserPrefSchema {
-  APP_LANGUAGE: 'en' | 'de';
-  DEFAULT_CURRENCY: string;
+  APP_LANGUAGE: LanguageCode;
+  DEFAULT_CURRENCY: CurrencyCode;
 }
 
 export type UserPrefName = keyof UserPrefSchema;
