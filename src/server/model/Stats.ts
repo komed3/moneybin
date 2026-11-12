@@ -70,4 +70,16 @@ export class Stats {
       };
     } ).sort( ( a, b ) => a.year - b.year );
   }
+
+  private static getAssetValues ( assetId: string ) : StatsDailyValue[] {
+    return as< StatsDailyValueRow[] >( conn().prepare( `
+      SELECT asset_id, value_date, quality, open, high, low, close, change, change_percent
+      FROM asset_daily_values
+      WHERE asset_id = ?
+      ORDER BY value_date
+    ` ).all( assetId ) ).map( row => ( {
+      valueDate: row.value_date, quality: row.quality, open: row.open, high: row.high, low: row.low,
+      close: row.close, change: row.change, changePercent: row.change_percent
+    } ) );
+  }
 }
