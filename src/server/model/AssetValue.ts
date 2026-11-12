@@ -4,6 +4,7 @@ import { Asset } from '@/src/server/model/Asset';
 import { parseDate } from '@/src/server/utils';
 import type { AssetValueRecord, AssetValueRow } from '@/src/shared/types/asset-value';
 import type { BookingReliability, BookingRow } from '@/src/shared/types/booking';
+import { Stats } from '@/src/server/model/Stats';
 
 
 const QUALITY = {
@@ -55,7 +56,18 @@ export class AssetValue {
 
   public static delete ( assetId: string, userId: string ) : void {
     Asset.getSafe( assetId, userId );
-    conn().prepare( 'DELETE FROM asset_daily_values WHERE asset_id = ?' ).run( assetId );
+    conn().exec( 'SAVEPOINT asset_value_deletion' );
+
+    try {
+      conn().prepare( 'DELETE FROM asset_daily_values WHERE asset_id = ?' ).run( assetId );
+      Stats.recalculateAsset( assetId, userId );
+
+      conn().exec( 'RELEASE SAVEPOINT asset_value_deletion' );
+    } catch ( err ) {
+      conn().exec( 'ROLLBACK TO SAVEPOINT asset_value_deletion' );
+      conn().exec( 'RELEASE SAVEPOINT asset_value_deletion' );
+      throw err;
+    }
   }
 
   public static recalculate ( assetId: string, userId: string ) : void {
