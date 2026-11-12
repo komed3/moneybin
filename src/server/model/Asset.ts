@@ -1,5 +1,6 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { Portfolio } from '@/src/server/model/Portfolio';
+import { Stats } from '@/src/server/model/Stats';
 import { assertId, parseBoolean, parseDate, parseEnum, parseString } from '@/src/server/utils';
 import type {
   AssetCreateData, AssetLiquidationLevel, AssetRecord, AssetRow,
@@ -118,6 +119,7 @@ export class Asset {
       return id;
     } );
 
+    Stats.recalculatePortfolio( portfolioId, userId );
     return Asset.toRecord( Asset.getRow( id )! );
   }
 
@@ -152,5 +154,6 @@ export class Asset {
 
     Portfolio.assertEditable( row.portfolio_id, userId );
     conn().prepare( 'DELETE FROM assets WHERE id = ?' ).run( assetId );
+    Stats.recalculatePortfolio( row.portfolio_id, userId );
   }
 }
