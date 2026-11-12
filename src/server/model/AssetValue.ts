@@ -14,6 +14,13 @@ const QUALITY = {
 
 
 export class AssetValue {
+  private static assertAssetId ( assetId: string ) : void {
+    assertId( assetId, 'asset' );
+
+    if ( ! conn().prepare( 'SELECT 1 FROM assets WHERE id = ?' ).get( assetId ) )
+      throw new Error( `Asset ${ assetId } does not exist` );
+  }
+
   private static toRecord ( row: AssetValueRow ) : AssetValueRecord {
     return {
       assetId: row.asset_id, valueDate: row.value_date, quality: row.quality,
@@ -23,7 +30,7 @@ export class AssetValue {
   }
 
   public static list ( assetId: string ) : AssetValueRecord[] {
-    assertId( assetId, 'asset' );
+    AssetValue.assertAssetId( assetId );
 
     return as< AssetValueRow[] >( conn().prepare(
       'SELECT * FROM asset_daily_values WHERE asset_id = ? ORDER BY value_date'
@@ -31,7 +38,7 @@ export class AssetValue {
   }
 
   public static get ( assetId: string, valueDate: string ) : AssetValueRecord {
-    assertId( assetId, 'asset' );
+    AssetValue.assertAssetId( assetId );
     valueDate = parseDate( valueDate, 'Value date' );
 
     const row = as< AssetValueRow | null >( conn().prepare( `
@@ -42,22 +49,23 @@ export class AssetValue {
       LIMIT 1
     ` ).get( assetId, valueDate ) );
 
-    if ( ! row ) return { assetId, valueDate, quality: 0, open: 0, high: 0, low: 0, close: 0, change: 0, changePercent: 0 };
-    if ( row.value_date === valueDate ) return AssetValue.toRecord( row );
+    const dailyValue = row ? AssetValue.toRecord( row ) : null;
+    const exact = dailyValue?.valueDate === valueDate, close = dailyValue?.close ?? 0;
 
     return {
-      assetId, valueDate, quality: row.quality, open: row.close, high: row.close, low: row.close,
-      close: row.close, change: 0, changePercent: 0
+      assetId, valueDate, quality: dailyValue?.quality ?? 0, open: exact ? dailyValue.open : close,
+      high: exact ? dailyValue.high : close, low: exact ? dailyValue.low : close, close,
+      change: exact ? dailyValue.change : 0, changePercent: exact ? dailyValue.changePercent : 0
     };
   }
 
   public static delete ( assetId: string ) : void {
-    assertId( assetId, 'asset' );
+    AssetValue.assertAssetId( assetId );
     conn().prepare( 'DELETE FROM asset_daily_values WHERE asset_id = ?' ).run( assetId );
   }
 
   public static recalculate ( assetId: string ) : void {
-    assertId( assetId, 'asset' );
+    AssetValue.assertAssetId( assetId );
 
     const bookings = as< BookingRow[] >( conn().prepare( `
       SELECT * FROM bookings WHERE asset_id = ? ORDER BY value_date, rowid
