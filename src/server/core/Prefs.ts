@@ -49,4 +49,20 @@ export class UserPrefs {
 
     return ( row ? this.parseValue( key, row.value ) : this.schema[ key ].default ) as UserPrefValue< K >;
   }
+
+  public static all ( userId: string ) : UserPrefSchema {
+    User.assertUserIdSafe( userId );
+
+    const result = Object.fromEntries( Object.entries( this.schema ).map( ( [ n, d ] ) => [ n, d.default ] ) ) as unknown as UserPrefSchema;
+    const rows = as< UserPrefRow[] >( conn().prepare( 'SELECT * FROM user_preferences WHERE user_id = ?' ).all( userId ) );
+
+    for ( const row of rows ) {
+      if ( ! this.isName( row.key ) ) continue;
+
+      const key = this.resolveName( row.key );
+      Object.assign( result, { [ key ]: this.parseValue( key, row.value ) } );
+    }
+
+    return result;
+  }
 }
