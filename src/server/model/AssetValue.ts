@@ -110,6 +110,7 @@ export class AssetValue {
         insert.run( assetId, valueDate, quality, open, high, low, value, change, changePercent );
       }
 
+      Stats.recalculateAsset( assetId, userId );
       database.exec( 'RELEASE SAVEPOINT asset_value_recalculation' );
     } catch ( err ) {
       database.exec( 'ROLLBACK TO SAVEPOINT asset_value_recalculation' );
