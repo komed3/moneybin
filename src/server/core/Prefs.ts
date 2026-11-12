@@ -1,7 +1,7 @@
 import { Config } from '@/src/server/core/Config';
 import { as, conn, db } from '@/src/server/core/Database';
 import { User } from '@/src/server/core/User';
-import { parseEnum } from '@/src/server/utils';
+import { Values } from '@/src/server/core/Values';
 import type {
   UserPrefName, UserPrefRow, UserPrefSchema,
   UserPrefTable, UserPrefValue
@@ -11,12 +11,12 @@ import type {
 export class UserPrefs {
   public static readonly schema = {
     APP_LANGUAGE: {
-      type: 'enum', desc: 'Application language', default: Config.get( 'APP_DEFAULT_LANG' ),
-      values: [ 'en', 'de' ]
+      type: 'enum', desc: 'Application language',
+      default: Config.get( 'APP_DEFAULT_LANG' ), values: Values.languages
     },
     DEFAULT_CURRENCY: {
-      type: 'enum', desc: 'Default currency for new portfolios', default: Config.get( 'APP_DEFAULT_CURRENCY' ),
-      values: [ 'EUR', 'USD', 'GBP', 'CHF', 'RUB', 'JPY', 'CNY', 'CAD', 'AUD', 'SEK', 'PLN' ]
+      type: 'enum', desc: 'Default currency for new portfolios',
+      default: Config.get( 'APP_DEFAULT_CURRENCY' ), values: Values.currencyCodes
     }
   } satisfies UserPrefTable;
 
@@ -39,8 +39,12 @@ export class UserPrefs {
   }
 
   public static validate < K extends UserPrefName > ( name: K, value: unknown ) : UserPrefValue< K > {
-    const key = this.resolveName( name ), def = this.schema[ key ];
-    return parseEnum( value, key, def.values! ) as UserPrefValue< K >;
+    const key = this.resolveName( name );
+
+    if ( key === 'APP_LANGUAGE' ) return Values.validateLanguage( value ) as UserPrefValue< K >;
+    if ( key === 'DEFAULT_CURRENCY' ) return Values.validateCurrencyCode( value ) as UserPrefValue< K >;
+
+    throw new Error( `Unknown preference key: ${ key }` );
   }
 
   public static get < K extends UserPrefName > ( userId: string, name: K ) : UserPrefValue< K > {
