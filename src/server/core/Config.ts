@@ -1,3 +1,4 @@
+import { Values } from '@/src/server/core/Values';
 import { parseBoolean, parseEnum, parseNumber, parseString } from '@/src/server/utils';
 import type { ConfigName, ConfigSchema, ConfigTable, ConfigValue } from '@/src/shared/types/config';
 import dotenv from 'dotenv';
@@ -13,13 +14,9 @@ if ( nodeEnv !== undefined ) process.env.NODE_ENV = nodeEnv;
 export class Config {
   public static readonly schema = {
     APP_NAME: { type: 'string', desc: 'Platform name', default: 'MoneyBin' },
-    APP_DEFAULT_LANG: { type: 'enum', desc: 'Default language', default: 'en', values: [ 'en', 'de' ] },
-    APP_DEFAULT_CURRENCY: { type: 'enum', desc: 'Default currency', default: 'EUR', values: [
-      'EUR', 'USD', 'GBP', 'CHF', 'RUB', 'JPY', 'CNY', 'CAD', 'AUD', 'SEK', 'PLN'
-    ] },
-    NODE_ENV: { type: 'enum', desc: 'Runtime environment', default: 'dev', values: [
-      'dev', 'development', 'test', 'prod', 'production'
-    ] },
+    APP_DEFAULT_LANG: { type: 'enum', desc: 'Default language', default: 'en', values: Values.languages },
+    APP_DEFAULT_CURRENCY: { type: 'enum', desc: 'Default currency', default: 'EUR', values: Values.currencyCodes },
+    NODE_ENV: { type: 'enum', desc: 'Runtime environment', default: 'dev', values: Values.nodeEnvironments },
     ID_LENGTH: { type: 'integer', desc: 'Length of generated IDs', default: 7, min: 5, max: 32 },
 
     HOST: { type: 'string', desc: 'HTTP bind address', default: '0.0.0.0' },
@@ -60,6 +57,11 @@ export class Config {
 
   public static validate < K extends ConfigName > ( name: K, value: unknown ) : ConfigValue< K > {
     const key = this.resolveName( name ), def = this.schema[ key ];
+
+    if ( key === 'APP_DEFAULT_LANG' ) return Values.validateLanguage( value ) as ConfigValue< K >;
+    if ( key === 'APP_DEFAULT_CURRENCY' ) return Values.validateCurrencyCode( value ) as ConfigValue< K >;
+    if ( key === 'NODE_ENV' ) return Values.validateNodeEnvironment( value ) as ConfigValue< K >;
+
     if ( def.type === 'boolean' ) return parseBoolean( value ?? '', key ) as ConfigValue< K >;
     if ( def.type === 'integer' ) return parseNumber( value ?? NaN, key, def.min, def.max ) as ConfigValue< K >;
 
