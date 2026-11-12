@@ -20,3 +20,12 @@ export interface StatsDailyValueRow {
   change: number | null;
   change_percent: number | null;
 }
+
+export interface StatsBookingCountRow {
+  year: number;
+  booking_count: number;
+}
+
+export interface StatsPortfolioBookingCountRow extends StatsBookingCountRow {
+  active_asset_count: number;
+}
