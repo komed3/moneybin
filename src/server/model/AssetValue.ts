@@ -11,4 +11,4 @@ const QUALITY = {
   reconstructed: Config.get( 'QUALITY_RECONSTRUCTED' ) / 100,
   speculative: Config.get( 'QUALITY_SPECULATIVE' ) / 100,
   assumed: Config.get( 'QUALITY_ASSUMED' ) / 100
-};
+} as const satisfies Record< BookingReliability, number >;
