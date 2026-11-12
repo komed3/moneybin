@@ -163,7 +163,7 @@ export class Booking {
       return id;
     } );
 
-    AssetValue.recalculate( data.assetId );
+    AssetValue.recalculate( data.assetId, userId );
     return Booking.getSafe( id, userId );
   }
 
@@ -206,8 +206,8 @@ export class Booking {
 
     const updated = Booking.getSafe( bookingId, userId );
 
-    if ( booking.assetId !== updated.assetId ) AssetValue.recalculate( booking.assetId );
-    AssetValue.recalculate( updated.assetId );
+    if ( booking.assetId !== updated.assetId ) AssetValue.recalculate( booking.assetId, userId );
+    AssetValue.recalculate( updated.assetId, userId );
 
     return updated;
   }
@@ -219,6 +219,6 @@ export class Booking {
     Portfolio.assertEditable( asset.portfolioId, userId );
     conn().prepare( 'DELETE FROM bookings WHERE id = ?' ).run( bookingId );
     Booking.cleanupTransaction( booking.transactionId );
-    AssetValue.recalculate( booking.assetId );
+    AssetValue.recalculate( booking.assetId, userId );
   }
 }
