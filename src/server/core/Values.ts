@@ -50,4 +50,16 @@ export class Values {
   public static get bookingReliabilities () : readonly BookingReliability[] {
     return BOOKING_RELIABILITIES;
   }
+
+  public static get currencies () : CurrencyRecord[] {
+    return as< CurrencyRow[] >( conn().prepare(
+      'SELECT code, symbol, decimal_places FROM currencies ORDER BY code'
+    ).all() ).map( ( { code, symbol, decimal_places } ) => ( {
+      code, symbol, decimalPlaces: decimal_places
+    } ) );
+  }
+
+  public static get currencyCodes () : CurrencyCode[] {
+    return this.currencies.map( ( { code } ) => code );
+  }
 }
