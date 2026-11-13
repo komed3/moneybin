@@ -2,7 +2,7 @@ import { as, conn, db } from '@/src/server/core/Database';
 import { User } from '@/src/server/core/User';
 import { Values } from '@/src/server/core/Values';
 import { Person } from '@/src/server/model/Person';
-import { assertId, parseString } from '@/src/server/utils';
+import { assertId, parseString, toRecord, toRow } from '@/src/server/utils';
 import type {
   PortfolioCreateData, PortfolioMemberRecord, PortfolioMemberRow, PortfolioRecord,
   PortfolioRow, PortfolioUpdateData
@@ -11,7 +11,15 @@ import type { PortfolioMemberRole } from '@/src/shared/types/values';
 import type { DatabaseSync, SQLInputValue } from 'node:sqlite';
 
 
-const COLS = { personId: 'person_id', name: 'name', description: 'description', currency: 'currency', note: 'note' };
+const COLS = {
+  id: 'id', personId: 'person_id', name: 'name', description: 'description',
+  currency: 'currency', note: 'note', createdAt: 'created_at', updatedAt: 'updated_at'
+};
+
+const MEMBER_COLS = {
+  portfolioId: 'portfolio_id', userId: 'user_id', username: 'username',
+  role: 'role', createdAt: 'created_at'
+};
 
 
 export class Portfolio {
@@ -21,10 +29,7 @@ export class Portfolio {
   }
 
   private static toRecord ( row: PortfolioRow ) : PortfolioRecord {
-    return {
-      id: row.id, personId: row.person_id, name: row.name, description: row.description,
-      currency: row.currency, note: row.note, createdAt: row.created_at, updatedAt: row.updated_at
-    };
+    return toRecord< PortfolioRecord >( row, COLS );
   }
 
   private static getMemberRole ( portfolioId: string, userId: string ) : PortfolioMemberRole | null {
@@ -43,10 +48,7 @@ export class Portfolio {
   }
 
   private static toMemberRecord ( row: PortfolioMemberRow ) : PortfolioMemberRecord {
-    return {
-      portfolioId: row.portfolio_id, userId: row.user_id, username: row.username,
-      role: row.role, createdAt: row.created_at
-    };
+    return toRecord< PortfolioMemberRecord >( row, MEMBER_COLS );
   }
 
   private static validate ( data: PortfolioUpdateData ) : void {
@@ -69,13 +71,9 @@ export class Portfolio {
     }
   }
 
-  public static assertPortfolioIdSafe ( portfolioId: string ) : void {
-    if ( ! Portfolio.getRow( portfolioId ) ) throw new Error( `Portfolio ${ portfolioId } does not exist` );
-  }
-
   public static assertMember ( portfolioId: string, userId: string ) : PortfolioMemberRole {
     assertId( portfolioId, 'portfolio' );
-    User.assertUserIdSafe( userId );
+    User.getSafe( userId );
 
     const role = Portfolio.getMemberRole( portfolioId, userId );
     if ( ! role ) throw new Error( 'User is not a portfolio member' );
@@ -94,7 +92,7 @@ export class Portfolio {
   }
 
   public static list ( userId: string ) : PortfolioRecord[] {
-    User.assertUserIdSafe( userId );
+    User.getSafe( userId );
 
     return as< PortfolioRow[] >( conn().prepare( `
       SELECT p.*
@@ -106,7 +104,7 @@ export class Portfolio {
   }
 
   public static listByPerson ( personId: string, userId: string ) : PortfolioRecord[] {
-    Person.assertPersonIdSafe( personId, userId );
+    Person.getSafe( personId, userId );
 
     return as< PortfolioRow[] >( conn().prepare(
       'SELECT * FROM portfolios WHERE person_id = ? ORDER BY name COLLATE NOCASE'
@@ -115,7 +113,7 @@ export class Portfolio {
 
   public static get ( portfolioId: string, userId: string ) : PortfolioRecord | null {
     assertId( portfolioId, 'portfolio' );
-    User.assertUserIdSafe( userId );
+    User.getSafe( userId );
 
     const row = as< PortfolioRow | null >( conn().prepare( `
       SELECT p.*
@@ -130,22 +128,25 @@ export class Portfolio {
   public static getSafe ( portfolioId: string ) : PortfolioRecord {
     const row = Portfolio.getRow( portfolioId );
     if ( ! row ) throw new Error( `Portfolio ${ portfolioId } does not exist` );
+
     return Portfolio.toRecord( row );
   }
 
   public static create ( userId: string, data: PortfolioCreateData ) : PortfolioRecord {
-    User.assertUserIdSafe( userId );
+    User.getSafe( userId );
     Portfolio.validate( data );
 
     if ( ! data.name || ! data.currency ) throw new Error( 'Portfolio is missing required fields' );
-    Person.assertPersonIdSafe( data.personId, userId );
+    Person.getSafe( data.personId, userId );
 
     const id = db.transaction( tx => db.createWithId( id => {
-      tx.prepare( 'INSERT INTO portfolios ( id, person_id, name, description, currency, note ) VALUES ( ?, ?, ?, ?, ?, ? )' )
-        .run( id, data.personId, data.name, data.description ?? null, data.currency, data.note ?? null );
+      tx.prepare(
+        'INSERT INTO portfolios ( id, person_id, name, description, currency, note ) VALUES ( ?, ?, ?, ?, ?, ? )'
+      ).run( id, data.personId, data.name, data.description ?? null, data.currency, data.note ?? null );
 
-      tx.prepare( `INSERT INTO portfolio_members ( portfolio_id, user_id, role ) VALUES ( ?, ?, 'owner' )` )
-        .run( id, userId );
+      tx.prepare(
+        `INSERT INTO portfolio_members ( portfolio_id, user_id, role ) VALUES ( ?, ?, 'owner' )`
+      ).run( id, userId );
 
       return id;
     } ) );
@@ -158,15 +159,15 @@ export class Portfolio {
     const portfolio = Portfolio.getSafe( portfolioId );
     Portfolio.validate( data );
 
-    if ( data.personId !== undefined ) Person.assertPersonIdSafe( data.personId, userId );
+    if ( data.personId !== undefined ) Person.getSafe( data.personId, userId );
 
-    const entries = Object.entries( COLS ).filter( ( [ k ] ) => data[ k as keyof PortfolioUpdateData ] !== undefined );
+    const entries = Object.entries( toRow( data, COLS ) );
     if ( ! entries.length ) return portfolio;
 
-    const values = entries.map( ( [ k ] ) => data[ k as keyof PortfolioUpdateData ] );
+    const values = entries.map( ( [ , value ] ) => value );
     const result = conn().prepare( `
       UPDATE portfolios
-      SET ${ entries.map( ( [ , column ] ) => `${ column } = ?` ).join( ', ' ) },
+      SET ${ entries.map( ( [ column ] ) => `${ column } = ?` ).join( ', ' ) },
           updated_at = strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' )
       WHERE id = ?
     ` ).run( ...values as SQLInputValue[], portfolioId );
@@ -198,7 +199,7 @@ export class Portfolio {
     portfolioId: string, userId: string, memberId: string, role: PortfolioMemberRole = 'viewer'
   ) : PortfolioMemberRecord {
     Portfolio.assertOwner( portfolioId, userId );
-    User.assertUserIdSafe( memberId );
+    User.getSafe( memberId );
 
     conn().prepare( 'INSERT INTO portfolio_members ( portfolio_id, user_id, role ) VALUES ( ?, ?, ? )' )
       .run( portfolioId, memberId, Values.validatePortfolioMemberRole( role, true )! );
@@ -216,7 +217,7 @@ export class Portfolio {
 
     db.transaction( tx => {
       Portfolio.assertOwner( portfolioId, userId );
-      User.assertUserIdSafe( memberId );
+      User.getSafe( memberId );
 
       const currentRole = Portfolio.getMemberRole( portfolioId, memberId );
       if ( ! currentRole ) throw new Error( 'Portfolio member does not exist' );
@@ -236,7 +237,7 @@ export class Portfolio {
   public static removeMember ( portfolioId: string, userId: string, memberId: string ) : void {
     db.transaction( tx => {
       Portfolio.assertOwner( portfolioId, userId );
-      User.assertUserIdSafe( memberId );
+      User.getSafe( memberId );
 
       const currentRole = Portfolio.getMemberRole( portfolioId, memberId );
       if ( ! currentRole ) throw new Error( 'Portfolio member does not exist' );
