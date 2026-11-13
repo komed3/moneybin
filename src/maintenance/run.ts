@@ -29,8 +29,6 @@ registerDbCommands( moneybin );
 
 moneybin.commandsGroup( 'Users & Accounts:' );
 registerUserCommands( moneybin );
-
-moneybin.commandsGroup( 'Authentication:' );
 registerAuthCommands( moneybin );
 
 
