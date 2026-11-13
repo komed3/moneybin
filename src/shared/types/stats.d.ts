@@ -3,12 +3,6 @@ import type { DailyValueRecord } from '@/src/shared/types/daily';
 
 export type StatsDailyValue = Omit< DailyValueRecord, 'assetId' >;
 
-export interface StatsBookingRow {
-  year: number;
-  booking_count: number;
-  active_asset_count?: number;
-}
-
 export interface YearlyRow {
   year: number;
   quality: number;
