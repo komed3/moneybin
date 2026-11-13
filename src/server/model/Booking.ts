@@ -38,4 +38,16 @@ export class Booking {
     data.valueDate = parseDate( data.valueDate, 'Value date' );
     data.note = parseString( data.note, 'Note', true );
   }
+
+  private static validateAmounts ( amount: number, min: number | null, max: number | null ) : void {
+    if ( min !== null && min > amount ) throw new Error( 'Minimum amount exceeds amount' );
+    if ( max !== null && max < amount ) throw new Error( 'Maximum amount is below amount' );
+    if ( min !== null && max !== null && min > max ) throw new Error( 'Minimum amount exceeds maximum' );
+  }
+
+  public static validateDate ( data: BookingCreateData ) : void {
+    data.valueDate ??= data.bookingDate;
+    if ( ! data.valueDate ) throw new Error( 'At least one booking date is required' );
+    data.bookingDate ??= data.valueDate;
+  }
 }
