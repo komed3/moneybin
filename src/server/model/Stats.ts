@@ -1,11 +1,14 @@
 import { as, conn } from '@/src/server/core/Database';
 import { Asset } from '@/src/server/model/Asset';
+import { Booking } from '@/src/server/model/Booking';
+import { DailyValues } from '@/src/server/model/DailyValues';
 import { Portfolio } from '@/src/server/model/Portfolio';
 import { toRecord, toRow } from '@/src/server/utils';
 import type { AssetRecord } from '@/src/shared/types/asset';
-import type { DailyValueRow } from '@/src/shared/types/daily';
+import type { BookingRecord } from '@/src/shared/types/booking';
+import type { DailyValueRecord } from '@/src/shared/types/daily';
 import type {
-  AssetYearlyRow, PortfolioYearlyRecord, PortfolioYearlyRow, StatsBookingRow,
+  AssetYearlyRow, PortfolioYearlyRecord, PortfolioYearlyRow,
   StatsDailyValue, YearlyRecord
 } from '@/src/shared/types/stats';
 import type { SQLInputValue } from 'node:sqlite';
@@ -21,22 +24,19 @@ const YEARLY_COLS = {
 };
 
 const ASSET_COLS = { assetId: 'asset_id', ...YEARLY_COLS };
-const PORTFOLIO_RECORD_COLS = { ...YEARLY_COLS, assetCount: 'asset_count', activeAssetCount: 'active_asset_count' };
 
 const PORTFOLIO_COLS = {
   portfolioId: 'portfolio_id', assetCount: 'asset_count',
   activeAssetCount: 'active_asset_count', ...YEARLY_COLS
 };
 
+const PORTFOLIO_RECORD_COLS = {
+  assetCount: 'asset_count', activeAssetCount: 'active_asset_count',
+  ...YEARLY_COLS
+};
+
 
 export class Stats {
-  private static toDailyValue ( row: DailyValueRow ) : StatsDailyValue {
-    return {
-      valueDate: row.value_date, quality: row.quality, open: row.open, high: row.high,
-      low: row.low, close: row.close, change: row.change, changePercent: row.change_percent
-    };
-  }
-
   private static calculate ( values: StatsDailyValue[], bookings: Map< number, number > ) : YearlyRecord[] {
     const years = new Map< number, StatsDailyValue[] >();
 
@@ -86,61 +86,43 @@ export class Stats {
     } ).sort( ( a, b ) => a.year - b.year );
   }
 
-  private static getAssetValues ( assetId: string ) : StatsDailyValue[] {
-    return as< DailyValueRow[] >( conn().prepare(
-      'SELECT * FROM asset_daily_values WHERE asset_id = ? ORDER BY value_date'
-    ).all( assetId ) ).map( Stats.toDailyValue );
-  }
+  private static getBookingCounts ( bookings: BookingRecord[] ) : Map< number, number > {
+    const counts = new Map< number, number >();
 
-  private static getAssetBookings ( assetId: string ) : Map< number, number > {
-    const rows = as< StatsBookingRow[] >( conn().prepare( `
-      SELECT CAST( substr( value_date, 1, 4 ) AS INTEGER ) AS year, COUNT(*) AS booking_count
-      FROM bookings WHERE asset_id = ? GROUP BY year
-    ` ).all( assetId ) );
-
-    return new Map( rows.map( ( { year, booking_count } ) => [ year, booking_count ] ) );
-  }
-
-  private static getPortfolioValues ( portfolioId: string ) : StatsDailyValue[] {
-    const assets = as< { id: string }[] >( conn().prepare(
-      'SELECT id FROM assets WHERE portfolio_id = ?'
-    ).all( portfolioId ) );
-
-    const rows = as< DailyValueRow[] >( conn().prepare( `
-      SELECT v.*
-      FROM asset_daily_values v
-      JOIN assets a ON a.id = v.asset_id
-      WHERE a.portfolio_id = ?
-      ORDER BY v.value_date, v.asset_id
-    ` ).all( portfolioId ) );
-
-    const dates = Array.from( new Set( rows.map( ( { value_date } ) => value_date ) ) );
-    const updates = new Map< string, DailyValueRow[] >();
-
-    rows.forEach( row => {
-      const entries = updates.get( row.value_date ) ?? [];
-      entries.push( row ), updates.set( row.value_date, entries );
+    bookings.forEach( ( { valueDate } ) => {
+      const year = Number( valueDate.slice( 0, 4 ) );
+      counts.set( year, ( counts.get( year ) ?? 0 ) + 1 );
     } );
 
-    const latest = new Map< string, DailyValueRow >();
+    return counts;
+  }
+
+  private static getPortfolioValues ( assets: AssetRecord[], userId: string ) : StatsDailyValue[] {
+    const updates = new Map< string, Map< string, DailyValueRecord > >();
+
+    assets.forEach( ( { id } ) => {
+      DailyValues.list( id, userId ).forEach( value => {
+        const entries = updates.get( value.valueDate ) ?? new Map< string, DailyValueRecord >();
+        entries.set( id, value ), updates.set( value.valueDate, entries );
+      } );
+    } );
+
+    const dates = Array.from( updates.keys() ).sort();
+    const latest = new Map< string, DailyValueRecord >();
 
     return dates.map( valueDate => {
-      updates.get( valueDate )?.forEach( row => latest.set( row.asset_id, row ) );
-
+      updates.get( valueDate )?.forEach( ( value, assetId ) => latest.set( assetId, value ) );
       let quality = 0, weight = 0, open = 0, high = -Infinity, low = Infinity, close = 0;
 
-      assets.forEach( asset => {
-        const value = latest.get( asset.id );
-        if ( ! value ) return;
-
-        const exact = value.value_date === valueDate;
+      latest.forEach( value => {
+        const exact = value.valueDate === valueDate;
         const assetOpen = exact ? value.open ?? value.close : value.close;
         const assetHigh = exact ? value.high : value.close;
         const assetLow = exact ? value.low : value.close;
-        open += assetOpen, high += assetHigh, low += assetLow, close += value.close;
-
         const assetWeight = Math.abs( value.close );
-        quality += value.quality * assetWeight, weight += assetWeight;
+
+        open += assetOpen, high = Math.max( high, assetHigh ), low = Math.min( low, assetLow );
+        close += value.close, quality += value.quality * assetWeight, weight += assetWeight;
       } );
 
       const change = close - open;
@@ -152,24 +134,9 @@ export class Stats {
     } );
   }
 
-  private static getPortfolioBookings ( portfolioId: string ) : Map< number, StatsBookingRow > {
-    const rows = as< StatsBookingRow[] >( conn().prepare( `
-      SELECT
-        CAST( substr( b.value_date, 1, 4 ) AS INTEGER ) AS year,
-        COUNT(*) AS booking_count,
-        COUNT( DISTINCT b.asset_id ) AS active_asset_count
-      FROM bookings b
-      JOIN assets a ON a.id = b.asset_id
-      WHERE a.portfolio_id = ?
-      GROUP BY year
-    ` ).all( portfolioId ) );
-
-    return new Map( rows.map( row => [ row.year, row ] ) );
-  }
-
-  private static recalculateAssetData ( assetId: string ) : void {
-    const stats = Stats.calculate( Stats.getAssetValues( assetId ), Stats.getAssetBookings( assetId ) );
-    conn().prepare( 'DELETE FROM asset_yearly_stats WHERE asset_id = ?' ).run( assetId );
+  private static recalculateAssetData ( { id }: AssetRecord, userId: string ) : void {
+    const stats = Stats.calculate( DailyValues.list( id, userId ), Stats.getBookingCounts( Booking.list( id, userId ) ) );
+    conn().prepare( 'DELETE FROM asset_yearly_stats WHERE asset_id = ?' ).run( id );
 
     const insert = conn().prepare( `
       INSERT INTO asset_yearly_stats (
@@ -180,21 +147,19 @@ export class Stats {
       ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
     ` );
 
-    stats.forEach( row => {
-      insert.run( ...Object.values( toRow( { assetId, ...row }, ASSET_COLS ) ) as SQLInputValue[] );
-    } );
+    stats.forEach( r => insert.run( ...Object.values( toRow( { assetId: id, ...r }, ASSET_COLS ) ) as SQLInputValue[] ) );
   }
 
-  private static recalculatePortfolioData ( portfolioId: string ) : void {
-    const bookings = Stats.getPortfolioBookings( portfolioId );
-    const stats = Stats.calculate( Stats.getPortfolioValues( portfolioId ), new Map(
-      Array.from( bookings, ( [ year, { booking_count } ] ) => [ year, booking_count ] )
-    ) );
+  private static recalculatePortfolioData ( portfolioId: string, userId: string ) : void {
+    const assets = Asset.list( portfolioId, userId ), bookings = Booking.listByPortfolio( portfolioId, userId );
+    const activeAssets = new Map< number, Set< string > >();
 
-    const assetCount = as< { count: number } >( conn().prepare(
-      'SELECT COUNT(*) AS count FROM assets WHERE portfolio_id = ?'
-    ).get( portfolioId ) ).count;
+    bookings.forEach( ( { assetId, valueDate } ) => {
+      const year = Number( valueDate.slice( 0, 4 ) ), entries = activeAssets.get( year ) ?? new Set< string >();
+      entries.add( assetId ), activeAssets.set( year, entries );
+    } );
 
+    const stats = Stats.calculate( Stats.getPortfolioValues( assets, userId ), Stats.getBookingCounts( bookings ) );
     conn().prepare( 'DELETE FROM portfolio_yearly_stats WHERE portfolio_id = ?' ).run( portfolioId );
 
     const insert = conn().prepare( `
@@ -206,11 +171,9 @@ export class Stats {
       ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
     ` );
 
-    stats.forEach( row => {
-      insert.run( ...Object.values( toRow( {
-        portfolioId, assetCount, ...row, activeAssetCount: bookings.get( row.year )?.active_asset_count ?? 0
-      }, PORTFOLIO_COLS ) ) as SQLInputValue[] );
-    } );
+    stats.forEach( r => insert.run( ...Object.values( toRow( {
+      portfolioId, assetCount: assets.length, activeAssetCount: activeAssets.get( r.year )?.size ?? 0, ...r
+    }, PORTFOLIO_COLS ) ) as SQLInputValue[] ) );
   }
 
   public static listAsset ( assetId: string, userId: string ) : YearlyRecord[] {
@@ -254,8 +217,8 @@ export class Stats {
     conn().exec( 'SAVEPOINT asset_stats_recalculation' );
 
     try {
-      Stats.recalculateAssetData( asset.id );
-      if ( ! holdPortfolioStats ) Stats.recalculatePortfolioData( asset.portfolioId );
+      Stats.recalculateAssetData( asset, userId );
+      if ( ! holdPortfolioStats ) Stats.recalculatePortfolioData( asset.portfolioId, userId );
       conn().exec( 'RELEASE SAVEPOINT asset_stats_recalculation' );
     } catch ( err ) {
       conn().exec( 'ROLLBACK TO SAVEPOINT asset_stats_recalculation' );
@@ -269,7 +232,7 @@ export class Stats {
     conn().exec( 'SAVEPOINT portfolio_stats_recalculation' );
 
     try {
-      Stats.recalculatePortfolioData( portfolioId );
+      Stats.recalculatePortfolioData( portfolioId, userId );
       conn().exec( 'RELEASE SAVEPOINT portfolio_stats_recalculation' );
     } catch ( err ) {
       conn().exec( 'ROLLBACK TO SAVEPOINT portfolio_stats_recalculation' );
