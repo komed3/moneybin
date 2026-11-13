@@ -24,4 +24,18 @@ export class Booking {
   private static toRecord ( row: BookingRow ) : BookingRecord {
     return toRecord< BookingRecord >( row, { id: 'id', ...COLS, createdAt: 'created_at', updatedAt: 'updated_at' } );
   }
+
+  private static validate ( data: BookingCreateData | BookingUpdateData ) : void {
+    data.type = Values.validateBookingType( data.type ) ?? undefined;
+    data.valueType = Values.validateBookingValueType( data.valueType ) ?? undefined;
+    data.reliability = Values.validateBookingReliability( data.reliability ) ?? undefined;
+    data.assetId = assertId( data.assetId, 'asset' );
+    data.transactionId = assertId( data.transactionId, 'transaction', true );
+    data.amount = parseNumber( data.amount, 'Amount', MIN, MAX );
+    data.minAmount = parseNumber( data.minAmount, 'Minimum amount', MIN, MAX, true );
+    data.maxAmount = parseNumber( data.maxAmount, 'Maximum amount', MIN, MAX, true );
+    data.bookingDate = parseDate( data.bookingDate, 'Booking date' );
+    data.valueDate = parseDate( data.valueDate, 'Value date' );
+    data.note = parseString( data.note, 'Note', true );
+  }
 }
