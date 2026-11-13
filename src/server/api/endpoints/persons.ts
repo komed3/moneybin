@@ -20,3 +20,8 @@ persons.get< { id: string } >( '/:id', ( req, res ) => res.json(
 persons.patch< { id: string } >( '/:id', ( req, res ) => res.json(
   Person.update( req.params.id, res.locals.user.id, req.body as PersonUpdateData )
 ) );
+
+persons.delete< { id: string } >( '/:id', ( req, res ) => {
+  Person.delete( req.params.id, res.locals.user.id );
+  res.status( 204 ).end();
+} );
