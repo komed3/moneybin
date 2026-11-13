@@ -192,4 +192,33 @@ export class Stats {
       v.negative_change, v.average_change, v.best_day, v.worst_day, v.best_day_percent, v.worst_day_percent
     ) );
   }
+
+  public static recalculateAsset ( asset: AssetRecord, userId: string, hold = false ) : void {
+    Portfolio.assertMember( asset.portfolioId, userId );
+    conn().exec( 'SAVEPOINT asset_stats_recalculation' );
+
+    try {
+      Stats.recalculateAssetData( asset.id );
+      if ( ! hold ) Stats.recalculatePortfolioData( asset.portfolioId );
+      conn().exec( 'RELEASE SAVEPOINT asset_stats_recalculation' );
+    } catch ( err ) {
+      conn().exec( 'ROLLBACK TO SAVEPOINT asset_stats_recalculation' );
+      conn().exec( 'RELEASE SAVEPOINT asset_stats_recalculation' );
+      throw err;
+    }
+  }
+
+  public static recalculatePortfolio ( portfolioId: string, userId: string ) : void {
+    Portfolio.assertMember( portfolioId, userId );
+    conn().exec( 'SAVEPOINT portfolio_stats_recalculation' );
+
+    try {
+      Stats.recalculatePortfolioData( portfolioId );
+      conn().exec( 'RELEASE SAVEPOINT portfolio_stats_recalculation' );
+    } catch ( err ) {
+      conn().exec( 'ROLLBACK TO SAVEPOINT portfolio_stats_recalculation' );
+      conn().exec( 'RELEASE SAVEPOINT portfolio_stats_recalculation' );
+      throw err;
+    }
+  }
 }
