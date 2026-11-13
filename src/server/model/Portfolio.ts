@@ -48,4 +48,12 @@ export class Portfolio {
       role: row.role, createdAt: row.created_at
     };
   }
+
+  private static validate ( data: PortfolioUpdateData ) : void {
+    data.personId = assertId( data.personId, 'person' );
+    data.name = parseString( data.name, 'Name' );
+    data.description = parseString( data.description, 'Description', true );
+    data.currency = Values.validateCurrencyCode( data.currency ) ?? undefined;
+    data.note = parseString( data.note, 'Note', true );
+  }
 }
