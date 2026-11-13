@@ -1,6 +1,7 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { Asset } from '@/src/server/model/Asset';
 import { Booking } from '@/src/server/model/Booking';
+import { DailyValues } from '@/src/server/model/DailyValues';
 import { Portfolio } from '@/src/server/model/Portfolio';
 import { assertId, parseString } from '@/src/server/utils';
 import type {
@@ -89,14 +90,19 @@ export class Transaction {
     if ( ! Array.isArray( data.bookings ) || ! data.bookings.length )
       throw new Error( 'Transaction needs at least one booking' );
 
+    const assetIds = new Set< string >();
+
     data.bookings.forEach( ( { assetId } ) => {
       if ( Asset.getSafe( assetId, userId ).portfolioId !== portfolioId )
         throw new Error( 'Bookings must belong to one portfolio' );
+
+      assetIds.add( assetId );
     } );
 
     const id = db.transaction( tx => db.createWithId( id => {
       tx.prepare( 'INSERT INTO transactions ( id, note ) VALUES ( ?, ? )' ).run( id, data.note ?? null );
-      data.bookings.forEach( booking => Booking.create( userId, { ...booking, transactionId: id } ) );
+      data.bookings.forEach( booking => Booking.create( userId, { ...booking, transactionId: id }, true ) );
+      assetIds.forEach( assetId => DailyValues.recalculate( assetId, userId ) );
       return id;
     } ) );
 
