@@ -66,4 +66,19 @@ export class Transaction {
       ORDER BY t.created_at DESC
     ` ).all( portfolioId ) ).map( row => Transaction.toRecord( row, userId ) );
   }
+
+  public static get ( transactionId: string, userId: string ) : TransactionRecord | null {
+    const row = Transaction.getRow( transactionId );
+    if ( ! row ) return null;
+
+    Portfolio.assertMember( row.portfolio_id, userId );
+    return Transaction.toRecord( row, userId );
+  }
+
+  public static getSafe ( transactionId: string, userId: string ) : TransactionRecord {
+    const transaction = Transaction.get( transactionId, userId );
+    if ( ! transaction ) throw new Error( `Transaction ${ transactionId } does not exist` );
+
+    return transaction;
+  }
 }
