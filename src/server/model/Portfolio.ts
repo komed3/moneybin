@@ -9,3 +9,6 @@ import type {
 } from '@/src/shared/types/portfolio';
 import type { PortfolioMemberRole } from '@/src/shared/types/values';
 import type { DatabaseSync, SQLInputValue } from 'node:sqlite';
+
+
+const COLS = { personId: 'person_id', name: 'name', description: 'description', currency: 'currency', note: 'note' };
