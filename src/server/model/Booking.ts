@@ -91,4 +91,19 @@ export class Booking {
       ORDER BY b.value_date, b.booking_date, b.created_at
     ` ).all( transactionId, portfolioId ) ).map( Booking.toRecord );
   }
+
+  public static get ( bookingId: string, userId: string ) : BookingRecord | null {
+    const row = Booking.getRow( bookingId );
+    if ( ! row ) return null;
+
+    Asset.getSafe( row.asset_id, userId );
+    return Booking.toRecord( row );
+  }
+
+  public static getSafe ( bookingId: string, userId: string ) : BookingRecord {
+    const booking = Booking.get( bookingId, userId );
+    if ( ! booking ) throw new Error( `Booking ${ bookingId } does not exist` );
+
+    return booking;
+  }
 }
