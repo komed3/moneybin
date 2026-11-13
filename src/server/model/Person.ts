@@ -1,22 +1,23 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { User } from '@/src/server/core/User';
 import { Values } from '@/src/server/core/Values';
-import { assertId, parseDate, parseString } from '@/src/server/utils';
+import { assertId, parseDate, parseString, toRecord, toRow } from '@/src/server/utils';
 import type { PersonCreateData, PersonRecord, PersonRow, PersonUpdateData } from '@/src/shared/types/person';
 import type { SQLInputValue } from 'node:sqlite';
 
 
 const COLS = {
-  name: 'name', description: 'description', gender: 'gender', birthDate: 'birth_date', street: 'street',
-  addressExtra: 'address_extra', postalCode: 'postal_code', city: 'city', region: 'region', country: 'country',
-  email: 'email', phone: 'phone', website: 'website', notes: 'notes'
+  id: 'id', userId: 'user_id', name: 'name', description: 'description', gender: 'gender',
+  birthDate: 'birth_date', street: 'street', addressExtra: 'address_extra', postalCode: 'postal_code',
+  city: 'city', region: 'region', country: 'country', email: 'email', phone: 'phone',
+  website: 'website', notes: 'notes', createdAt: 'created_at', updatedAt: 'updated_at'
 };
 
 
 export class Person {
   private static getRow ( personId: string, userId: string ) : PersonRow | null {
     assertId( personId, 'person' );
-    User.assertUserIdSafe( userId );
+    User.getSafe( userId );
 
     return as< PersonRow | null >( conn().prepare(
       'SELECT * FROM persons WHERE id = ? AND user_id = ?'
@@ -24,12 +25,7 @@ export class Person {
   }
 
   private static toRecord ( row: PersonRow ) : PersonRecord {
-    return {
-      id: row.id, userId: row.user_id, name: row.name, description: row.description, gender: row.gender,
-      birthDate: row.birth_date, street: row.street, addressExtra: row.address_extra, postalCode: row.postal_code,
-      city: row.city, region: row.region, country: row.country, email: row.email, phone: row.phone,
-      website: row.website, notes: row.notes, createdAt: row.created_at, updatedAt: row.updated_at
-    };
+    return toRecord< PersonRecord >( row, COLS );
   }
 
   private static validate ( data: PersonUpdateData ) : void {
@@ -49,13 +45,8 @@ export class Person {
     data.notes = parseString( data.notes, 'Notes', true );
   }
 
-  public static assertPersonIdSafe ( personId: string, userId: string ) : void {
-    if ( ! Person.getRow( personId, userId ) )
-      throw new Error( `Person ${ personId } does not exist` );
-  }
-
   public static list ( userId: string ) : PersonRecord[] {
-    User.assertUserIdSafe( userId );
+    User.getSafe( userId );
 
     return as< PersonRow[] >( conn().prepare(
       'SELECT * FROM persons WHERE user_id = ? ORDER BY name COLLATE NOCASE'
@@ -70,11 +61,12 @@ export class Person {
   public static getSafe ( personId: string, userId: string ) : PersonRecord {
     const row = Person.getRow( personId, userId );
     if ( ! row ) throw new Error( `Person ${ personId } does not exist` );
+
     return Person.toRecord( row );
   }
 
   public static create ( userId: string, data: PersonCreateData ) : PersonRecord {
-    User.assertUserIdSafe( userId );
+    User.getSafe( userId );
     Person.validate( data );
 
     if ( ! data.name || ! data.gender ) throw new Error( 'Person is missing required fields' );
@@ -103,13 +95,13 @@ export class Person {
     const person = Person.getSafe( personId, userId );
     Person.validate( data );
 
-    const entries = Object.entries( COLS ).filter( ( [ k ] ) => data[ k as keyof PersonUpdateData ] !== undefined );
+    const entries = Object.entries( toRow( data, COLS ) );
     if ( ! entries.length ) return person;
 
-    const values = entries.map( ( [ key ] ) => data[ key as keyof PersonUpdateData ] );
+    const values = entries.map( ( [ , value ] ) => value );
     const result = conn().prepare( `
       UPDATE persons
-      SET ${ entries.map( ( [ , column ] ) => `${ column } = ?` ).join( ', ' ) },
+      SET ${ entries.map( ( [ column ] ) => `${ column } = ?` ).join( ', ' ) },
           updated_at = strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' )
       WHERE id = ? AND user_id = ?
     ` ).run( ...values as SQLInputValue[], personId, userId );
@@ -119,7 +111,7 @@ export class Person {
   }
 
   public static delete ( personId: string, userId: string ) : void {
-    Person.assertPersonIdSafe( personId, userId );
+    Person.getSafe( personId, userId );
     conn().prepare( 'DELETE FROM persons WHERE id = ? AND user_id = ?' ).run( personId, userId );
   }
 }
