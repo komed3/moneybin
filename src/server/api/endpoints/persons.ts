@@ -1,5 +1,4 @@
 import { Person } from '@/src/server/model/Person';
-import type { PersonCreateData, PersonUpdateData } from '@/src/shared/types/person';
 import { Router } from 'express';
 
 
@@ -9,7 +8,7 @@ export const persons = Router();
 persons.get( '/', ( _, res ) => res.json( Person.list( res.locals.user.id ) ) );
 
 persons.post( '/', ( req, res ) => {
-  const person = Person.create( res.locals.user.id, req.body as PersonCreateData );
+  const person = Person.create( res.locals.user.id, req.body );
   res.status( 201 ).json( person );
 } );
 
@@ -18,7 +17,7 @@ persons.get< { id: string } >( '/:id', ( req, res ) => res.json(
 ) );
 
 persons.patch< { id: string } >( '/:id', ( req, res ) => res.json(
-  Person.update( req.params.id, res.locals.user.id, req.body as PersonUpdateData )
+  Person.update( req.params.id, res.locals.user.id, req.body )
 ) );
 
 persons.delete< { id: string } >( '/:id', ( req, res ) => {
