@@ -5,3 +5,10 @@ import { DailyValues } from '@/src/server/model/DailyValues';
 import { Portfolio } from '@/src/server/model/Portfolio';
 import { Stats } from '@/src/server/model/Stats';
 import { Command } from 'commander';
+
+
+export const registerDataCommands = ( program: Command ) : void => {
+  const dataCommand = program
+    .command( 'data' )
+    .description( 'Manage financial data' );
+}
