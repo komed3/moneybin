@@ -12,3 +12,8 @@ booking.get< { assetId: string } >( '/asset/:assetId', ( req, res ) => res.json(
 booking.get< { portfolioId: string } >( '/portfolio/:portfolioId', ( req, res ) => res.json(
   Booking.listByPortfolio( req.params.portfolioId, res.locals.user.id )
 ) );
+
+booking.post( '/', ( req, res ) => {
+  const booking = Booking.create( res.locals.user.id, req.body );
+  res.status( 201 ).json( booking );
+} );
