@@ -33,4 +33,26 @@ export const registerDataCommands = ( program: Command ) : void => {
 
       ui.success( `Updated daily values for ${ count } asset(s).` );
     } );
+
+  dataCommand
+    .command( 'assets' )
+    .description( 'Rebuild yearly asset statistics' )
+    .action( () => {
+      const portfolios = new Set< string >();
+      let count = 0;
+
+      User.list().forEach( user => {
+        Portfolio.list( user.id ).forEach( portfolio => {
+          if ( portfolios.has( portfolio.id ) ) return;
+          portfolios.add( portfolio.id );
+
+          Asset.list( portfolio.id, user.id ).forEach( asset => {
+            Stats.recalculateAsset( asset, user.id, true );
+            count++;
+          } );
+        } );
+      } );
+
+      ui.success( `Updated yearly statistics for ${ count } asset(s).` );
+    } );
 }
