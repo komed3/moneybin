@@ -95,3 +95,18 @@ export function parseEnum < T extends string > (
 
   return value as T;
 }
+
+export function toRecord < T > ( row: object, cols: Record< string, string > ) : T {
+  const values = row as Record< string, unknown >, record: Record< string, unknown > = {};
+  for ( const [ key, column ] of Object.entries( cols ) ) record[ key ] = values[ column ];
+  return record as T;
+}
+
+export function toRow ( record: object, cols: Record< string, string > ) : Record< string, unknown > {
+  const values = record as Record< string, unknown >, row: Record< string, unknown > = {};
+
+  for ( const [ key, column ] of Object.entries( cols ) )
+    if ( values[ key ] !== undefined ) row[ column ] = values[ key ];
+
+  return row;
+}
