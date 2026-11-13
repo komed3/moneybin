@@ -81,4 +81,25 @@ export class Transaction {
 
     return transaction;
   }
+
+  public static create ( portfolioId: string, userId: string, data: TransactionCreateData ) : TransactionRecord {
+    Portfolio.assertEditable( portfolioId, userId );
+    Transaction.validate( data );
+
+    if ( ! Array.isArray( data.bookings ) || ! data.bookings.length )
+      throw new Error( 'Transaction needs at least one booking' );
+
+    data.bookings.forEach( ( { assetId } ) => {
+      if ( Asset.getSafe( assetId, userId ).portfolioId !== portfolioId )
+        throw new Error( 'Bookings must belong to one portfolio' );
+    } );
+
+    const id = db.transaction( tx => db.createWithId( id => {
+      tx.prepare( 'INSERT INTO transactions ( id, note ) VALUES ( ?, ? )' ).run( id, data.note ?? null );
+      data.bookings.forEach( booking => Booking.create( userId, { ...booking, transactionId: id } ) );
+      return id;
+    } ) );
+
+    return Transaction.getSafe( id, userId );
+  }
 }
