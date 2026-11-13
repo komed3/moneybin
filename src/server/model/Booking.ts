@@ -13,3 +13,15 @@ const MIN = Number.MIN_SAFE_INTEGER, MAX = Number.MAX_SAFE_INTEGER, COLS = {
   amount: 'amount', minAmount: 'min_amount', maxAmount: 'max_amount', bookingDate: 'booking_date',
   valueDate: 'value_date', reliability: 'reliability', note: 'note'
 };
+
+
+export class Booking {
+  private static getRow ( bookingId: string ) : BookingRow | null {
+    assertId( bookingId, 'booking' );
+    return as< BookingRow | null >( conn().prepare( 'SELECT * FROM bookings WHERE id = ?' ).get( bookingId ) );
+  }
+
+  private static toRecord ( row: BookingRow ) : BookingRecord {
+    return toRecord< BookingRecord >( row, { id: 'id', ...COLS, createdAt: 'created_at', updatedAt: 'updated_at' } );
+  }
+}
