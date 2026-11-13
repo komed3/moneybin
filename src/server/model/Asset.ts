@@ -1,16 +1,18 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { Values } from '@/src/server/core/Values';
 import { Portfolio } from '@/src/server/model/Portfolio';
-import { assertId, parseBoolean, parseDate, parseString } from '@/src/server/utils';
+import { assertId, parseBoolean, parseDate, parseString, toRecord, toRow } from '@/src/server/utils';
 import type { AssetCreateData, AssetRecord, AssetRow, AssetUpdateData } from '@/src/shared/types/asset';
 import type { SQLInputValue } from 'node:sqlite';
 
 
 const COLS = {
-  type: 'type', liquidationLevel: 'liquidation_level', name: 'name', description: 'description',
-  status: 'status', archived: 'archived', icon: 'icon', color: 'color', street: 'street',
-  addressExtra: 'address_extra', postalCode: 'postal_code', city: 'city', region: 'region',
-  country: 'country', note: 'note', openedAt: 'opened_at', closedAt: 'closed_at'
+  id: 'id', portfolioId: 'portfolio_id', type: 'type', liquidationLevel: 'liquidation_level',
+  name: 'name', description: 'description', status: 'status', archived: 'archived',
+  icon: 'icon', color: 'color', street: 'street', addressExtra: 'address_extra',
+  postalCode: 'postal_code', city: 'city', region: 'region', country: 'country',
+  note: 'note', openedAt: 'opened_at', closedAt: 'closed_at',
+  createdAt: 'created_at', updatedAt: 'updated_at'
 };
 
 
@@ -21,14 +23,8 @@ export class Asset {
   }
 
   private static toRecord ( row: AssetRow ) : AssetRecord {
-    return {
-      id: row.id, portfolioId: row.portfolio_id, type: row.type, liquidationLevel: row.liquidation_level,
-      name: row.name, description: row.description, status: row.status, archived: !! row.archived,
-      icon: row.icon, color: row.color, street: row.street, addressExtra: row.address_extra,
-      postalCode: row.postal_code, city: row.city, region: row.region, country: row.country,
-      note: row.note, openedAt: row.opened_at, closedAt: row.closed_at, createdAt: row.created_at,
-      updatedAt: row.updated_at
-    };
+    const record = toRecord< AssetRecord >( row, COLS );
+    return { ...record, archived: !! record.archived };
   }
 
   private static validate ( data: AssetUpdateData ) : void {
@@ -51,17 +47,6 @@ export class Asset {
     data.closedAt = parseDate( data.closedAt, 'Closed at', true );
   }
 
-  public static assertAssetIdSafe ( assetId: string, userId: string ) : void {
-    assertId( assetId, 'asset' );
-
-    if ( ! conn().prepare( `
-      SELECT 1
-      FROM assets a
-      JOIN portfolio_members pm ON pm.portfolio_id = a.portfolio_id
-      WHERE a.id = ? AND pm.user_id = ?
-    ` ).get( assetId, userId ) ) throw new Error( `Asset ${ assetId } does not exist` );
-  }
-
   public static list ( portfolioId: string, userId: string ) : AssetRecord[] {
     Portfolio.assertMember( portfolioId, userId );
 
@@ -81,6 +66,7 @@ export class Asset {
   public static getSafe ( assetId: string, userId: string ) : AssetRecord {
     const asset = Asset.get( assetId, userId );
     if ( ! asset ) throw new Error( `Asset ${ assetId } does not exist` );
+
     return asset;
   }
 
@@ -113,35 +99,28 @@ export class Asset {
   }
 
   public static update ( assetId: string, userId: string, data: AssetUpdateData ) : AssetRecord {
-    const row = Asset.getRow( assetId );
-    if ( ! row ) throw new Error( `Asset ${ assetId } does not exist` );
-
-    Portfolio.assertEditable( row.portfolio_id, userId );
+    const asset = Asset.getSafe( assetId, userId );
+    Portfolio.assertEditable( asset.portfolioId, userId );
     Asset.validate( data );
 
-    const entries = Object.entries( COLS ).filter( ( [ k ] ) => data[ k as keyof AssetUpdateData ] !== undefined );
-    if ( ! entries.length ) return Asset.toRecord( row );
+    const entries = Object.entries( toRow( data, COLS ) );
+    if ( ! entries.length ) return asset;
 
-    const values = entries.map( ( [ key ] ) => {
-      const value = data[ key as keyof AssetUpdateData ];
-      return key === 'archived' ? Number( value ) : value;
-    } );
+    const values = entries.map( ( [ col, v ] ) => col === 'archived' ? Number( v ) : v );
 
     conn().prepare( `
       UPDATE assets
-      SET ${ entries.map( ( [ , column ] ) => `${ column } = ?` ).join( ', ' ) },
+      SET ${ entries.map( ( [ column ] ) => `${ column } = ?` ).join( ', ' ) },
           updated_at = strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' )
       WHERE id = ?
     ` ).run( ...values as SQLInputValue[], assetId );
 
-    return Asset.toRecord( Asset.getRow( assetId )! );
+    return Asset.getSafe( assetId, userId );
   }
 
   public static delete ( assetId: string, userId: string ) : void {
-    const row = Asset.getRow( assetId );
-    if ( ! row ) throw new Error( `Asset ${ assetId } does not exist` );
-
-    Portfolio.assertEditable( row.portfolio_id, userId );
+    const asset = Asset.getSafe( assetId, userId );
+    Portfolio.assertEditable( asset.portfolioId, userId );
     conn().prepare( 'DELETE FROM assets WHERE id = ?' ).run( assetId );
   }
 }
