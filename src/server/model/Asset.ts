@@ -30,4 +30,24 @@ export class Asset {
       updatedAt: row.updated_at
     };
   }
+
+  private static validate ( data: AssetUpdateData ) : void {
+    data.type = Values.validateAssetType( data.type ) ?? undefined;
+    data.liquidationLevel = Values.validateLiquidationLevel( data.liquidationLevel ) ?? undefined;
+    data.name = parseString( data.name, 'Name' );
+    data.description = parseString( data.description, 'Description', true );
+    data.status = Values.validateAssetStatus( data.status ) ?? undefined;
+    data.archived = parseBoolean( data.archived, 'Archived' );
+    data.icon = parseString( data.icon, 'Icon' );
+    data.color = parseString( data.color, 'Color' );
+    data.street = parseString( data.street, 'Street', true );
+    data.addressExtra = parseString( data.addressExtra, 'Address extra', true );
+    data.postalCode = parseString( data.postalCode, 'Postal code', true );
+    data.city = parseString( data.city, 'City', true );
+    data.region = parseString( data.region, 'Region', true );
+    data.country = parseString( data.country, 'Country', true );
+    data.note = parseString( data.note, 'Note', true );
+    data.openedAt = parseDate( data.openedAt, 'Opened at', true );
+    data.closedAt = parseDate( data.closedAt, 'Closed at', true );
+  }
 }
