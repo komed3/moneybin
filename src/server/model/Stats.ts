@@ -82,7 +82,7 @@ export class Stats {
       'SELECT id FROM assets WHERE portfolio_id = ?'
     ).all( portfolioId ) );
 
-    const rows = as< ( DailyValueRow & { asset_id: string } )[] >( conn().prepare( `
+    const rows = as< DailyValueRow[] >( conn().prepare( `
       SELECT v.*
       FROM asset_daily_values v
       JOIN assets a ON a.id = v.asset_id
