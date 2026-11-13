@@ -50,4 +50,15 @@ export class Asset {
     data.openedAt = parseDate( data.openedAt, 'Opened at', true );
     data.closedAt = parseDate( data.closedAt, 'Closed at', true );
   }
+
+  public static assertAssetIdSafe ( assetId: string, userId: string ) : void {
+    assertId( assetId, 'asset' );
+
+    if ( ! conn().prepare( `
+      SELECT 1
+      FROM assets a
+      JOIN portfolio_members pm ON pm.portfolio_id = a.portfolio_id
+      WHERE a.id = ? AND pm.user_id = ?
+    ` ).get( assetId, userId ) ) throw new Error( `Asset ${ assetId } does not exist` );
+  }
 }
