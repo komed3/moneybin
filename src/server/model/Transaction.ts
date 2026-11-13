@@ -130,4 +130,12 @@ export class Transaction {
     Portfolio.assertEditable( transaction.portfolioId, userId );
     conn().prepare( 'DELETE FROM transactions WHERE id = ?' ).run( transactionId );
   }
+
+  public static cleanupIfEmpty ( transactionId: string | null ) : void {
+    if ( ! transactionId ) return;
+
+    conn().prepare( `DELETE FROM transactions WHERE id = ? AND NOT EXISTS (
+      SELECT 1 FROM bookings WHERE transaction_id = ?
+    )` ).run( transactionId, transactionId );
+  }
 }
