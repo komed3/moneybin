@@ -1,8 +1,11 @@
 import { Config } from '@/src/server/core/Config';
 import { as, conn, db } from '@/src/server/core/Database';
-import { assertId } from '@/src/server/utils';
+import { assertId, toRecord } from '@/src/server/utils';
 import type { UserRecord, UserRow } from '@/src/shared/types/user';
 import { randomBytes, scrypt, timingSafeEqual } from 'node:crypto';
+
+
+const COLS = { id: 'id', username: 'username', createdAt: 'created_at', updatedAt: 'updated_at' };
 
 
 export class User {
@@ -12,7 +15,7 @@ export class User {
   }
 
   private static toRecord ( row: UserRow ) : UserRecord {
-    return { id: row.id, username: row.username, createdAt: row.created_at, updatedAt: row.updated_at };
+    return toRecord< UserRecord >( row, COLS );
   }
 
   private static hashPassword ( pw: string ) : Promise< string > {
@@ -76,6 +79,13 @@ export class User {
     return row ? User.toRecord( row ) : null;
   }
 
+  public static getSafe ( userId: string ) : UserRecord {
+    const row = User.getRow( userId );
+    if ( ! row ) throw new Error( `User ${ userId } does not exist` );
+
+    return User.toRecord( row );
+  }
+
   public static getByUsername ( username: string ) : UserRecord | null {
     const row = as< UserRow | null >( conn().prepare(
       'SELECT * FROM users WHERE username = ? COLLATE NOCASE'
@@ -106,9 +116,7 @@ export class User {
       return id;
     } );
 
-    const user = User.get( id );
-    if ( ! user ) throw new Error( 'Failed to create user' );
-    return user;
+    return User.getSafe( id );
   }
 
   public static changeUsername ( userId: string, username: string ) : UserRecord {
@@ -125,9 +133,7 @@ export class User {
       WHERE id = ?
     ` ).run( name, userId );
 
-    const user = User.get( userId );
-    if ( ! user ) throw new Error( 'User does not exist' );
-    return user;
+    return User.getSafe( userId );
   }
 
   public static async changePassword ( userId: string, newPw: string, currentPw: string ) : Promise< void > {
@@ -156,14 +162,8 @@ export class User {
     return !! user && await User.verifyHash( password, user.pw_hash );
   }
 
-  public static assertUserIdSafe ( userId: string ) : void {
-    assertId( userId, 'user' );
-    if ( ! conn().prepare( 'SELECT 1 FROM users WHERE id = ?' ).get( userId ) )
-      throw new Error( `User ${ userId } does not exist` );
-  }
-
   public static delete ( userId: string ) : void {
-    User.assertUserIdSafe( userId );
+    User.getSafe( userId );
 
     db.transaction( tx => {
       const persons = as< { count: number } >( tx.prepare(
