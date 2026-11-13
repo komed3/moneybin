@@ -48,3 +48,25 @@ export interface AssetRow {
   created_at: string;
   updated_at: string;
 }
+
+export interface AssetCreateData {
+  type: AssetType;
+  liquidationLevel: LiquidationLevel;
+  name: string;
+  description?: string | null;
+  status: AssetStatus;
+  archived?: boolean;
+  icon: string;
+  color: string;
+  street?: string | null;
+  addressExtra?: string | null;
+  postalCode?: string | null;
+  city?: string | null;
+  region?: string | null;
+  country?: string | null;
+  note?: string | null;
+  openedAt?: string | null;
+  closedAt?: string | null;
+}
+
+export type AssetUpdateData = Partial< AssetCreateData >;
