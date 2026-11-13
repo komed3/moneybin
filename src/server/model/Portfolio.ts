@@ -92,4 +92,24 @@ export class Portfolio {
     if ( ! [ 'owner', 'editor' ].includes( Portfolio.assertMember( portfolioId, userId ) ) )
       throw new Error( 'Only portfolio owners and editors can modify it' );
   }
+
+  public static list ( userId: string ) : PortfolioRecord[] {
+    User.assertUserIdSafe( userId );
+
+    return as< PortfolioRow[] >( conn().prepare( `
+      SELECT p.*
+      FROM portfolios p
+      JOIN portfolio_members pm ON pm.portfolio_id = p.id
+      WHERE pm.user_id = ?
+      ORDER BY p.name COLLATE NOCASE
+    ` ).all( userId ) ).map( Portfolio.toRecord );
+  }
+
+  public static listByPerson ( personId: string, userId: string ) : PortfolioRecord[] {
+    Person.assertPersonIdSafe( personId, userId );
+
+    return as< PortfolioRow[] >( conn().prepare(
+      'SELECT * FROM portfolios WHERE person_id = ? ORDER BY name COLLATE NOCASE'
+    ).all( personId ) ).map( Portfolio.toRecord );
+  }
 }
