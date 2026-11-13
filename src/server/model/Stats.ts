@@ -8,9 +8,8 @@ import type { StatsBookingRow, StatsDailyValue, StatsYearlyRow } from '@/src/sha
 export class Stats {
   private static toDailyValue ( row: DailyValueRow ) : StatsDailyValue {
     return {
-      valueDate: row.value_date, quality: row.quality, open: row.open,
-      high: row.high, low: row.low, close: row.close,
-      change: row.change, changePercent: row.change_percent
+      valueDate: row.value_date, quality: row.quality, open: row.open, high: row.high,
+      low: row.low, close: row.close, change: row.change, changePercent: row.change_percent
     };
   }
 }
