@@ -114,4 +114,10 @@ export class Transaction {
 
     return Transaction.getSafe( transactionId, userId );
   }
+
+  public static delete ( transactionId: string, userId: string ) : void {
+    const transaction = Transaction.getSafe( transactionId, userId );
+    Portfolio.assertEditable( transaction.portfolioId, userId );
+    conn().prepare( 'DELETE FROM transactions WHERE id = ?' ).run( transactionId );
+  }
 }
