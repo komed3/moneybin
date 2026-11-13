@@ -14,3 +14,7 @@ auth.get( '/env', ( _, res ) => res.json( {
   defaultCurrency: Config.get( 'APP_DEFAULT_CURRENCY' ),
   passwordStrict: Config.get( 'PASSWORD_STRICT' )
 } ) );
+
+auth.post( '/login', async ( req, res ) => res.json( await Auth.login( req.body?.username, req.body?.password ) ) );
+auth.get( '/me', requireAuth, ( _, res ) => res.json( { user: res.locals.user } ) );
+auth.patch( '/me', requireAuth, ( req, res ) => res.json( User.changeUsername( res.locals.user.id, req.body?.username ) ) );
