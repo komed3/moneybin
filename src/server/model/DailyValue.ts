@@ -31,4 +31,27 @@ export class DailyValues {
       'SELECT * FROM asset_daily_values WHERE asset_id = ? ORDER BY value_date'
     ).all( assetId ) ).map( DailyValues.toRecord );
   }
+
+  public static get ( assetId: string, userId: string, valueDate: string ) : DailyValueRecord {
+    Asset.getSafe( assetId, userId );
+    valueDate = parseDate( valueDate, 'Value date' );
+
+    const row = as< DailyValueRow | null >( conn().prepare( `
+      SELECT *
+      FROM asset_daily_values
+      WHERE asset_id = ? AND value_date <= ?
+      ORDER BY value_date DESC
+      LIMIT 1
+    ` ).get( assetId, valueDate ) );
+
+    const dailyValue = row ? DailyValues.toRecord( row ) : null;
+    if ( dailyValue?.valueDate === valueDate ) return dailyValue;
+
+    const close = dailyValue?.close ?? 0;
+
+    return {
+      assetId, valueDate, quality: dailyValue?.quality ?? 0, open: close,
+      high: close, low: close, close, change: 0, changePercent: 0
+    };
+  }
 }
