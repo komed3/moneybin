@@ -4,7 +4,34 @@ import { Asset } from '@/src/server/model/Asset';
 import { DailyValues } from '@/src/server/model/DailyValues';
 import { Portfolio } from '@/src/server/model/Portfolio';
 import { Stats } from '@/src/server/model/Stats';
+import type { AssetRecord } from '@/src/shared/types/asset';
 import { Command } from 'commander';
+
+
+const forEachPortfolio = ( callback: ( portfolioId: string, userId: string ) => number ) : number => {
+  const portfolios = new Set< string >();
+  let count = 0;
+
+  User.list().forEach( ( { id: userId } ) => {
+    Portfolio.list( userId ).forEach( ( { id: portfolioId } ) => {
+      if ( portfolios.has( portfolioId ) ) return;
+      portfolios.add( portfolioId );
+
+      count += callback( portfolioId, userId );
+    } );
+  } );
+
+  return count;
+};
+
+const forEachAsset = ( callback: ( asset: AssetRecord, userId: string ) => void ) : number => {
+  return forEachPortfolio( ( portfolioId, userId ) => {
+    const assets = Asset.list( portfolioId, userId );
+    assets.forEach( asset => callback( asset, userId ) );
+
+    return assets.length;
+  } );
+}
 
 
 export const registerDataCommands = ( program: Command ) : void => {
@@ -16,21 +43,7 @@ export const registerDataCommands = ( program: Command ) : void => {
     .command( 'daily' )
     .description( 'Rebuild daily asset values' )
     .action( () => {
-      const portfolios = new Set< string >();
-      let count = 0;
-
-      User.list().forEach( user => {
-        Portfolio.list( user.id ).forEach( portfolio => {
-          if ( portfolios.has( portfolio.id ) ) return;
-          portfolios.add( portfolio.id );
-
-          Asset.list( portfolio.id, user.id ).forEach( asset => {
-            DailyValues.recalculate( asset.id, user.id, true );
-            count++;
-          } );
-        } );
-      } );
-
+      const count = forEachAsset( ( asset, userId ) => DailyValues.recalculate( asset.id, userId, true ) );
       ui.success( `Updated daily values for ${ count } asset(s).` );
     } );
 
@@ -38,21 +51,7 @@ export const registerDataCommands = ( program: Command ) : void => {
     .command( 'assets' )
     .description( 'Rebuild yearly asset statistics' )
     .action( () => {
-      const portfolios = new Set< string >();
-      let count = 0;
-
-      User.list().forEach( user => {
-        Portfolio.list( user.id ).forEach( portfolio => {
-          if ( portfolios.has( portfolio.id ) ) return;
-          portfolios.add( portfolio.id );
-
-          Asset.list( portfolio.id, user.id ).forEach( asset => {
-            Stats.recalculateAsset( asset, user.id, true );
-            count++;
-          } );
-        } );
-      } );
-
+      const count = forEachAsset( ( asset, userId ) => Stats.recalculateAsset( asset, userId, true ) );
       ui.success( `Updated yearly statistics for ${ count } asset(s).` );
     } );
 
@@ -60,19 +59,11 @@ export const registerDataCommands = ( program: Command ) : void => {
     .command( 'portfolios' )
     .description( 'Rebuild yearly portfolio statistics' )
     .action( () => {
-      const portfolios = new Set< string >();
-      let count = 0;
-
-      User.list().forEach( user => {
-        Portfolio.list( user.id ).forEach( portfolio => {
-          if ( portfolios.has( portfolio.id ) ) return;
-          portfolios.add( portfolio.id );
-
-          Stats.recalculatePortfolio( portfolio.id, user.id );
-          count++;
-        } );
+      const count = forEachPortfolio( ( portfolioId, userId ) => {
+        Stats.recalculatePortfolio( portfolioId, userId );
+        return 1;
       } );
 
       ui.success( `Updated yearly statistics for ${ count } portfolio(s).` );
     } );
-}
+};
