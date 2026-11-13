@@ -50,4 +50,12 @@ export class Booking {
     if ( ! data.valueDate ) throw new Error( 'At least one booking date is required' );
     data.bookingDate ??= data.valueDate;
   }
+
+  private static cleanupTransaction ( transactionId: string | null ) : void {
+    if ( ! transactionId ) return;
+
+    conn().prepare( `DELETE FROM transactions WHERE id = ? AND NOT EXISTS (
+      SELECT 1 FROM bookings WHERE transaction_id = ?
+    )` ).run( transactionId, transactionId );
+  }
 }
