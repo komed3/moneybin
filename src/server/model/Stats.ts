@@ -1,8 +1,31 @@
 import { as, conn } from '@/src/server/core/Database';
+import { Asset } from '@/src/server/model/Asset';
 import { Portfolio } from '@/src/server/model/Portfolio';
+import { toRecord, toRow } from '@/src/server/utils';
 import type { AssetRecord } from '@/src/shared/types/asset';
 import type { DailyValueRow } from '@/src/shared/types/daily';
-import type { StatsBookingRow, StatsDailyValue, StatsYearlyRow } from '@/src/shared/types/stats';
+import type {
+  StatsAssetYearlyRow, StatsBookingRow, StatsDailyValue, StatsPortfolioYearlyRecord,
+  StatsPortfolioYearlyRow, StatsYearlyRecord
+} from '@/src/shared/types/stats';
+import type { SQLInputValue } from 'node:sqlite';
+
+
+const YEARLY_COLS = {
+  year: 'year', quality: 'quality', open: 'open', high: 'high', low: 'low', close: 'close',
+  change: 'change', changePercent: 'change_percent', averageValue: 'average_value',
+  volatility: 'volatility', maxDrawdown: 'max_drawdown', maxDrawdownPercent: 'max_drawdown_percent',
+  bookingCount: 'booking_count', positiveChange: 'positive_change', negativeChange: 'negative_change',
+  averageChange: 'average_change', bestDay: 'best_day', worstDay: 'worst_day',
+  bestDayPercent: 'best_day_percent', worstDayPercent: 'worst_day_percent'
+};
+
+const ASSET_COLS = { assetId: 'asset_id', ...YEARLY_COLS };
+
+const PORTFOLIO_COLS = {
+  portfolioId: 'portfolio_id', assetCount: 'asset_count',
+  activeAssetCount: 'active_asset_count', ...YEARLY_COLS
+};
 
 
 export class Stats {
@@ -13,7 +36,7 @@ export class Stats {
     };
   }
 
-  private static calculate ( values: StatsDailyValue[], bookings: Map< number, number > ) : StatsYearlyRow[] {
+  private static calculate ( values: StatsDailyValue[], bookings: Map< number, number > ) : StatsYearlyRecord[] {
     const years = new Map< number, StatsDailyValue[] >();
 
     values.forEach( value => {
@@ -50,14 +73,14 @@ export class Stats {
 
       return {
         year, quality: quality / entries.length, open, high, low, close: last.close,
-        change, change_percent: open === null || open === 0 ? null : change / open * 100,
-        average_value: average / entries.length, volatility, max_drawdown: maxDrawdown,
-        max_drawdown_percent: maxDrawdownPercent, booking_count: bookings.get( year ) ?? 0,
-        positive_change: pos.reduce( ( sum, { change } ) => sum + change!, 0 ),
-        negative_change: neg.reduce( ( sum, { change } ) => sum + change!, 0 ),
-        average_change: changes.length ? changes.reduce( ( sum, { change } ) => sum + change!, 0 ) / changes.length : null,
-        best_day: best?.change ?? null, worst_day: worst?.change ?? null,
-        best_day_percent: best?.changePercent ?? null, worst_day_percent: worst?.changePercent ?? null
+        change, changePercent: open === null || open === 0 ? null : change / open * 100,
+        averageValue: average / entries.length, volatility, maxDrawdown, maxDrawdownPercent,
+        bookingCount: bookings.get( year ) ?? 0,
+        positiveChange: pos.reduce( ( sum, { change } ) => sum + change!, 0 ),
+        negativeChange: neg.reduce( ( sum, { change } ) => sum + change!, 0 ),
+        averageChange: changes.length ? changes.reduce( ( sum, { change } ) => sum + change!, 0 ) / changes.length : null,
+        bestDay: best?.change ?? null, worstDay: worst?.change ?? null,
+        bestDayPercent: best?.changePercent ?? null, worstDayPercent: worst?.changePercent ?? null
       };
     } ).sort( ( a, b ) => a.year - b.year );
   }
@@ -156,12 +179,9 @@ export class Stats {
       ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
     ` );
 
-    stats.forEach( v => insert.run(
-      assetId, v.year, v.quality, v.open, v.high, v.low, v.close, v.change, v.change_percent,
-      v.average_value, v.volatility, v.max_drawdown, v.max_drawdown_percent, v.booking_count,
-      v.positive_change, v.negative_change, v.average_change, v.best_day, v.worst_day,
-      v.best_day_percent, v.worst_day_percent
-    ) );
+    stats.forEach( row => {
+      insert.run( ...Object.values( toRow( { assetId, ...row }, ASSET_COLS ) ) as SQLInputValue[] );
+    } );
   }
 
   private static recalculatePortfolioData ( portfolioId: string ) : void {
@@ -185,12 +205,27 @@ export class Stats {
       ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
     ` );
 
-    stats.forEach( v => insert.run(
-      portfolioId, v.year, v.quality, v.open, v.high, v.low, v.close, v.change, v.change_percent,
-      v.average_value, v.volatility, v.max_drawdown, v.max_drawdown_percent, assetCount,
-      bookings.get( v.year )?.active_asset_count ?? 0, v.booking_count, v.positive_change,
-      v.negative_change, v.average_change, v.best_day, v.worst_day, v.best_day_percent, v.worst_day_percent
-    ) );
+    stats.forEach( row => {
+      insert.run( ...Object.values( toRow( {
+        portfolioId, assetCount, ...row, activeAssetCount: bookings.get( row.year )?.active_asset_count ?? 0
+      }, PORTFOLIO_COLS ) ) as SQLInputValue[] );
+    } );
+  }
+
+  public static listAsset ( assetId: string, userId: string ) : StatsYearlyRecord[] {
+    Asset.getSafe( assetId, userId );
+
+    return as< StatsAssetYearlyRow[] >( conn().prepare(
+      'SELECT * FROM asset_yearly_stats WHERE asset_id = ? ORDER BY year'
+    ).all( assetId ) ).map( row => toRecord< StatsYearlyRecord >( row, YEARLY_COLS ) );
+  }
+
+  public static listPortfolio ( portfolioId: string, userId: string ) : StatsPortfolioYearlyRecord[] {
+    Portfolio.assertMember( portfolioId, userId );
+
+    return as< StatsPortfolioYearlyRow[] >( conn().prepare(
+      'SELECT * FROM portfolio_yearly_stats WHERE portfolio_id = ? ORDER BY year'
+    ).all( portfolioId ) ).map( row => toRecord< StatsPortfolioYearlyRecord >( row, PORTFOLIO_COLS ) );
   }
 
   public static recalculateAsset ( asset: AssetRecord, userId: string, holdPortfolioStats = false ) : void {
