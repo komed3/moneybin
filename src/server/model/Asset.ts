@@ -83,4 +83,32 @@ export class Asset {
     if ( ! asset ) throw new Error( `Asset ${ assetId } does not exist` );
     return asset;
   }
+
+  public static create ( portfolioId: string, userId: string, data: AssetCreateData ) : AssetRecord {
+    Asset.validate( data );
+    Portfolio.assertEditable( portfolioId, userId );
+
+    if ( ! data.type || ! data.liquidationLevel || ! data.name || ! data.status || ! data.icon || ! data.color )
+      throw new Error( 'Asset is missing required fields' );
+
+    const id = db.createWithId( id => {
+      conn().prepare( `
+        INSERT INTO assets (
+          id, portfolio_id, type, liquidation_level, name, description, status, archived,
+          icon, color, street, address_extra, postal_code, city, region, country, note,
+          opened_at, closed_at
+        ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
+      ` ).run(
+        id, portfolioId, data.type, data.liquidationLevel, data.name, data.description ?? null,
+        data.status, Number( data.archived ?? false ), data.icon, data.color,
+        data.street ?? null, data.addressExtra ?? null, data.postalCode ?? null,
+        data.city ?? null, data.region ?? null, data.country ?? null, data.note ?? null,
+        data.openedAt ?? null, data.closedAt ?? null
+      );
+
+      return id;
+    } );
+
+    return Asset.toRecord( Asset.getRow( id )! );
+  }
 }
