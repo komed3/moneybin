@@ -7,3 +7,26 @@ import type {
   TransactionCreateData, TransactionRecord, TransactionUpdateData,
   TransactionWithPortfolio
 } from '@/src/shared/types/transaction';
+
+
+export class Transaction {
+  private static getRow ( transactionId: string ) : TransactionWithPortfolio | null {
+    assertId( transactionId, 'transaction' );
+
+    return as< TransactionWithPortfolio | null >( conn().prepare( `
+      SELECT t.*, a.portfolio_id
+      FROM transactions t
+      JOIN bookings b ON b.transaction_id = t.id
+      JOIN assets a ON a.id = b.asset_id
+      WHERE t.id = ?
+      GROUP BY t.id
+    ` ).get( transactionId ) );
+  }
+
+  private static toRecord ( row: TransactionWithPortfolio, userId: string ) : TransactionRecord {
+    return {
+      id: row.id, portfolioId: row.portfolio_id, note: row.note, createdAt: row.created_at,
+      bookings: Booking.listByTransaction( row.id, row.portfolio_id, userId )
+    };
+  }
+}
