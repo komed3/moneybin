@@ -103,7 +103,7 @@ export class Stats {
     return dates.map( valueDate => {
       updates.get( valueDate )?.forEach( row => latest.set( row.asset_id, row ) );
 
-      let quality = 0, weight = 0, open = 0, high = 0, low = 0, close = 0;
+      let quality = 0, weight = 0, open = 0, high = -Infinity, low = Infinity, close = 0;
 
       assets.forEach( asset => {
         const value = latest.get( asset.id );
