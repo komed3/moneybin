@@ -3,6 +3,7 @@ import { Asset } from '@/src/server/model/Asset';
 import { Booking } from '@/src/server/model/Booking';
 import { DailyValues } from '@/src/server/model/DailyValues';
 import { Portfolio } from '@/src/server/model/Portfolio';
+import { Stats } from '@/src/server/model/Stats';
 import { assertId, parseString } from '@/src/server/utils';
 import type {
   TransactionCreateData, TransactionRecord, TransactionUpdateData,
@@ -101,8 +102,11 @@ export class Transaction {
 
     const id = db.transaction( tx => db.createWithId( id => {
       tx.prepare( 'INSERT INTO transactions ( id, note ) VALUES ( ?, ? )' ).run( id, data.note ?? null );
+
       data.bookings.forEach( booking => Booking.create( userId, { ...booking, transactionId: id }, true ) );
-      assetIds.forEach( assetId => DailyValues.recalculate( assetId, userId ) );
+      assetIds.forEach( assetId => DailyValues.recalculate( assetId, userId, true ) );
+      Stats.recalculatePortfolio( portfolioId, userId );
+
       return id;
     } ) );
 
