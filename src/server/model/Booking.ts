@@ -1,6 +1,7 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { Values } from '@/src/server/core/Values';
 import { Asset } from '@/src/server/model/Asset';
+import { DailyValues } from '@/src/server/model/DailyValues';
 import { Portfolio } from '@/src/server/model/Portfolio';
 import { Transaction } from '@/src/server/model/Transaction';
 import { assertId, parseDate, parseNumber, parseString, toRecord, toRow } from '@/src/server/utils';
@@ -135,6 +136,7 @@ export class Booking {
       return id;
     } );
 
+    DailyValues.recalculate( asset.id, userId );
     return Booking.getSafe( id, userId );
   }
 
@@ -170,6 +172,9 @@ export class Booking {
     if ( booking.transactionId && booking.transactionId !== transactionId )
       Booking.cleanupTransaction( booking.transactionId );
 
+    DailyValues.recalculate( originalAsset.id, userId );
+    if ( asset.id !== originalAsset.id ) DailyValues.recalculate( asset.id, userId );
+
     return Booking.getSafe( bookingId, userId );
   }
 
@@ -180,5 +185,6 @@ export class Booking {
     Portfolio.assertEditable( asset.portfolioId, userId );
     conn().prepare( 'DELETE FROM bookings WHERE id = ?' ).run( bookingId );
     Booking.cleanupTransaction( booking.transactionId );
+    DailyValues.recalculate( asset.id, userId );
   }
 }
