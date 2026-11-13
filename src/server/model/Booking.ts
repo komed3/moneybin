@@ -172,4 +172,13 @@ export class Booking {
 
     return Booking.getSafe( bookingId, userId );
   }
+
+  public static delete ( bookingId: string, userId: string ) : void {
+    const booking = Booking.getSafe( bookingId, userId );
+    const asset = Asset.getSafe( booking.assetId, userId );
+
+    Portfolio.assertEditable( asset.portfolioId, userId );
+    conn().prepare( 'DELETE FROM bookings WHERE id = ?' ).run( bookingId );
+    Booking.cleanupTransaction( booking.transactionId );
+  }
 }
