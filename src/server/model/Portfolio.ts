@@ -56,4 +56,40 @@ export class Portfolio {
     data.currency = Values.validateCurrencyCode( data.currency ) ?? undefined;
     data.note = parseString( data.note, 'Note', true );
   }
+
+  private static assertAtLeastOneOwner (
+    tx: DatabaseSync, portfolioId: string, currentRole: PortfolioMemberRole, memberRole?: PortfolioMemberRole
+  ) : void {
+    if ( currentRole === 'owner' && memberRole !== 'owner' ) {
+      const owners = as< { count: number } >( tx.prepare(
+        `SELECT COUNT(*) AS count FROM portfolio_members WHERE portfolio_id = ? AND role = 'owner'`
+      ).get( portfolioId ) ).count;
+
+      if ( owners <= 1 ) throw new Error( 'A portfolio must have an owner' );
+    }
+  }
+
+  public static assertPortfolioIdSafe ( portfolioId: string ) : void {
+    if ( ! Portfolio.getRow( portfolioId ) ) throw new Error( `Portfolio ${ portfolioId } does not exist` );
+  }
+
+  public static assertMember ( portfolioId: string, userId: string ) : PortfolioMemberRole {
+    assertId( portfolioId, 'portfolio' );
+    User.assertUserIdSafe( userId );
+
+    const role = Portfolio.getMemberRole( portfolioId, userId );
+    if ( ! role ) throw new Error( 'User is not a portfolio member' );
+
+    return role;
+  }
+
+  public static assertOwner ( portfolioId: string, userId: string ) : void {
+    if ( Portfolio.assertMember( portfolioId, userId ) !== 'owner' )
+      throw new Error( 'Only portfolio owners can perform this action' );
+  }
+
+  public static assertEditable ( portfolioId: string, userId: string ) : void {
+    if ( ! [ 'owner', 'editor' ].includes( Portfolio.assertMember( portfolioId, userId ) ) )
+      throw new Error( 'Only portfolio owners and editors can modify it' );
+  }
 }
