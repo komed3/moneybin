@@ -176,4 +176,9 @@ export class Portfolio {
     if ( ! result.changes ) throw new Error( 'Portfolio does not exist' );
     return Portfolio.getSafe( portfolioId );
   }
+
+  public static delete ( portfolioId: string, userId: string ) : void {
+    Portfolio.assertOwner( portfolioId, userId );
+    conn().prepare( 'DELETE FROM portfolios WHERE id = ?' ).run( portfolioId );
+  }
 }
