@@ -55,4 +55,24 @@ export const registerDataCommands = ( program: Command ) : void => {
 
       ui.success( `Updated yearly statistics for ${ count } asset(s).` );
     } );
+
+  dataCommand
+    .command( 'portfolios' )
+    .description( 'Rebuild yearly portfolio statistics' )
+    .action( () => {
+      const portfolios = new Set< string >();
+      let count = 0;
+
+      User.list().forEach( user => {
+        Portfolio.list( user.id ).forEach( portfolio => {
+          if ( portfolios.has( portfolio.id ) ) return;
+          portfolios.add( portfolio.id );
+
+          Stats.recalculatePortfolio( portfolio.id, user.id );
+          count++;
+        } );
+      } );
+
+      ui.success( `Updated yearly statistics for ${ count } portfolio(s).` );
+    } );
 }
