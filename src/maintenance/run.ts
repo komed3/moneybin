@@ -2,6 +2,7 @@
 
 import { registerAuthCommands } from '@/src/maintenance/commands/auth';
 import { registerConfigCommands } from '@/src/maintenance/commands/config';
+import { registerDataCommands } from '@/src/maintenance/commands/data';
 import { registerDbCommands } from '@/src/maintenance/commands/db';
 import { registerInitCommands } from '@/src/maintenance/commands/init';
 import { registerUserCommands } from '@/src/maintenance/commands/user';
@@ -26,6 +27,7 @@ moneybin.commandsGroup( 'System:' );
 registerInitCommands( moneybin );
 registerConfigCommands( moneybin );
 registerDbCommands( moneybin );
+registerDataCommands( moneybin );
 
 moneybin.commandsGroup( 'Users & Accounts:' );
 registerUserCommands( moneybin );
