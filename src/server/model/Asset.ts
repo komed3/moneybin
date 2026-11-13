@@ -111,4 +111,29 @@ export class Asset {
 
     return Asset.toRecord( Asset.getRow( id )! );
   }
+
+  public static update ( assetId: string, userId: string, data: AssetUpdateData ) : AssetRecord {
+    const row = Asset.getRow( assetId );
+    if ( ! row ) throw new Error( `Asset ${ assetId } does not exist` );
+
+    Portfolio.assertEditable( row.portfolio_id, userId );
+    Asset.validate( data );
+
+    const entries = Object.entries( COLS ).filter( ( [ k ] ) => data[ k as keyof AssetUpdateData ] !== undefined );
+    if ( ! entries.length ) return Asset.toRecord( row );
+
+    const values = entries.map( ( [ key ] ) => {
+      const value = data[ key as keyof AssetUpdateData ];
+      return key === 'archived' ? Number( value ) : value;
+    } );
+
+    conn().prepare( `
+      UPDATE assets
+      SET ${ entries.map( ( [ , column ] ) => `${ column } = ?` ).join( ', ' ) },
+          updated_at = strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' )
+      WHERE id = ?
+    ` ).run( ...values as SQLInputValue[], assetId );
+
+    return Asset.toRecord( Asset.getRow( assetId )! );
+  }
 }
