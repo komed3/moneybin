@@ -54,4 +54,9 @@ export class DailyValues {
       high: close, low: close, close, change: 0, changePercent: 0
     };
   }
+
+  public static delete ( assetId: string, userId: string ) : void {
+    Asset.getSafe( assetId, userId );
+    conn().prepare( 'DELETE FROM asset_daily_values WHERE asset_id = ?' ).run( assetId );
+  }
 }
