@@ -42,7 +42,7 @@ export class UserPrefs {
   }
 
   public static get < K extends UserPrefName > ( userId: string, name: K ) : UserPrefValue< K > {
-    User.assertUserIdSafe( userId );
+    User.getSafe( userId );
 
     const key = this.resolveName( name ), row = as< UserPrefRow | null >( conn().prepare(
       'SELECT * FROM user_preferences WHERE user_id = ? AND key = ?'
@@ -52,7 +52,7 @@ export class UserPrefs {
   }
 
   public static all ( userId: string ) : UserPrefSchema {
-    User.assertUserIdSafe( userId );
+    User.getSafe( userId );
 
     const result = Object.fromEntries( Object.entries( this.schema )
       .map( ( [ n, d ] ) => [ n, d.default ] ) ) as unknown as UserPrefSchema;
@@ -71,10 +71,8 @@ export class UserPrefs {
     return result;
   }
 
-  public static set < K extends UserPrefName > (
-    userId: string, name: K, value: UserPrefValue< K >
-  ) : UserPrefValue< K > {
-    User.assertUserIdSafe( userId );
+  public static set < K extends UserPrefName > ( userId: string, name: K, value: UserPrefValue< K > ) : UserPrefValue< K > {
+    User.getSafe( userId );
 
     const key = this.resolveName( name );
     const parsed = this.validate( key, value ) as UserPrefValue< K >;
@@ -90,7 +88,7 @@ export class UserPrefs {
   }
 
   public static reset ( userId: string, name: UserPrefName ) : boolean {
-    User.assertUserIdSafe( userId );
+    User.getSafe( userId );
 
     const key = this.resolveName( name );
     const result = conn().prepare(
@@ -101,7 +99,7 @@ export class UserPrefs {
   }
 
   public static resetAll ( userId: string ) : number {
-    User.assertUserIdSafe( userId );
+    User.getSafe( userId );
     const result = conn().prepare( 'DELETE FROM user_preferences WHERE user_id = ?' ).run( userId );
     return Number( result.changes );
   }
