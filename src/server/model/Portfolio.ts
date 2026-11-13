@@ -141,13 +141,11 @@ export class Portfolio {
     Person.assertPersonIdSafe( data.personId, userId );
 
     const id = db.transaction( tx => db.createWithId( id => {
-      tx.prepare(
-        'INSERT INTO portfolios ( id, person_id, name, description, currency, note ) VALUES ( ?, ?, ?, ?, ?, ? )'
-      ).run( id, data.personId, data.name, data.description ?? null, data.currency, data.note ?? null );
+      tx.prepare( 'INSERT INTO portfolios ( id, person_id, name, description, currency, note ) VALUES ( ?, ?, ?, ?, ?, ? )' )
+        .run( id, data.personId, data.name, data.description ?? null, data.currency, data.note ?? null );
 
-      tx.prepare(
-        `INSERT INTO portfolio_members ( portfolio_id, user_id, role ) VALUES ( ?, ?, 'owner' )`
-      ).run( id, userId );
+      tx.prepare( `INSERT INTO portfolio_members ( portfolio_id, user_id, role ) VALUES ( ?, ?, 'owner' )` )
+        .run( id, userId );
 
       return id;
     } ) );
@@ -180,5 +178,75 @@ export class Portfolio {
   public static delete ( portfolioId: string, userId: string ) : void {
     Portfolio.assertOwner( portfolioId, userId );
     conn().prepare( 'DELETE FROM portfolios WHERE id = ?' ).run( portfolioId );
+  }
+
+  public static listMembers ( portfolioId: string, userId: string ) : PortfolioMemberRecord[] {
+    Portfolio.assertMember( portfolioId, userId );
+
+    return as< PortfolioMemberRow[] >( conn().prepare( `
+      SELECT pm.*, u.username
+      FROM portfolio_members pm
+      JOIN users u ON u.id = pm.user_id
+      WHERE pm.portfolio_id = ?
+      ORDER BY
+        CASE pm.role WHEN 'owner' THEN 0 WHEN 'editor' THEN 1 ELSE 2 END,
+        u.username COLLATE NOCASE
+    ` ).all( portfolioId ) ).map( Portfolio.toMemberRecord );
+  }
+
+  public static addMember (
+    portfolioId: string, userId: string, memberId: string, role: PortfolioMemberRole = 'viewer'
+  ) : PortfolioMemberRecord {
+    Portfolio.assertOwner( portfolioId, userId );
+    User.assertUserIdSafe( memberId );
+
+    conn().prepare( 'INSERT INTO portfolio_members ( portfolio_id, user_id, role ) VALUES ( ?, ?, ? )' )
+      .run( portfolioId, memberId, Values.validatePortfolioMemberRole( role, true )! );
+
+    const member = Portfolio.getMemberRow( portfolioId, memberId );
+    if ( ! member ) throw new Error( 'Failed to add portfolio member' );
+
+    return Portfolio.toMemberRecord( member );
+  }
+
+  public static updateMemberRole (
+    portfolioId: string, userId: string, memberId: string, role: PortfolioMemberRole
+  ) : PortfolioMemberRecord {
+    const memberRole = Values.validatePortfolioMemberRole( role, true )!;
+
+    db.transaction( tx => {
+      Portfolio.assertOwner( portfolioId, userId );
+      User.assertUserIdSafe( memberId );
+
+      const currentRole = Portfolio.getMemberRole( portfolioId, memberId );
+      if ( ! currentRole ) throw new Error( 'Portfolio member does not exist' );
+
+      Portfolio.assertAtLeastOneOwner( tx, portfolioId, currentRole, memberRole );
+
+      tx.prepare( 'UPDATE portfolio_members SET role = ? WHERE portfolio_id = ? AND user_id = ?' )
+        .run( memberRole, portfolioId, memberId );
+    } );
+
+    const member = Portfolio.getMemberRow( portfolioId, memberId );
+    if ( ! member ) throw new Error( 'Portfolio member does not exist' );
+
+    return Portfolio.toMemberRecord( member );
+  }
+
+  public static removeMember ( portfolioId: string, userId: string, memberId: string ) : void {
+    db.transaction( tx => {
+      Portfolio.assertOwner( portfolioId, userId );
+      User.assertUserIdSafe( memberId );
+
+      const currentRole = Portfolio.getMemberRole( portfolioId, memberId );
+      if ( ! currentRole ) throw new Error( 'Portfolio member does not exist' );
+
+      Portfolio.assertAtLeastOneOwner( tx, portfolioId, currentRole );
+
+      const result = tx.prepare( 'DELETE FROM portfolio_members WHERE portfolio_id = ? AND user_id = ?' )
+        .run( portfolioId, memberId );
+
+      if ( ! result.changes ) throw new Error( 'Portfolio member does not exist' );
+    } );
   }
 }
