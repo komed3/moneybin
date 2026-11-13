@@ -127,4 +127,19 @@ export class Stats {
       };
     } );
   }
+
+  private static getPortfolioBookings ( portfolioId: string ) : Map< number, StatsBookingRow > {
+    const rows = as< StatsBookingRow[] >( conn().prepare( `
+      SELECT
+        CAST( substr( b.value_date, 1, 4 ) AS INTEGER ) AS year,
+        COUNT(*) AS booking_count,
+        COUNT( DISTINCT b.asset_id ) AS active_asset_count
+      FROM bookings b
+      JOIN assets a ON a.id = b.asset_id
+      WHERE a.portfolio_id = ?
+      GROUP BY year
+    ` ).all( portfolioId ) );
+
+    return new Map( rows.map( row => [ row.year, row ] ) );
+  }
 }
