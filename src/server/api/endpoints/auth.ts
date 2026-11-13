@@ -23,3 +23,8 @@ auth.put( '/password', requireAuth, async ( req, res ) => {
   await User.changePassword( res.locals.user.id, req.body?.newPassword, req.body?.currentPassword );
   res.status( 204 ).end();
 } );
+
+auth.post( '/logout', requireAuth, ( req, res ) => {
+  Auth.logout( req.get( 'authorization' )?.match( /^Bearer\s+(\S+)$/i )?.[ 1 ] );
+  res.status( 204 ).end();
+} );
