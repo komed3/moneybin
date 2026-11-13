@@ -21,6 +21,7 @@ const YEARLY_COLS = {
 };
 
 const ASSET_COLS = { assetId: 'asset_id', ...YEARLY_COLS };
+const PORTFOLIO_RECORD_COLS = { ...YEARLY_COLS, assetCount: 'asset_count', activeAssetCount: 'active_asset_count' };
 
 const PORTFOLIO_COLS = {
   portfolioId: 'portfolio_id', assetCount: 'asset_count',
@@ -235,7 +236,7 @@ export class Stats {
 
     return as< PortfolioYearlyRow[] >( conn().prepare(
       'SELECT * FROM portfolio_yearly_stats WHERE portfolio_id = ? ORDER BY year'
-    ).all( portfolioId ) ).map( row => toRecord< PortfolioYearlyRecord >( row, PORTFOLIO_COLS ) );
+    ).all( portfolioId ) ).map( row => toRecord< PortfolioYearlyRecord >( row, PORTFOLIO_RECORD_COLS ) );
   }
 
   public static getPortfolioYear ( portfolioId: string, year: number, userId: string ) : PortfolioYearlyRecord | null {
@@ -245,7 +246,7 @@ export class Stats {
       'SELECT * FROM portfolio_yearly_stats WHERE portfolio_id = ? AND year = ?'
     ).get( portfolioId, year ) );
 
-    return row ? toRecord< PortfolioYearlyRecord >( row, PORTFOLIO_COLS ) : null;
+    return row ? toRecord< PortfolioYearlyRecord >( row, PORTFOLIO_RECORD_COLS ) : null;
   }
 
   public static recalculateAsset ( asset: AssetRecord, userId: string, holdPortfolioStats = false ) : void {
