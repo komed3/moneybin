@@ -61,4 +61,19 @@ export class Stats {
       };
     } ).sort( ( a, b ) => a.year - b.year );
   }
+
+  private static getAssetValues ( assetId: string ) : StatsDailyValue[] {
+    return as< DailyValueRow[] >( conn().prepare(
+      'SELECT * FROM asset_daily_values WHERE asset_id = ? ORDER BY value_date'
+    ).all( assetId ) ).map( Stats.toDailyValue );
+  }
+
+  private static getAssetBookings ( assetId: string ) : Map< number, number > {
+    const rows = as< StatsBookingRow[] >( conn().prepare( `
+      SELECT CAST( substr( value_date, 1, 4 ) AS INTEGER ) AS year, COUNT(*) AS booking_count
+      FROM bookings WHERE asset_id = ? GROUP BY year
+    ` ).all( assetId ) );
+
+    return new Map( rows.map( ( { year, booking_count } ) => [ year, booking_count ] ) );
+  }
 }
