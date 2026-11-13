@@ -17,3 +17,12 @@ asset.post< { portfolioId: string } >( '/portfolio/:portfolioId', ( req, res ) =
 asset.get< { id: string } >( '/:id', ( req, res ) => res.json(
   Asset.getSafe( req.params.id, res.locals.user.id )
 ) );
+
+asset.patch< { id: string } >( '/:id', ( req, res ) => res.json(
+  Asset.update( req.params.id, res.locals.user.id, req.body )
+) );
+
+asset.delete< { id: string } >( '/:id', ( req, res ) => {
+  Asset.delete( req.params.id, res.locals.user.id );
+  res.status( 204 ).end();
+} );
