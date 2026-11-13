@@ -9,7 +9,7 @@ export interface StatsBookingRow {
   active_asset_count?: number;
 }
 
-export interface StatsYearlyRow {
+export interface YearlyRow {
   year: number;
   quality: number;
   open: number | null;
@@ -32,17 +32,17 @@ export interface StatsYearlyRow {
   worst_day_percent: number | null;
 }
 
-export interface StatsAssetYearlyRow extends StatsYearlyRow {
+export interface AssetYearlyRow extends YearlyRow {
   asset_id: string;
 }
 
-export interface StatsPortfolioYearlyRow extends StatsYearlyRow {
+export interface PortfolioYearlyRow extends YearlyRow {
   portfolio_id: string;
   asset_count: number;
   active_asset_count: number;
 }
 
-export interface StatsYearlyRecord {
+export interface YearlyRecord {
   year: number;
   quality: number;
   open: number | null;
@@ -65,7 +65,7 @@ export interface StatsYearlyRecord {
   worstDayPercent: number | null;
 }
 
-export interface StatsPortfolioYearlyRecord extends StatsYearlyRecord {
+export interface PortfolioYearlyRecord extends YearlyRecord {
   assetCount: number;
   activeAssetCount: number;
 }

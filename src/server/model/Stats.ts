@@ -5,8 +5,8 @@ import { toRecord, toRow } from '@/src/server/utils';
 import type { AssetRecord } from '@/src/shared/types/asset';
 import type { DailyValueRow } from '@/src/shared/types/daily';
 import type {
-  StatsAssetYearlyRow, StatsBookingRow, StatsDailyValue, StatsPortfolioYearlyRecord,
-  StatsPortfolioYearlyRow, StatsYearlyRecord
+  AssetYearlyRow, PortfolioYearlyRecord, PortfolioYearlyRow, StatsBookingRow,
+  StatsDailyValue, YearlyRecord
 } from '@/src/shared/types/stats';
 import type { SQLInputValue } from 'node:sqlite';
 
@@ -36,7 +36,7 @@ export class Stats {
     };
   }
 
-  private static calculate ( values: StatsDailyValue[], bookings: Map< number, number > ) : StatsYearlyRecord[] {
+  private static calculate ( values: StatsDailyValue[], bookings: Map< number, number > ) : YearlyRecord[] {
     const years = new Map< number, StatsDailyValue[] >();
 
     values.forEach( value => {
@@ -212,20 +212,20 @@ export class Stats {
     } );
   }
 
-  public static listAsset ( assetId: string, userId: string ) : StatsYearlyRecord[] {
+  public static listAsset ( assetId: string, userId: string ) : YearlyRecord[] {
     Asset.getSafe( assetId, userId );
 
-    return as< StatsAssetYearlyRow[] >( conn().prepare(
+    return as< AssetYearlyRow[] >( conn().prepare(
       'SELECT * FROM asset_yearly_stats WHERE asset_id = ? ORDER BY year'
-    ).all( assetId ) ).map( row => toRecord< StatsYearlyRecord >( row, YEARLY_COLS ) );
+    ).all( assetId ) ).map( row => toRecord< YearlyRecord >( row, YEARLY_COLS ) );
   }
 
-  public static listPortfolio ( portfolioId: string, userId: string ) : StatsPortfolioYearlyRecord[] {
+  public static listPortfolio ( portfolioId: string, userId: string ) : PortfolioYearlyRecord[] {
     Portfolio.assertMember( portfolioId, userId );
 
-    return as< StatsPortfolioYearlyRow[] >( conn().prepare(
+    return as< PortfolioYearlyRow[] >( conn().prepare(
       'SELECT * FROM portfolio_yearly_stats WHERE portfolio_id = ? ORDER BY year'
-    ).all( portfolioId ) ).map( row => toRecord< StatsPortfolioYearlyRecord >( row, PORTFOLIO_COLS ) );
+    ).all( portfolioId ) ).map( row => toRecord< PortfolioYearlyRecord >( row, PORTFOLIO_COLS ) );
   }
 
   public static recalculateAsset ( asset: AssetRecord, userId: string, holdPortfolioStats = false ) : void {
