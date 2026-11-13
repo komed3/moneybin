@@ -220,12 +220,32 @@ export class Stats {
     ).all( assetId ) ).map( row => toRecord< YearlyRecord >( row, YEARLY_COLS ) );
   }
 
+  public static getAssetYear ( assetId: string, year: number, userId: string ) : YearlyRecord | null {
+    Asset.getSafe( assetId, userId );
+
+    const row = as< AssetYearlyRow | undefined >( conn().prepare(
+      'SELECT * FROM asset_yearly_stats WHERE asset_id = ? AND year = ?'
+    ).get( assetId, year ) );
+
+    return row ? toRecord< YearlyRecord >( row, YEARLY_COLS ) : null;
+  }
+
   public static listPortfolio ( portfolioId: string, userId: string ) : PortfolioYearlyRecord[] {
     Portfolio.assertMember( portfolioId, userId );
 
     return as< PortfolioYearlyRow[] >( conn().prepare(
       'SELECT * FROM portfolio_yearly_stats WHERE portfolio_id = ? ORDER BY year'
     ).all( portfolioId ) ).map( row => toRecord< PortfolioYearlyRecord >( row, PORTFOLIO_COLS ) );
+  }
+
+  public static getPortfolioYear ( portfolioId: string, year: number, userId: string ) : PortfolioYearlyRecord | null {
+    Portfolio.assertMember( portfolioId, userId );
+
+    const row = as< PortfolioYearlyRow | undefined >( conn().prepare(
+      'SELECT * FROM portfolio_yearly_stats WHERE portfolio_id = ? AND year = ?'
+    ).get( portfolioId, year ) );
+
+    return row ? toRecord< PortfolioYearlyRecord >( row, PORTFOLIO_COLS ) : null;
   }
 
   public static recalculateAsset ( asset: AssetRecord, userId: string, holdPortfolioStats = false ) : void {
