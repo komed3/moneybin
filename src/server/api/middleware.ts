@@ -8,3 +8,12 @@ export function getToken ( req: Request ) : string | null {
 
   return req.headers.cookie?.match( /(?:^|;\s*)moneybin\.session=([^;]*)/ )?.[ 1 ] ?? null;
 }
+
+
+export const requireAuth: RequestHandler = ( req, res, next ) => {
+  const user = Auth.validateSession( getToken( req ) );
+  if ( ! user ) return res.status( 401 ).json( { error: 'Authentication required' } );
+
+  res.locals.user = user;
+  next();
+};
