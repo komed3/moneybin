@@ -108,7 +108,7 @@ export class Booking {
     return booking;
   }
 
-  public static create ( userId: string, data: BookingCreateData ) : BookingRecord {
+  public static create ( userId: string, data: BookingCreateData, hold = false ) : BookingRecord {
     Booking.validate( data );
     Booking.validateAmounts( data.amount, data.minAmount ?? null, data.maxAmount ?? null );
     Booking.validateDate( data );
@@ -136,11 +136,11 @@ export class Booking {
       return id;
     } );
 
-    DailyValues.recalculate( asset.id, userId );
+    if ( ! hold ) DailyValues.recalculate( asset.id, userId );
     return Booking.getSafe( id, userId );
   }
 
-  public static update ( bookingId: string, userId: string, data: BookingUpdateData ) : BookingRecord {
+  public static update ( bookingId: string, userId: string, data: BookingUpdateData, hold = false ) : BookingRecord {
     const booking = Booking.getSafe( bookingId, userId );
     const originalAsset = Asset.getSafe( booking.assetId, userId );
     Portfolio.assertEditable( originalAsset.portfolioId, userId );
@@ -172,19 +172,20 @@ export class Booking {
     if ( booking.transactionId && booking.transactionId !== transactionId )
       Booking.cleanupTransaction( booking.transactionId );
 
-    DailyValues.recalculate( originalAsset.id, userId );
-    if ( asset.id !== originalAsset.id ) DailyValues.recalculate( asset.id, userId );
+    if ( ! hold ) DailyValues.recalculate( originalAsset.id, userId );
+    if ( ! hold && asset.id !== originalAsset.id ) DailyValues.recalculate( asset.id, userId );
 
     return Booking.getSafe( bookingId, userId );
   }
 
-  public static delete ( bookingId: string, userId: string ) : void {
+  public static delete ( bookingId: string, userId: string, hold = false ) : void {
     const booking = Booking.getSafe( bookingId, userId );
     const asset = Asset.getSafe( booking.assetId, userId );
 
     Portfolio.assertEditable( asset.portfolioId, userId );
     conn().prepare( 'DELETE FROM bookings WHERE id = ?' ).run( bookingId );
     Booking.cleanupTransaction( booking.transactionId );
-    DailyValues.recalculate( asset.id, userId );
+
+    if ( ! hold ) DailyValues.recalculate( asset.id, userId );
   }
 }
