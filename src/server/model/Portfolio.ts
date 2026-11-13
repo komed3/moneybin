@@ -154,4 +154,26 @@ export class Portfolio {
 
     return Portfolio.getSafe( id );
   }
+
+  public static update ( portfolioId: string, userId: string, data: PortfolioUpdateData ) : PortfolioRecord {
+    Portfolio.assertOwner( portfolioId, userId );
+    const portfolio = Portfolio.getSafe( portfolioId );
+    Portfolio.validate( data );
+
+    if ( data.personId !== undefined ) Person.assertPersonIdSafe( data.personId, userId );
+
+    const entries = Object.entries( COLS ).filter( ( [ k ] ) => data[ k as keyof PortfolioUpdateData ] !== undefined );
+    if ( ! entries.length ) return portfolio;
+
+    const values = entries.map( ( [ k ] ) => data[ k as keyof PortfolioUpdateData ] );
+    const result = conn().prepare( `
+      UPDATE portfolios
+      SET ${ entries.map( ( [ , column ] ) => `${ column } = ?` ).join( ', ' ) },
+          updated_at = strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' )
+      WHERE id = ?
+    ` ).run( ...values as SQLInputValue[], portfolioId );
+
+    if ( ! result.changes ) throw new Error( 'Portfolio does not exist' );
+    return Portfolio.getSafe( portfolioId );
+  }
 }
