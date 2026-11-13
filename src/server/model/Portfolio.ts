@@ -132,4 +132,26 @@ export class Portfolio {
     if ( ! row ) throw new Error( `Portfolio ${ portfolioId } does not exist` );
     return Portfolio.toRecord( row );
   }
+
+  public static create ( userId: string, data: PortfolioCreateData ) : PortfolioRecord {
+    User.assertUserIdSafe( userId );
+    Portfolio.validate( data );
+
+    if ( ! data.name || ! data.currency ) throw new Error( 'Portfolio is missing required fields' );
+    Person.assertPersonIdSafe( data.personId, userId );
+
+    const id = db.transaction( tx => db.createWithId( id => {
+      tx.prepare(
+        'INSERT INTO portfolios ( id, person_id, name, description, currency, note ) VALUES ( ?, ?, ?, ?, ?, ? )'
+      ).run( id, data.personId, data.name, data.description ?? null, data.currency, data.note ?? null );
+
+      tx.prepare(
+        `INSERT INTO portfolio_members ( portfolio_id, user_id, role ) VALUES ( ?, ?, 'owner' )`
+      ).run( id, userId );
+
+      return id;
+    } ) );
+
+    return Portfolio.getSafe( id );
+  }
 }
