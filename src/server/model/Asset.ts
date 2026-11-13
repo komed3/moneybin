@@ -1,6 +1,7 @@
 import { as, conn, db } from '@/src/server/core/Database';
 import { Values } from '@/src/server/core/Values';
 import { Portfolio } from '@/src/server/model/Portfolio';
+import { Stats } from '@/src/server/model/Stats';
 import { assertId, parseBoolean, parseDate, parseString, toRecord, toRow } from '@/src/server/utils';
 import type { AssetCreateData, AssetRecord, AssetRow, AssetUpdateData } from '@/src/shared/types/asset';
 import type { SQLInputValue } from 'node:sqlite';
@@ -76,8 +77,8 @@ export class Asset {
     if ( ! data.type || ! data.liquidationLevel || ! data.name || ! data.status || ! data.icon || ! data.color )
       throw new Error( 'Asset is missing required fields' );
 
-    const id = db.createWithId( id => {
-      conn().prepare( `
+    const id = db.transaction( tx => db.createWithId( id => {
+      tx.prepare( `
         INSERT INTO assets (
           id, portfolio_id, type, liquidation_level, name, description, status, archived,
           icon, color, street, address_extra, postal_code, city, region, country, note,
@@ -85,14 +86,14 @@ export class Asset {
         ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ? )
       ` ).run(
         id, portfolioId, data.type, data.liquidationLevel, data.name, data.description ?? null,
-        data.status, Number( data.archived ?? false ), data.icon, data.color,
-        data.street ?? null, data.addressExtra ?? null, data.postalCode ?? null,
-        data.city ?? null, data.region ?? null, data.country ?? null, data.note ?? null,
-        data.openedAt ?? null, data.closedAt ?? null
+        data.status, Number( data.archived ?? false ), data.icon, data.color, data.street ?? null,
+        data.addressExtra ?? null, data.postalCode ?? null, data.city ?? null, data.region ?? null,
+        data.country ?? null, data.note ?? null, data.openedAt ?? null, data.closedAt ?? null
       );
 
+      Stats.recalculatePortfolio( portfolioId, userId );
       return id;
-    } );
+    } ) );
 
     return Asset.toRecord( Asset.getRow( id )! );
   }
@@ -120,6 +121,10 @@ export class Asset {
   public static delete ( assetId: string, userId: string ) : void {
     const asset = Asset.getSafe( assetId, userId );
     Portfolio.assertEditable( asset.portfolioId, userId );
-    conn().prepare( 'DELETE FROM assets WHERE id = ?' ).run( assetId );
+
+    db.transaction( tx => {
+      tx.prepare( 'DELETE FROM assets WHERE id = ?' ).run( assetId );
+      Stats.recalculatePortfolio( asset.portfolioId, userId );
+    } );
   }
 }
