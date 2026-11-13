@@ -2,9 +2,9 @@ import { Config } from '@/src/server/core/Config';
 import { as, conn } from '@/src/server/core/Database';
 import { Asset } from '@/src/server/model/Asset';
 import { parseDate } from '@/src/server/utils';
-import type { BookingReliability } from '@/src/shared/types/values';
 import type { BookingRow } from '@/src/shared/types/booking';
 import type { DailyValueRecord, DailyValueRow } from '@/src/shared/types/daily';
+import type { BookingReliability } from '@/src/shared/types/values';
 
 
 const QUALITY = {
@@ -58,5 +58,52 @@ export class DailyValues {
   public static delete ( assetId: string, userId: string ) : void {
     Asset.getSafe( assetId, userId );
     conn().prepare( 'DELETE FROM asset_daily_values WHERE asset_id = ?' ).run( assetId );
+  }
+
+  public static recalculate ( assetId: string, userId: string ) : void {
+    Asset.getSafe( assetId, userId );
+
+    const bookings = as< BookingRow[] >( conn().prepare( `
+      SELECT * FROM bookings WHERE asset_id = ? ORDER BY value_date, rowid
+    ` ).all( assetId ) );
+
+    conn().exec( 'SAVEPOINT daily_value_recalculation' );
+
+    try {
+      conn().prepare( 'DELETE FROM asset_daily_values WHERE asset_id = ?' ).run( assetId );
+
+      const insert = conn().prepare( `
+        INSERT INTO asset_daily_values (
+          asset_id, value_date, quality, open, high, low, close, change, change_percent
+        ) VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ? )
+      ` );
+
+      let index = 0, value = 0, evidence = 0;
+
+      while ( index < bookings.length ) {
+        const valueDate = bookings[ index ].value_date, open = value;
+        let high = open, low = open;
+
+        while ( index < bookings.length && bookings[ index ].value_date === valueDate ) {
+          const booking = bookings[ index++ ], quality = QUALITY[ booking.reliability ];
+
+          if ( booking.value_type === 'absolute' ) value = booking.amount, evidence = booking.amount * quality;
+          else value += booking.amount, evidence += booking.amount * quality;
+
+          high = Math.max( high, value ), low = Math.min( low, value );
+        }
+
+        const change = value - open, changePercent = open === 0 ? null : change / open * 100;
+        const quality = value === 0 ? 0 : Math.min( 1, Math.abs( evidence ) / Math.abs( value ) );
+
+        insert.run( assetId, valueDate, quality, open, high, low, value, change, changePercent );
+      }
+
+      conn().exec( 'RELEASE SAVEPOINT daily_value_recalculation' );
+    } catch ( err ) {
+      conn().exec( 'ROLLBACK TO SAVEPOINT daily_value_recalculation' );
+      conn().exec( 'RELEASE SAVEPOINT daily_value_recalculation' );
+      throw err;
+    }
   }
 }
