@@ -112,4 +112,24 @@ export class Portfolio {
       'SELECT * FROM portfolios WHERE person_id = ? ORDER BY name COLLATE NOCASE'
     ).all( personId ) ).map( Portfolio.toRecord );
   }
+
+  public static get ( portfolioId: string, userId: string ) : PortfolioRecord | null {
+    assertId( portfolioId, 'portfolio' );
+    User.assertUserIdSafe( userId );
+
+    const row = as< PortfolioRow | null >( conn().prepare( `
+      SELECT p.*
+      FROM portfolios p
+      JOIN portfolio_members pm ON pm.portfolio_id = p.id
+      WHERE p.id = ? AND pm.user_id = ?
+    ` ).get( portfolioId, userId ) );
+
+    return row ? Portfolio.toRecord( row ) : null;
+  }
+
+  public static getSafe ( portfolioId: string ) : PortfolioRecord {
+    const row = Portfolio.getRow( portfolioId );
+    if ( ! row ) throw new Error( `Portfolio ${ portfolioId } does not exist` );
+    return Portfolio.toRecord( row );
+  }
 }
