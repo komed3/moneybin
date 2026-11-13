@@ -5,3 +5,11 @@ import { parseDate } from '@/src/server/utils';
 import type { BookingReliability } from '@/src/shared/types/values';
 import type { BookingRow } from '@/src/shared/types/booking';
 import type { DailyValueRecord, DailyValueRow } from '@/src/shared/types/daily';
+
+
+const QUALITY = {
+  documented: Config.get( 'QUALITY_DOCUMENTED' ) / 100,
+  reconstructed: Config.get( 'QUALITY_RECONSTRUCTED' ) / 100,
+  speculative: Config.get( 'QUALITY_SPECULATIVE' ) / 100,
+  assumed: Config.get( 'QUALITY_ASSUMED' ) / 100
+} as const satisfies Record< BookingReliability, number >;
