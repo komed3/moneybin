@@ -52,14 +52,6 @@ export class Booking {
     data.bookingDate ??= data.valueDate;
   }
 
-  private static cleanupTransaction ( transactionId: string | null ) : void {
-    if ( ! transactionId ) return;
-
-    conn().prepare( `DELETE FROM transactions WHERE id = ? AND NOT EXISTS (
-      SELECT 1 FROM bookings WHERE transaction_id = ?
-    )` ).run( transactionId, transactionId );
-  }
-
   public static list ( assetId: string, userId: string ) : BookingRecord[] {
     Asset.getSafe( assetId, userId );
 
@@ -170,7 +162,7 @@ export class Booking {
     ` ).run( ...values as SQLInputValue[], bookingId );
 
     if ( booking.transactionId && booking.transactionId !== transactionId )
-      Booking.cleanupTransaction( booking.transactionId );
+      Transaction.cleanupIfEmpty( booking.transactionId );
 
     if ( ! hold ) DailyValues.recalculate( originalAsset.id, userId );
     if ( ! hold && asset.id !== originalAsset.id ) DailyValues.recalculate( asset.id, userId );
@@ -184,7 +176,7 @@ export class Booking {
 
     Portfolio.assertEditable( asset.portfolioId, userId );
     conn().prepare( 'DELETE FROM bookings WHERE id = ?' ).run( bookingId );
-    Booking.cleanupTransaction( booking.transactionId );
+    Transaction.cleanupIfEmpty( booking.transactionId );
 
     if ( ! hold ) DailyValues.recalculate( asset.id, userId );
   }
