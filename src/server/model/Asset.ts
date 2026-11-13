@@ -136,4 +136,12 @@ export class Asset {
 
     return Asset.toRecord( Asset.getRow( assetId )! );
   }
+
+  public static delete ( assetId: string, userId: string ) : void {
+    const row = Asset.getRow( assetId );
+    if ( ! row ) throw new Error( `Asset ${ assetId } does not exist` );
+
+    Portfolio.assertEditable( row.portfolio_id, userId );
+    conn().prepare( 'DELETE FROM assets WHERE id = ?' ).run( assetId );
+  }
 }
