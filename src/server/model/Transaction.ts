@@ -48,6 +48,22 @@ export class Transaction {
     ` ).get( excludeBookingId ?? null, transactionId ) );
 
     if ( ! row ) throw new Error( `Transaction ${ transactionId } does not exist` );
-    if ( row.portfolio_id && row.portfolio_id !== portfolioId ) throw new Error( 'Transaction belongs to another portfolio' );
+
+    if ( row.portfolio_id && row.portfolio_id !== portfolioId )
+      throw new Error( 'Transaction belongs to another portfolio' );
+  }
+
+  public static list ( portfolioId: string, userId: string ) : TransactionRecord[] {
+    Portfolio.assertMember( portfolioId, userId );
+
+    return as< TransactionWithPortfolio[] >( conn().prepare( `
+      SELECT t.*, a.portfolio_id
+      FROM transactions t
+      JOIN bookings b ON b.transaction_id = t.id
+      JOIN assets a ON a.id = b.asset_id
+      WHERE a.portfolio_id = ?
+      GROUP BY t.id
+      ORDER BY t.created_at DESC
+    ` ).all( portfolioId ) ).map( row => Transaction.toRecord( row, userId ) );
   }
 }
