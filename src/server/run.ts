@@ -1,3 +1,5 @@
+import { api } from '@/src/server/api';
+import { errorHandler } from '@/src/server/api/middleware';
 import { Config } from '@/src/server/core/Config';
 import { db } from '@/src/server/core/Database';
 import express from 'express';
@@ -19,6 +21,8 @@ async function run () : Promise< void > {
   app.disable( 'x-powered-by' );
   app.use( express.json( { limit: '32kb' } ) );
   app.use( express.urlencoded( { extended: true, limit: '32kb' } ) );
+  app.use( '/api', api );
+  app.use( errorHandler );
 
 
   // --- react ---
