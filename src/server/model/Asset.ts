@@ -8,11 +8,10 @@ import type { SQLInputValue } from 'node:sqlite';
 
 const COLS = {
   id: 'id', portfolioId: 'portfolio_id', type: 'type', liquidationLevel: 'liquidation_level',
-  name: 'name', description: 'description', status: 'status', archived: 'archived',
-  icon: 'icon', color: 'color', street: 'street', addressExtra: 'address_extra',
-  postalCode: 'postal_code', city: 'city', region: 'region', country: 'country',
-  note: 'note', openedAt: 'opened_at', closedAt: 'closed_at',
-  createdAt: 'created_at', updatedAt: 'updated_at'
+  name: 'name', description: 'description', status: 'status', archived: 'archived', icon: 'icon',
+  color: 'color', street: 'street', addressExtra: 'address_extra', postalCode: 'postal_code',
+  city: 'city', region: 'region', country: 'country', note: 'note', openedAt: 'opened_at',
+  closedAt: 'closed_at', createdAt: 'created_at', updatedAt: 'updated_at'
 };
 
 
