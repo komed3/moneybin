@@ -193,13 +193,13 @@ export class Stats {
     ) );
   }
 
-  public static recalculateAsset ( asset: AssetRecord, userId: string, hold = false ) : void {
+  public static recalculateAsset ( asset: AssetRecord, userId: string, holdPortfolioStats = false ) : void {
     Portfolio.assertMember( asset.portfolioId, userId );
     conn().exec( 'SAVEPOINT asset_stats_recalculation' );
 
     try {
       Stats.recalculateAssetData( asset.id );
-      if ( ! hold ) Stats.recalculatePortfolioData( asset.portfolioId );
+      if ( ! holdPortfolioStats ) Stats.recalculatePortfolioData( asset.portfolioId );
       conn().exec( 'RELEASE SAVEPOINT asset_stats_recalculation' );
     } catch ( err ) {
       conn().exec( 'ROLLBACK TO SAVEPOINT asset_stats_recalculation' );

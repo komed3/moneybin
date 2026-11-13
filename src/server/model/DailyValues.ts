@@ -1,6 +1,7 @@
 import { Config } from '@/src/server/core/Config';
 import { as, conn } from '@/src/server/core/Database';
 import { Asset } from '@/src/server/model/Asset';
+import { Stats } from '@/src/server/model/Stats';
 import { parseDate } from '@/src/server/utils';
 import type { BookingRow } from '@/src/shared/types/booking';
 import type { DailyValueRecord, DailyValueRow } from '@/src/shared/types/daily';
@@ -55,12 +56,22 @@ export class DailyValues {
   }
 
   public static delete ( assetId: string, userId: string ) : void {
-    Asset.getSafe( assetId, userId );
-    conn().prepare( 'DELETE FROM asset_daily_values WHERE asset_id = ?' ).run( assetId );
+    const asset = Asset.getSafe( assetId, userId );
+    conn().exec( 'SAVEPOINT daily_value_recalculation' );
+
+    try {
+      conn().prepare( 'DELETE FROM asset_daily_values WHERE asset_id = ?' ).run( assetId );
+      Stats.recalculateAsset( asset, userId );
+      conn().exec( 'RELEASE SAVEPOINT daily_value_recalculation' );
+    } catch ( err ) {
+      conn().exec( 'ROLLBACK TO SAVEPOINT daily_value_recalculation' );
+      conn().exec( 'RELEASE SAVEPOINT daily_value_recalculation' );
+      throw err;
+    }
   }
 
-  public static recalculate ( assetId: string, userId: string ) : void {
-    Asset.getSafe( assetId, userId );
+  public static recalculate ( assetId: string, userId: string, holdPortfolioStats = false ) : void {
+    const asset = Asset.getSafe( assetId, userId );
 
     const bookings = as< BookingRow[] >( conn().prepare( `
       SELECT * FROM bookings WHERE asset_id = ? ORDER BY value_date, rowid
@@ -98,6 +109,7 @@ export class DailyValues {
         insert.run( assetId, valueDate, quality, open, high, low, value, change, changePercent );
       }
 
+      Stats.recalculateAsset( asset, userId, holdPortfolioStats );
       conn().exec( 'RELEASE SAVEPOINT daily_value_recalculation' );
     } catch ( err ) {
       conn().exec( 'ROLLBACK TO SAVEPOINT daily_value_recalculation' );
