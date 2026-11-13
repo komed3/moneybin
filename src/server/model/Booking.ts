@@ -137,4 +137,39 @@ export class Booking {
 
     return Booking.getSafe( id, userId );
   }
+
+  public static update ( bookingId: string, userId: string, data: BookingUpdateData ) : BookingRecord {
+    const booking = Booking.getSafe( bookingId, userId );
+    const originalAsset = Asset.getSafe( booking.assetId, userId );
+    Portfolio.assertEditable( originalAsset.portfolioId, userId );
+    Booking.validate( data );
+
+    const assetId = data.assetId ?? booking.assetId;
+    const asset = assetId === booking.assetId ? originalAsset : Asset.getSafe( assetId, userId );
+    Portfolio.assertEditable( asset.portfolioId, userId );
+
+    const transactionId = data.transactionId === undefined ? booking.transactionId : data.transactionId;
+    if ( transactionId ) Transaction.assertTransactionIdSafe( transactionId, asset.portfolioId, bookingId );
+
+    const amount = data.amount ?? booking.amount;
+    const min = data.minAmount === undefined ? booking.minAmount : data.minAmount;
+    const max = data.maxAmount === undefined ? booking.maxAmount : data.maxAmount;
+    Booking.validateAmounts( amount, min, max );
+
+    const entries = Object.entries( toRow( data, COLS ) );
+    if ( ! entries.length ) return booking;
+
+    const values = entries.map( ( [ , value ] ) => value );
+    conn().prepare( `
+      UPDATE bookings
+      SET ${ entries.map( ( [ column ] ) => `${ column } = ?` ).join( ', ' ) },
+          updated_at = strftime( '%Y-%m-%dT%H:%M:%fZ', 'now' )
+      WHERE id = ?
+    ` ).run( ...values as SQLInputValue[], bookingId );
+
+    if ( booking.transactionId && booking.transactionId !== transactionId )
+      Booking.cleanupTransaction( booking.transactionId );
+
+    return Booking.getSafe( bookingId, userId );
+  }
 }
