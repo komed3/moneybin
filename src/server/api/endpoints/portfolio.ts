@@ -24,3 +24,22 @@ portfolio.delete< { id: string } >( '/:id', ( req, res ) => {
   Portfolio.delete( req.params.id, res.locals.user.id );
   res.status( 204 ).end();
 } );
+
+
+portfolio.get< { id: string } >( '/:id/members', ( req, res ) => res.json(
+  Portfolio.listMembers( req.params.id, res.locals.user.id )
+) );
+
+portfolio.post< { id: string } >( '/:id/members', ( req, res ) => {
+  const member = Portfolio.addMember( req.params.id, res.locals.user.id, req.body?.userId, req.body?.role );
+  res.status( 201 ).json( member );
+} );
+
+portfolio.patch< { id: string, memberId: string } >( '/:id/members/:memberId', ( req, res ) => res.json(
+  Portfolio.updateMemberRole( req.params.id, res.locals.user.id, req.params.memberId, req.body?.role )
+) );
+
+portfolio.delete< { id: string, memberId: string } >( '/:id/members/:memberId', ( req, res ) => {
+  Portfolio.removeMember( req.params.id, res.locals.user.id, req.params.memberId );
+  res.status( 204 ).end();
+} );
