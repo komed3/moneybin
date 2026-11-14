@@ -9,10 +9,10 @@ export default ( {
       momentum: 'Wachstum'
     },
     sidebar: {
-      account: 'Konto',
       collapse: 'Einklappen',
       expand: 'Aufklappen',
       logout: 'Abmelden',
+      select: 'Portfolio auswählen',
       settings: 'Einstellungen'
     }
   }
