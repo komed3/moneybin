@@ -1,7 +1,7 @@
 import logo from '@/src/client/assets/logo.svg';
 import i18n from '@/src/client/lib/i18n';
 import type { LucideIcon } from 'lucide-react';
-import { ChartPieIcon, ChevronLeftIcon, LayoutDashboardIcon, PowerIcon, SettingsIcon, Table2Icon } from 'lucide-react';
+import { ChevronLeftIcon, LayoutDashboardIcon, PowerIcon, SettingsIcon, Table2Icon, WalletCardsIcon } from 'lucide-react';
 import { Link, NavLink } from 'react-router';
 
 
@@ -13,7 +13,7 @@ interface SidebarProps {
 
 const NAV: [ string, string, LucideIcon ][] = [
   [ 'dashboard', '/', LayoutDashboardIcon ],
-  [ 'assets', '/assets', ChartPieIcon ],
+  [ 'assets', '/assets', WalletCardsIcon ],
   [ 'bookings', '/bookings', Table2Icon ]
 ] as const;
 
@@ -27,7 +27,7 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
     <div
       className= {
         'z-40 flex flex-col h-full whitespace-nowrap bg-white border-r border-slate-200 overflow-hidden ' +
-        'shadow-md transition-all duration-100 ease-out ' + ( sidebarOpen ? 'w-95' : 'w-20' )
+        'shadow-md transition-all duration-100 ease-out ' + ( sidebarOpen ? 'w-80' : 'w-20' )
       }
     >
       <div className= 'shrink-0 flex items-center gap-4 h-20 px-4 border-b border-slate-200'>
@@ -84,9 +84,9 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
 
         <Link
           to= '/settings'
-          className= { BTN() + ' flex-1 ' }
+          className= { BTN() + ' flex-1 justify-center gap-3 pr-2' }
         >
-          <SettingsIcon size= { 24 } className= 'w-12 shrink-0' />
+          <SettingsIcon size= { 24 } className= 'shrink-0' />
           <span className= 'text-[15px] font-medium'>
             { i18n.t( $ => $.sidebar.settings ) }
           </span>
