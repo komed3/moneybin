@@ -15,6 +15,10 @@ const NAV: [ string, string, LucideIcon ][] = [
   [ 'dashboard', '/', LayoutDashboardIcon ]
 ] as const;
 
+const BTN = ( active = false ) =>
+  'shrink-0 flex items-center h-12 bg-slate-100 rounded overflow-hidden transition-colors ' +
+  'duration-100 ease-out ' + ( active ? 'text-white bg-theme' : 'hover:bg-slate-200' );
+
 
 export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
   return (
@@ -24,10 +28,10 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
         'shadow-md transition-all duration-100 ease-out ' + ( sidebarOpen ? 'w-95' : 'w-20' )
       }
     >
-      <div className= 'shrink-0 flex items-center gap-5 h-20 px-5 border-b border-slate-200'>
+      <div className= 'shrink-0 flex items-center gap-4 h-20 px-4 border-b border-slate-200'>
         <img
           src= { logo }
-          className= 'shrink-0 size-10'
+          className= 'shrink-0 size-12'
           loading= 'lazy'
           alt= ''
         />
@@ -42,13 +46,10 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
           <NavLink
             key= { key }
             to= { url }
-            className= { ( { isActive } ) =>
-              'flex items-center gap-3 h-12 bg-slate-100 rounded overflow-hidden ' +
-              ( isActive ? 'bg-slate-200' : 'hover:bg-slate-100/70' )
-            }
+            className= { ( { isActive } ) => BTN( isActive ) }
           >
-            <Icon size= { 22 } className= 'w-12 shrink-0' />
-            <span className= 'truncate text-sm font-medium'>
+            <Icon size= { 24 } className= 'w-12 shrink-0' />
+            <span className= 'truncate text-[15px] font-medium'>
               { i18n.t( $ => $.nav[ key ] ) }
             </span>
           </NavLink>
@@ -58,11 +59,11 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
       <div className= 'shrink-0 flex items-center gap-4 h-20 px-4 border-t border-slate-200'>
         <button
           onClick= { () => setSidebarOpen( ! sidebarOpen ) }
-          className= 'shrink-0 inline-flex justify-center items-center size-12 bg-slate-100 rounded'
+          className= { BTN() + ' justify-center size-12' }
           title= { i18n.t( $ => $.sidebar[ sidebarOpen ? 'collapse' : 'expand' ] ) }
         >
           <ChevronLeftIcon
-            size= { 28 }
+            size= { 34 }
             strokeWidth= { 1.4 }
             className= {
               'transition-transform duration-100 ease-out ' +
@@ -73,18 +74,18 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
 
         <button
           onClick= { undefined }
-          className= 'shrink-0 inline-flex justify-center items-center size-12 bg-slate-100 rounded'
+          className= { BTN() + ' justify-center size-12' }
           title= { i18n.t( $ => $.sidebar.logout ) }
         >
-          <PowerIcon size= { 22 } />
+          <PowerIcon size= { 24 } />
         </button>
 
         <Link
           to= '/settings'
-          className= 'flex-1 inline-flex items-center gap-3 h-12 px-4 bg-slate-100 rounded'
+          className= { BTN() + ' flex-1 ' }
         >
-          <SettingsIcon size= { 22 } />
-          <span className= 'text-sm font-medium'>
+          <SettingsIcon size= { 24 } className= 'w-12 shrink-0' />
+          <span className= 'text-[15px] font-medium'>
             { i18n.t( $ => $.sidebar.settings ) }
           </span>
         </Link>
