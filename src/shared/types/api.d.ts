@@ -1,4 +1,3 @@
-import type { AuthResult } from '@/src/shared/types/auth';
 import type { AssetCreateData, AssetRecord, AssetUpdateData } from '@/src/shared/types/asset';
 import type { BookingCreateData, BookingRecord, BookingUpdateData } from '@/src/shared/types/booking';
 import type { DailyValueRecord } from '@/src/shared/types/daily';
@@ -8,8 +7,8 @@ import type { PortfolioYearlyRecord, YearlyRecord } from '@/src/shared/types/sta
 import type { TransactionCreateData, TransactionRecord, TransactionUpdateData } from '@/src/shared/types/transaction';
 import type { UserRecord } from '@/src/shared/types/user';
 import type {
-  CurrencyRecord, CurrencyCode, PersonGender, PortfolioMemberRole, AssetStatus, AssetType,
-  LiquidationLevel, BookingType, BookingValueType, BookingReliability
+  AssetStatus, AssetType, BookingReliability, BookingType, BookingValueType, CurrencyCode,
+  CurrencyRecord, LiquidationLevel, PersonGender, PortfolioMemberRole
 } from '@/src/shared/types/values';
 
 
@@ -107,4 +106,13 @@ export interface Api {
   };
 
   values: () => Promise< ApiValues >;
+}
+
+export interface ApiContextValue extends Api {
+  env: ApiEnv | null;
+  user: UserRecord | null;
+  token: string | null;
+  loading: boolean;
+  error: string | null;
+  authenticated: boolean;
 }
