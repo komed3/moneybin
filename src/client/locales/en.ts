@@ -3,7 +3,10 @@ export default ( {
     nav: {
       assets: 'Assets',
       bookings: 'Bookings',
-      dashboard: 'Dashboard'
+      breakdown: 'Breakdown',
+      dashboard: 'Dashboard',
+      editor: 'Editor',
+      momentum: 'Momentum'
     },
     sidebar: {
       collapse: 'Collapse',

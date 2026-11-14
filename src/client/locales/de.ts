@@ -1,9 +1,12 @@
 export default ( {
   translation: {
     nav: {
-      assets: 'Vermögensaufstellung',
+      assets: 'Vermögenswerte',
       bookings: 'Buchungen',
-      dashboard: 'Übersicht'
+      breakdown: 'Aufschlüsselung',
+      dashboard: 'Übersicht',
+      editor: 'Bearbeiten',
+      momentum: 'Wachstum'
     },
     sidebar: {
       collapse: 'Einklappen',
