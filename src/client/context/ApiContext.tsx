@@ -133,4 +133,85 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
       setToken( null ), setUser( null );
     }
   }, [ request, token ] );
+
+
+  const clearError = useCallback( () => setError( null ), [] );
+  const e = encodeURIComponent;
+  const s = JSON.stringify;
+
+
+  const api = useMemo< Api >( () => ( {
+    request, login, logout, refreshSession, clearError,
+
+    persons: {
+      list: () => request< PersonRecord[] >( '/person' ),
+      create: data => request< PersonRecord >( '/person', { method: 'POST', body: s( data ) } ),
+      get: id => request< PersonRecord >( `/person/${ e( id ) }` ),
+      update: ( id, data ) => request< PersonRecord >( `/person/${ e( id ) }`, { method: 'PATCH', body: s( data ) } ),
+      delete: id => request( `/person/${ e( id ) }`, { method: 'DELETE' } )
+    },
+
+    portfolios: {
+      list: () => request< PortfolioRecord[] >( '/portfolio' ),
+      create: data => request< PortfolioRecord >( '/portfolio', { method: 'POST', body: s( data ) } ),
+      get: id => request< PortfolioRecord >( `/portfolio/${ e( id ) }` ),
+      update: ( id, data ) => request< PortfolioRecord >( `/portfolio/${ e( id ) }`, { method: 'PATCH', body: s( data ) } ),
+      delete: id => request( `/portfolio/${ e( id ) }`, { method: 'DELETE' } ),
+      members: id => request< PortfolioMemberRecord[] >( `/portfolio/${ e( id ) }/members` ),
+      addMember: ( id, userId, role ) => request< PortfolioMemberRecord >( `/portfolio/${ e( id ) }/members`, {
+        method: 'POST', body: s( { userId, role } )
+      } ),
+      updateMember: ( id, memberId, role ) => request< PortfolioMemberRecord >(
+        `/portfolio/${ e( id ) }/members/${ e( memberId ) }`, { method: 'PATCH', body: s( { role } ) }
+      ),
+      removeMember: ( id, memberId ) => request( `/portfolio/${ e( id ) }/members/${ e( memberId ) }`, { method: 'DELETE' } )
+    },
+
+    assets: {
+      list: portfolioId => request< AssetRecord[] >( `/asset/portfolio/${ e( portfolioId ) }` ),
+      create: ( portfolioId, data ) => request< AssetRecord >( `/asset/portfolio/${ e( portfolioId ) }`, {
+        method: 'POST', body: s( data )
+      } ),
+      get: id => request< AssetRecord >( `/asset/${ e( id ) }` ),
+      update: ( id, data ) => request< AssetRecord >( `/asset/${ e( id ) }`, { method: 'PATCH', body: s( data ) } ),
+      delete: id => request( `/asset/${ e( id ) }`, { method: 'DELETE' } )
+    },
+
+    bookings: {
+      list: assetId => request< BookingRecord[] >( `/booking/asset/${ e( assetId ) }` ),
+      listByPortfolio: portfolioId => request< BookingRecord[] >( `/booking/portfolio/${ e( portfolioId ) }` ),
+      create: data => request< BookingRecord >( '/booking', { method: 'POST', body: s( data ) } ),
+      get: id => request< BookingRecord >( `/booking/${ e( id ) }` ),
+      update: ( id, data ) => request< BookingRecord >( `/booking/${ e( id ) }`, { method: 'PATCH', body: s( data ) } ),
+      delete: id => request( `/booking/${ e( id ) }`, { method: 'DELETE' } )
+    },
+
+    transactions: {
+      list: portfolioId => request< TransactionRecord[] >( `/transaction/portfolio/${ e( portfolioId ) }` ),
+      create: ( portfolioId, data ) => request< TransactionRecord >( `/transaction/portfolio/${ e( portfolioId ) }`, {
+        method: 'POST', body: s( data )
+      } ),
+      get: id => request< TransactionRecord >( `/transaction/${ e( id ) }` ),
+      update: ( id, data ) => request< TransactionRecord >( `/transaction/${ e( id ) }`, {
+        method: 'PATCH', body: s( data )
+      } ),
+      delete: id => request( `/transaction/${ e( id ) }`, { method: 'DELETE' } )
+    },
+
+    daily: {
+      list: assetId => request< DailyValueRecord[] >( `/daily/${ e( assetId ) }` ),
+      get: ( assetId, date ) => request< DailyValueRecord >( `/daily/${ e( assetId ) }/${ e( date ) }` )
+    },
+
+    stats: {
+      asset: assetId => request< YearlyRecord[] >( `/stats/asset/${ e( assetId ) }` ),
+      assetYear: ( assetId, year ) => request< YearlyRecord >( `/stats/asset/${ e( assetId ) }/${ year }` ),
+      portfolio: portfolioId => request< PortfolioYearlyRecord[] >( `/stats/portfolio/${ e( portfolioId ) }` ),
+      portfolioYear: ( portfolioId, year ) => request< PortfolioYearlyRecord >(
+        `/stats/portfolio/${ e( portfolioId ) }/${ year }`
+      )
+    },
+
+    values: () => request< ApiValues >( '/values' )
+  } ), [ request, login, logout, refreshSession, clearError ] );
 }
