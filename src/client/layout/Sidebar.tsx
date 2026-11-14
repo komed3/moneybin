@@ -12,7 +12,7 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
     <div
       className= {
         'z-40 flex flex-col h-full whitespace-nowrap bg-white border-r border-slate-200 ' +
-        'overflow-hidden shadow-lg ' + ( sidebarOpen ? 'w-100' : 'w-20' )
+        'overflow-hidden shadow-md ' + ( sidebarOpen ? 'w-95' : 'w-20' )
       }
     >
       <div className= 'shrink-0 flex items-center gap-4 h-20 px-6 border-b border-slate-200'>
