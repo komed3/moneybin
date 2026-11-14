@@ -29,3 +29,15 @@ export interface ApiRequestOptions extends Omit< RequestInit, 'body' > {
   body?: BodyInit | null;
   query?: Record< string, string | number | boolean | null | undefined >;
 }
+
+export interface ApiValues {
+  currencies: CurrencyRecord[];
+  personGenders: readonly PersonGender[];
+  portfolioMemberRoles: readonly PortfolioMemberRole[];
+  assetTypes: AssetType[];
+  liquidationLevels: LiquidationLevel[];
+  assetStatuses: readonly AssetStatus[];
+  bookingTypes: BookingType[];
+  bookingValueTypes: readonly BookingValueType[];
+  bookingReliabilities: readonly BookingReliability[];
+}
