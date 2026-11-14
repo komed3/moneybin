@@ -22,8 +22,8 @@ const NAV: [ keyof Translations[ 'nav' ], string, LucideIcon ][] = [
 ];
 
 const BTN = ( active = false ) =>
-  'shrink-0 flex items-center h-12 bg-slate-50 rounded-md overflow-hidden transition-colors ' +
-  'duration-100 ease-out ' + ( active ? 'text-white bg-theme' : 'hover:bg-slate-200/80' );
+  'shrink-0 flex items-center h-12 rounded-md overflow-hidden transition-colors ' +
+  'duration-100 ease-out ' + ( active ? 'text-white bg-theme' : 'hover:bg-slate-200' );
 
 
 export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
