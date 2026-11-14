@@ -214,4 +214,8 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
 
     values: () => request< ApiValues >( '/values' )
   } ), [ request, login, logout, refreshSession, clearError ] );
+
+  const value = useMemo< ApiContextValue >( () => ( {
+    ...api, env, user, token, loading, error, authenticated: user !== null
+  } ), [ api, env, user, token, loading, error ] );
 }
