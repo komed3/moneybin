@@ -1,4 +1,5 @@
 import logo from '@/src/client/assets/logo.svg';
+import i18n from '@/src/client/lib/i18n';
 import { ChevronLeftIcon, PowerIcon, SettingsIcon } from 'lucide-react';
 import { Link } from 'react-router';
 
@@ -36,6 +37,7 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
         <button
           onClick= { () => setSidebarOpen( ! sidebarOpen ) }
           className= 'shrink-0 inline-flex justify-center items-center size-12 bg-slate-100 rounded'
+          title= { i18n.t( $ => $.sidebar[ sidebarOpen ? 'collapse' : 'expand' ] ) }
         >
           <ChevronLeftIcon
             size= { 28 }
@@ -50,6 +52,7 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
         <button
           onClick= { undefined }
           className= 'shrink-0 inline-flex justify-center items-center size-12 bg-slate-100 rounded'
+          title= { i18n.t( $ => $.sidebar.logout ) }
         >
           <PowerIcon size= { 22 } />
         </button>
@@ -59,7 +62,9 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
           className= 'flex-1 inline-flex items-center gap-3 h-12 px-4 bg-slate-100 rounded'
         >
           <SettingsIcon size= { 22 } />
-          <span className= 'text-sm font-medium'>Settings</span>
+          <span className= 'text-sm font-medium'>
+            { i18n.t( $ => $.sidebar.settings ) }
+          </span>
         </Link>
       </div>
     </div>
