@@ -1,6 +1,8 @@
 export default ( {
   translation: {
-    nav: {},
+    nav: {
+      dashboard: 'Übersicht'
+    },
     sidebar: {
       collapse: 'Einklappen',
       expand: 'Aufklappen',

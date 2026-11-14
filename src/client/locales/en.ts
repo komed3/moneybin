@@ -1,6 +1,8 @@
 export default ( {
   translation: {
-    nav: {},
+    nav: {
+      dashboard: 'Dashboard'
+    },
     sidebar: {
       collapse: 'Collapse',
       expand: 'Expand',
