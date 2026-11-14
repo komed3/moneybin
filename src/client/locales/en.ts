@@ -9,6 +9,7 @@ export default ( {
       momentum: 'Momentum'
     },
     sidebar: {
+      account: 'Account',
       collapse: 'Collapse',
       expand: 'Expand',
       logout: 'Log out',
