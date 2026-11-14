@@ -1,4 +1,5 @@
 import logo from '@/src/client/assets/logo.svg';
+import { useApi } from '@/src/client/context/ApiContext';
 import { useI18n } from '@/src/client/hooks/useI18n';
 import type { Translations } from '@/src/shared/types/i18n';
 import type { LucideIcon } from 'lucide-react';
@@ -27,7 +28,10 @@ const BTN = ( active = false ) =>
 
 
 export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
+  const { env } = useApi();
   const t = useI18n();
+
+  const appName = env?.appName ?? 'MoneyBin';
 
 
   return (
@@ -42,11 +46,11 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
           src= { logo }
           className= 'shrink-0 size-10'
           loading= 'lazy'
-          alt= ''
+          alt= { appName }
         />
 
         <h1 className= 'truncate text-xl font-semibold tracking-tight'>
-          MoneyBin
+          { appName }
         </h1>
       </div>
 
