@@ -5,7 +5,7 @@ import type { Translations } from '@/src/shared/types/i18n';
 import type { LucideIcon } from 'lucide-react';
 import {
   BracesIcon, ChartColumnIcon, ChartPieIcon, ChevronLeftIcon, LayoutDashboardIcon,
-  PowerIcon, SettingsIcon, Table2Icon, UserIcon, WalletCardsIcon
+  PowerIcon, RepeatIcon, SettingsIcon, Table2Icon, WalletCardsIcon
 } from 'lucide-react';
 import { NavLink } from 'react-router';
 
@@ -88,11 +88,11 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
         <div className= 'flex-1' />
 
         <NavLink
-          to= '/me'
+          to= '/select'
           className= { ( { isActive } ) => BTN( isActive ) + ' justify-center size-12 bg-slate-50' }
-          title= { t.sidebar.account }
+          title= { t.sidebar.select }
         >
-          <UserIcon size= { 24 } />
+          <RepeatIcon size= { 24 } />
         </NavLink>
 
         <NavLink
