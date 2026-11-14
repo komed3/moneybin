@@ -16,6 +16,7 @@ export function Routing () {
     <Suspense fallback= { <></> }>
       <Routes>
         <Route path= '/' element= { <></> } />
+        <Route path= '*' element= { <></> } />
       </Routes>
     </Suspense>
   );
