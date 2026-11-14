@@ -161,7 +161,7 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
     portfolios: {
       list: () => request< PortfolioRecord[] >( '/portfolio' ),
       create: data => request< PortfolioRecord >( '/portfolio', { method: 'POST', body: s( data ) } ),
-      get: id => request< PortfolioRecord >( `/portfolio/${ e( id ) }` ),
+      get: id => request< PortfolioRecord | null >( `/portfolio/${ e( id ) }` ),
       update: ( id, data ) => request< PortfolioRecord >( `/portfolio/${ e( id ) }`, { method: 'PATCH', body: s( data ) } ),
       delete: id => request( `/portfolio/${ e( id ) }`, { method: 'DELETE' } ),
       members: id => request< PortfolioMemberRecord[] >( `/portfolio/${ e( id ) }/members` ),

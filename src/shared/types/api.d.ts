@@ -65,7 +65,7 @@ export interface Api {
   portfolios: {
     list: () => Promise< PortfolioRecord[] >;
     create: ( data: PortfolioCreateData ) => Promise< PortfolioRecord >;
-    get: ( id: string ) => Promise< PortfolioRecord >;
+    get: ( id: string ) => Promise< PortfolioRecord | null >;
     update: ( id: string, data: PortfolioUpdateData ) => Promise< PortfolioRecord >;
     delete: ( id: string ) => Promise< void >;
     members: ( id: string ) => Promise< PortfolioMemberRecord[] >;
