@@ -20,7 +20,7 @@ export function App () {
         key= { pathname }
         className= {
           'h-screen overflow-x-hidden overflow-y-scroll transition-all duration-100 ease-out ' +
-          ( sidebarOpen ? 'pl-100' : 'pl-12' )
+          ( sidebarOpen ? 'ml-90' : 'ml-12' )
         }
       >
         <Routing />
