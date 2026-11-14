@@ -218,4 +218,11 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
   const value = useMemo< ApiContextValue >( () => ( {
     ...api, env, user, token, loading, error, authenticated: user !== null
   } ), [ api, env, user, token, loading, error ] );
+
+
+  return (
+    <ApiContext.Provider value= { value }>
+      { children }
+    </ApiContext.Provider>
+  );
 }
