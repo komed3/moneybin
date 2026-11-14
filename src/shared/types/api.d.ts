@@ -42,11 +42,17 @@ export interface ApiValues {
 }
 
 export interface Api {
+  health: () => Promise< { status: string } >;
   request: < T >( path: string, options?: ApiRequestOptions ) => Promise< T >;
   login: ( credentials: ApiLogin ) => Promise< void >;
   logout: () => Promise< void >;
   refreshSession: () => Promise< void >;
   clearError: () => void;
+
+  users: {
+    updateUsername: ( username: string ) => Promise< UserRecord >;
+    changePassword: ( currentPassword: string, newPassword: string ) => Promise< void >;
+  };
 
   persons: {
     list: () => Promise< PersonRecord[] >;
