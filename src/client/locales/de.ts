@@ -1,6 +1,8 @@
 export default ( {
   translation: {
     nav: {
+      assets: 'Vermögensaufstellung',
+      bookings: 'Buchungen',
       dashboard: 'Übersicht'
     },
     sidebar: {

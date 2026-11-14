@@ -1,6 +1,8 @@
 export default ( {
   translation: {
     nav: {
+      assets: 'Assets',
+      bookings: 'Bookings',
       dashboard: 'Dashboard'
     },
     sidebar: {
