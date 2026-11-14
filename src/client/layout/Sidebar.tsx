@@ -5,7 +5,7 @@ import {
   BracesIcon, ChartColumnIcon, ChartPieIcon, ChevronLeftIcon, LayoutDashboardIcon,
   PowerIcon, SettingsIcon, Table2Icon, WalletCardsIcon
 } from 'lucide-react';
-import { Link, NavLink } from 'react-router';
+import { NavLink } from 'react-router';
 
 
 interface SidebarProps {
@@ -85,15 +85,15 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
           <PowerIcon size= { 24 } />
         </button>
 
-        <Link
+        <NavLink
           to= '/settings'
-          className= { BTN() + ' flex-1 justify-center gap-3 pr-2' }
+          className= { ( { isActive } ) => BTN( isActive ) + ' flex-1 justify-center gap-3 pr-2' }
         >
           <SettingsIcon size= { 24 } className= 'shrink-0' />
           <span className= 'text-[15px] font-medium'>
             { i18n.t( $ => $.sidebar.settings ) }
           </span>
-        </Link>
+        </NavLink>
       </div>
     </div>
   );
