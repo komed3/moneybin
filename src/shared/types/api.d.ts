@@ -130,5 +130,6 @@ export interface ApiContextValue extends Api {
   loading: boolean;
   error: string | null;
   authenticated: boolean;
+  language: LanguageCode;
   t: TranslationTree;
 }
