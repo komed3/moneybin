@@ -28,7 +28,7 @@ const BTN = ( active = false ) =>
 
 
 export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
-  const { env } = useApi();
+  const { env, logout } = useApi();
   const t = useI18n();
 
   const appName = env?.appName ?? 'MoneyBin';
@@ -87,24 +87,24 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
 
         <div className= 'flex-1' />
 
-        <button
-          onClick= { undefined }
-          className= { BTN() + ' justify-center size-12 bg-slate-50' }
-          title= { t.sidebar.logout }
+        <NavLink
+          to= '/me'
+          className= { ( { isActive } ) => BTN( isActive ) + ' justify-center size-12 bg-slate-50' }
+          title= { t.sidebar.account }
         >
           <UserIcon size= { 24 } />
-        </button>
+        </NavLink>
 
-        <button
-          onClick= { undefined }
-          className= { BTN() + ' justify-center size-12 bg-slate-50' }
-          title= { t.sidebar.logout }
+        <NavLink
+          to= '/settings'
+          className= { ( { isActive } ) => BTN( isActive ) + ' justify-center size-12 bg-slate-50' }
+          title= { t.sidebar.settings }
         >
           <SettingsIcon size= { 24 } />
-        </button>
+        </NavLink>
 
         <button
-          onClick= { undefined }
+          onClick= { logout }
           className= { BTN() + ' justify-center size-12 bg-slate-50' }
           title= { t.sidebar.logout }
         >
