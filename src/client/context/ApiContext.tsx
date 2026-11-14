@@ -1,3 +1,4 @@
+import { t } from '@/src/client/lib/i18n';
 import type { Api, ApiContextValue, ApiEnv, ApiLogin, ApiRequestOptions, ApiValues } from '@/src/shared/types/api';
 import type { AssetRecord } from '@/src/shared/types/asset';
 import type { AuthResult } from '@/src/shared/types/auth';
@@ -10,6 +11,7 @@ import type { TransactionRecord } from '@/src/shared/types/transaction';
 import type { UserRecord } from '@/src/shared/types/user';
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 
 const API = '/api';
@@ -28,6 +30,8 @@ const ApiContext = createContext< ApiContextValue | null >( null );
 
 
 export function ApiProvider ( { children }: { children: ReactNode } ) {
+  const { i18n } = useTranslation();
+
   const [ env, setEnv ] = useState< ApiEnv | null >( null );
   const [ token, setToken ] = useState< string | null >( () => localStorage.getItem( TOKEN_KEY ) );
   const [ user, setUser ] = useState< UserRecord | null >( null );
@@ -223,8 +227,8 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
   } ), [ request, login, logout, refreshSession, clearError ] );
 
   const value = useMemo< ApiContextValue >( () => ( {
-    ...api, env, user, token, loading, error, authenticated: user !== null
-  } ), [ api, env, user, token, loading, error ] );
+    ...api, env, user, token, loading, error, authenticated: user !== null, t
+  } ), [ api, env, user, token, loading, error, i18n.language ] );
 
 
   return (
