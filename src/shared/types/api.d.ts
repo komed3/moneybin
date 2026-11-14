@@ -11,3 +11,21 @@ import type {
   CurrencyRecord, CurrencyCode, PersonGender, PortfolioMemberRole, AssetStatus, AssetType,
   LiquidationLevel, BookingType, BookingValueType, BookingReliability
 } from '@/src/shared/types/values';
+
+
+export interface ApiEnv {
+  appName: string;
+  defaultLanguage: string;
+  defaultCurrency: CurrencyCode;
+  passwordStrict: boolean;
+}
+
+export interface ApiLogin {
+  username: string;
+  password: string;
+}
+
+export interface ApiRequestOptions extends Omit< RequestInit, 'body' > {
+  body?: BodyInit | null;
+  query?: Record< string, string | number | boolean | null | undefined >;
+}
