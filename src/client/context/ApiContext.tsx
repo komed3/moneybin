@@ -10,3 +10,7 @@ import type { TransactionRecord } from '@/src/shared/types/transaction';
 import type { UserRecord } from '@/src/shared/types/user';
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
+
+
+const API = '/api';
+const TOKEN_KEY = 'moneybin.session';
