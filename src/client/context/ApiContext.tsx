@@ -22,3 +22,6 @@ export class ApiError extends Error {
     this.name = 'ApiError';
   }
 }
+
+
+const ApiContext = createContext< ApiContextValue | null >( null );
