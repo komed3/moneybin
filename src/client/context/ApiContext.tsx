@@ -97,4 +97,17 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
       setLoading( false );
     }
   }, [ request, token ] );
+
+
+  useEffect( () => void refreshSession(), [ refreshSession ] );
+
+  useEffect( () => {
+    let active = true;
+
+    request< ApiEnv >( '/auth/env' )
+      .then( result => { if ( active ) setEnv( result ) } )
+      .catch( () => { if ( active ) setEnv( null ) } );
+
+    return () => { active = false };
+  }, [ request ] );
 }
