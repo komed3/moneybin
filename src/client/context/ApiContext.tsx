@@ -14,3 +14,11 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useState } 
 
 const API = '/api';
 const TOKEN_KEY = 'moneybin.session';
+
+
+export class ApiError extends Error {
+  constructor ( message: string, public status: number ) {
+    super( message );
+    this.name = 'ApiError';
+  }
+}
