@@ -1,4 +1,4 @@
-import { t } from '@/src/client/lib/i18n';
+import { getTranslations } from '@/src/client/lib/i18n';
 import type { Api, ApiContextValue, ApiEnv, ApiLogin, ApiRequestOptions, ApiValues } from '@/src/shared/types/api';
 import type { AssetRecord } from '@/src/shared/types/asset';
 import type { AuthResult } from '@/src/shared/types/auth';
@@ -6,12 +6,13 @@ import type { BookingRecord } from '@/src/shared/types/booking';
 import type { DailyValueRecord } from '@/src/shared/types/daily';
 import type { PersonRecord } from '@/src/shared/types/person';
 import type { PortfolioMemberRecord, PortfolioRecord } from '@/src/shared/types/portfolio';
+import type { UserPrefName, UserPrefSchema, UserPrefValue } from '@/src/shared/types/prefs';
 import type { PortfolioYearlyRecord, YearlyRecord } from '@/src/shared/types/stats';
 import type { TransactionRecord } from '@/src/shared/types/transaction';
 import type { UserRecord } from '@/src/shared/types/user';
+import type { LanguageCode } from '@/src/shared/types/values';
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import { useTranslation } from 'react-i18next';
 
 
 const API = '/api';
@@ -30,11 +31,10 @@ const ApiContext = createContext< ApiContextValue | null >( null );
 
 
 export function ApiProvider ( { children }: { children: ReactNode } ) {
-  const { i18n } = useTranslation();
-
   const [ env, setEnv ] = useState< ApiEnv | null >( null );
   const [ token, setToken ] = useState< string | null >( () => localStorage.getItem( TOKEN_KEY ) );
   const [ user, setUser ] = useState< UserRecord | null >( null );
+  const [ prefs, setPrefs ] = useState< UserPrefSchema | null >( null );
   const [ loading, setLoading ] = useState( true );
   const [ error, setError ] = useState< string | null >( null );
 
@@ -114,6 +114,17 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
     return () => { active = false };
   }, [ request ] );
 
+  useEffect( () => {
+    if ( ! token || ! user ) return setPrefs( null );
+    let active = true;
+
+    request< UserPrefSchema >( '/prefs' )
+      .then( result => { if ( active ) setPrefs( result ) } )
+      .catch( () => { if ( active ) setPrefs( null ) } );
+
+    return () => { active = false };
+  }, [ request, token, user ] );
+
 
   const login = useCallback( async ( credentials: ApiLogin ) => {
     setLoading( true ), setError( null );
@@ -151,7 +162,26 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
       updateUsername: username => request< UserRecord >( '/auth/me', { method: 'PATCH', body: s( { username } ) } ),
       changePassword: ( currentPassword, newPassword ) => request( '/auth/password', {
         method: 'PUT', body: s( { currentPassword, newPassword } )
-      } )
+      } ),
+
+      prefs: {
+        update: async ( name, value ) => {
+          const result = await request< UserPrefValue< UserPrefName > >( `/prefs/${ e( name ) }`, {
+            method: 'PATCH', body: s( { value } )
+          } );
+
+          setPrefs( c => c ? { ...c, [ name ]: result } : c );
+          return result as UserPrefValue< typeof name >;
+        },
+        reset: async name => {
+          await request( `/prefs/${ e( name ) }`, { method: 'DELETE' } );
+          setPrefs( await request< UserPrefSchema >( '/prefs' ) );
+        },
+        resetAll: async () => {
+          await request( '/prefs', { method: 'DELETE' } );
+          setPrefs( await request< UserPrefSchema >( '/prefs' ) );
+        }
+      },
     },
 
     persons: {
@@ -226,9 +256,12 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
     values: () => request< ApiValues >( '/values' )
   } ), [ request, login, logout, refreshSession, clearError ] );
 
+  const language = ( prefs?.APP_LANGUAGE ?? env?.defaultLanguage ?? 'en' ) as LanguageCode;
+  const t = getTranslations( language );
+
   const value = useMemo< ApiContextValue >( () => ( {
-    ...api, env, user, token, loading, error, authenticated: user !== null, t
-  } ), [ api, env, user, token, loading, error, i18n.language ] );
+    ...api, env, user, prefs, token, loading, error, authenticated: user !== null, language, t
+  } ), [ api, env, user, token, loading, error, language ] );
 
 
   return (
