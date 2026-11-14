@@ -83,7 +83,6 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
     } );
   }, [ token ] );
 
-
   const refreshSession = useCallback( async () => {
     if ( ! token ) { setUser( null ), setLoading( false ); return }
 
@@ -110,4 +109,28 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
 
     return () => { active = false };
   }, [ request ] );
+
+
+  const login = useCallback( async ( credentials: ApiLogin ) => {
+    setLoading( true ), setError( null );
+
+    try {
+      const result = await request< AuthResult >( '/auth/login', {
+        method: 'POST', body: JSON.stringify( credentials )
+      } );
+
+      localStorage.setItem( TOKEN_KEY, result.token );
+      setToken( result.token ), setUser( result.user );
+    } finally {
+      setLoading( false );
+    }
+  }, [ request ] );
+
+  const logout = useCallback( async () => {
+    try { if ( token ) await request( '/auth/logout', { method: 'POST' } ) }
+    finally {
+      localStorage.removeItem( TOKEN_KEY );
+      setToken( null ), setUser( null );
+    }
+  }, [ request, token ] );
 }
