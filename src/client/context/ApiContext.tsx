@@ -1,4 +1,4 @@
-import { getTranslations } from '@/src/client/lib/i18n';
+import { createI18n } from '@/src/client/lib/i18n';
 import type { Api, ApiContextValue, ApiEnv, ApiLogin, ApiRequestOptions, ApiValues } from '@/src/shared/types/api';
 import type { AssetRecord } from '@/src/shared/types/asset';
 import type { AuthResult } from '@/src/shared/types/auth';
@@ -10,7 +10,6 @@ import type { UserPrefName, UserPrefSchema, UserPrefValue } from '@/src/shared/t
 import type { PortfolioYearlyRecord, YearlyRecord } from '@/src/shared/types/stats';
 import type { TransactionRecord } from '@/src/shared/types/transaction';
 import type { UserRecord } from '@/src/shared/types/user';
-import type { LanguageCode } from '@/src/shared/types/values';
 import type { ReactNode } from 'react';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
 
@@ -256,8 +255,8 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
     values: () => request< ApiValues >( '/values' )
   } ), [ request, login, logout, refreshSession, clearError ] );
 
-  const language = ( prefs?.APP_LANGUAGE ?? env?.defaultLanguage ?? 'en' ) as LanguageCode;
-  const t = getTranslations( language );
+  const language = prefs?.APP_LANGUAGE ?? env?.defaultLanguage ?? 'en';
+  const t = useMemo( () => createI18n( language ), [ language ] );
 
   const value = useMemo< ApiContextValue >( () => ( {
     ...api, env, user, prefs, token, loading, error, authenticated: user !== null, language, t
