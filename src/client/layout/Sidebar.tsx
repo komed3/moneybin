@@ -5,7 +5,7 @@ import type { Translations } from '@/src/shared/types/i18n';
 import type { LucideIcon } from 'lucide-react';
 import {
   BracesIcon, ChartColumnIcon, ChartPieIcon, ChevronLeftIcon, LayoutDashboardIcon,
-  PowerIcon, SettingsIcon, Table2Icon, WalletCardsIcon
+  PowerIcon, SettingsIcon, Table2Icon, UserIcon, WalletCardsIcon
 } from 'lucide-react';
 import { NavLink } from 'react-router';
 
@@ -69,7 +69,7 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
         ) ) }
       </nav>
 
-      <div className= 'shrink-0 flex items-center gap-4 h-20 px-4 border-t border-slate-200'>
+      <div className= 'shrink-0 flex items-center gap-2 h-20 px-4 border-t border-slate-200'>
         <button
           onClick= { () => setSidebarOpen( ! sidebarOpen ) }
           className= { BTN() + ' justify-center size-12 bg-slate-50' }
@@ -85,6 +85,24 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
           />
         </button>
 
+        <div className= 'flex-1' />
+
+        <button
+          onClick= { undefined }
+          className= { BTN() + ' justify-center size-12 bg-slate-50' }
+          title= { t.sidebar.logout }
+        >
+          <UserIcon size= { 24 } />
+        </button>
+
+        <button
+          onClick= { undefined }
+          className= { BTN() + ' justify-center size-12 bg-slate-50' }
+          title= { t.sidebar.logout }
+        >
+          <SettingsIcon size= { 24 } />
+        </button>
+
         <button
           onClick= { undefined }
           className= { BTN() + ' justify-center size-12 bg-slate-50' }
@@ -92,18 +110,6 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
         >
           <PowerIcon size= { 24 } />
         </button>
-
-        <NavLink
-          to= '/settings'
-          className= { ( { isActive } ) =>
-            BTN( isActive ) + ' flex-1 justify-center gap-3 pr-2 bg-slate-50'
-          }
-        >
-          <SettingsIcon size= { 24 } className= 'shrink-0' />
-          <span className= 'text-[15px] font-medium'>
-            { t.sidebar.settings }
-          </span>
-        </NavLink>
       </div>
     </div>
   );
