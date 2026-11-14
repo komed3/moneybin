@@ -1,5 +1,6 @@
 import logo from '@/src/client/assets/logo.svg';
 import { useI18n } from '@/src/client/hooks/useI18n';
+import type { Translations } from '@/src/shared/types/i18n';
 import type { LucideIcon } from 'lucide-react';
 import {
   BracesIcon, ChartColumnIcon, ChartPieIcon, ChevronLeftIcon, LayoutDashboardIcon,
@@ -14,7 +15,7 @@ interface SidebarProps {
 }
 
 
-const NAV: [ string, string, LucideIcon ][] = [
+const NAV: [ keyof Translations[ 'nav' ], string, LucideIcon ][] = [
   [ 'dashboard', '/', LayoutDashboardIcon ], [ 'momentum', '/momentum', ChartColumnIcon ],
   [ 'assets', '/assets', WalletCardsIcon ], [ 'breakdown', '/breakdown', ChartPieIcon ],
   [ 'bookings', '/bookings', Table2Icon ], [ 'editor', '/editor', BracesIcon ]
