@@ -1,7 +1,7 @@
 import type { AssetCreateData, AssetRecord, AssetUpdateData } from '@/src/shared/types/asset';
 import type { BookingCreateData, BookingRecord, BookingUpdateData } from '@/src/shared/types/booking';
 import type { DailyValueRecord } from '@/src/shared/types/daily';
-import type { TranslationTree } from '@/src/shared/types/i18n';
+import type { TranslationFunction } from '@/src/shared/types/i18n';
 import type { PersonCreateData, PersonRecord, PersonUpdateData } from '@/src/shared/types/person';
 import type { PortfolioCreateData, PortfolioMemberRecord, PortfolioRecord, PortfolioUpdateData } from '@/src/shared/types/portfolio';
 import type { UserPrefName, UserPrefSchema, UserPrefValue } from '@/src/shared/types/prefs';
@@ -131,5 +131,5 @@ export interface ApiContextValue extends Api {
   error: string | null;
   authenticated: boolean;
   language: LanguageCode;
-  t: TranslationTree;
+  t: TranslationFunction;
 }
