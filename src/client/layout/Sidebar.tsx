@@ -37,10 +37,10 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
         'shadow-md transition-all duration-100 ease-out ' + ( sidebarOpen ? 'w-80' : 'w-20' )
       }
     >
-      <div className= 'shrink-0 flex items-center gap-4 h-20 px-4 border-b border-slate-200'>
+      <div className= 'shrink-0 flex items-center gap-4 h-20 px-6 border-b border-slate-200'>
         <img
           src= { logo }
-          className= 'shrink-0 size-12'
+          className= 'shrink-0 size-9'
           loading= 'lazy'
           alt= ''
         />
