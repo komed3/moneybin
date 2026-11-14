@@ -141,7 +141,7 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
 
 
   const api = useMemo< Api >( () => ( {
-    request, login, logout, refreshSession, clearError,
+    request, login, logout, refreshSession, clearError, health: () => request( '/health' ),
 
     persons: {
       list: () => request< PersonRecord[] >( '/person' ),
