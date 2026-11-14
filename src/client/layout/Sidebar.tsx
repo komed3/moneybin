@@ -1,5 +1,5 @@
 import logo from '@/src/client/assets/logo.svg';
-import i18n from '@/src/client/lib/i18n';
+import i18n, { resources } from '@/src/client/lib/i18n';
 import type { LucideIcon } from 'lucide-react';
 import {
   BracesIcon, ChartColumnIcon, ChartPieIcon, ChevronLeftIcon, LayoutDashboardIcon,
@@ -14,14 +14,11 @@ interface SidebarProps {
 }
 
 
-const NAV: [ string, string, LucideIcon ][] = [
-  [ 'dashboard', '/', LayoutDashboardIcon ],
-  [ 'momentum', '/momentum', ChartColumnIcon ],
-  [ 'assets', '/assets', WalletCardsIcon ],
-  [ 'breakdown', '/breakdown', ChartPieIcon ],
-  [ 'bookings', '/bookings', Table2Icon ],
-  [ 'editor', '/editor', BracesIcon ]
-] as const;
+const NAV: [ keyof typeof resources.en.translation.nav, string, LucideIcon ][] = [
+  [ 'dashboard', '/', LayoutDashboardIcon ], [ 'momentum', '/momentum', ChartColumnIcon ],
+  [ 'assets', '/assets', WalletCardsIcon ], [ 'breakdown', '/breakdown', ChartPieIcon ],
+  [ 'bookings', '/bookings', Table2Icon ], [ 'editor', '/editor', BracesIcon ]
+];
 
 const BTN = ( active = false ) =>
   'shrink-0 flex items-center h-12 bg-slate-50 rounded-md overflow-hidden transition-colors ' +
