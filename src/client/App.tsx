@@ -14,7 +14,7 @@ export function App () {
 
   return (
     <div className= 'w-screen h-screen overflow-hidden'>
-      <Sidebar />
+      <Sidebar { ...{ sidebarOpen, setSidebarOpen } } />
 
       <main
         key= { pathname }
