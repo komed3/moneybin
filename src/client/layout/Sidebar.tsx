@@ -1,13 +1,19 @@
 import logo from '@/src/client/assets/logo.svg';
 import i18n from '@/src/client/lib/i18n';
-import { ChevronLeftIcon, PowerIcon, SettingsIcon } from 'lucide-react';
-import { Link } from 'react-router';
+import type { LucideIcon } from 'lucide-react';
+import { ChevronLeftIcon, LayoutDashboardIcon, PowerIcon, SettingsIcon } from 'lucide-react';
+import { Link, NavLink } from 'react-router';
 
 
 interface SidebarProps {
   sidebarOpen: boolean;
   setSidebarOpen: ( value: boolean ) => void;
 }
+
+
+const NAV: [ string, string, LucideIcon ][] = [
+  [ 'dashboard', '/', LayoutDashboardIcon ]
+] as const;
 
 
 export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
@@ -31,7 +37,23 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
         </h1>
       </div>
 
-      <div className= 'flex-1' />
+      <nav className= 'flex-1 p-4'>
+        { NAV.map( ( [ key, url, Icon ] ) => (
+          <NavLink
+            key= { key }
+            to= { url }
+            className= { ( { isActive } ) =>
+              'flex items-center gap-3 h-12 bg-slate-100 rounded overflow-hidden ' +
+              ( isActive ? 'bg-slate-200' : 'hover:bg-slate-100/70' )
+            }
+          >
+            <Icon size= { 22 } className= 'w-12 shrink-0' />
+            <span className= 'truncate text-sm font-medium'>
+              { i18n.t( $ => $.nav[ key ] ) }
+            </span>
+          </NavLink>
+        ) ) }
+      </nav>
 
       <div className= 'shrink-0 flex items-center gap-4 h-20 px-4 border-t border-slate-200'>
         <button
