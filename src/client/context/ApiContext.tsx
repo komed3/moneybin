@@ -1,6 +1,6 @@
 import type { Api, ApiContextValue, ApiEnv, ApiLogin, ApiRequestOptions, ApiValues } from '@/src/shared/types/api';
-import type { AuthResult } from '@/src/shared/types/auth';
 import type { AssetRecord } from '@/src/shared/types/asset';
+import type { AuthResult } from '@/src/shared/types/auth';
 import type { BookingRecord } from '@/src/shared/types/booking';
 import type { DailyValueRecord } from '@/src/shared/types/daily';
 import type { PersonRecord } from '@/src/shared/types/person';
@@ -142,6 +142,13 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
 
   const api = useMemo< Api >( () => ( {
     request, login, logout, refreshSession, clearError, health: () => request( '/health' ),
+
+    users: {
+      updateUsername: username => request< UserRecord >( '/auth/me', { method: 'PATCH', body: s( { username } ) } ),
+      changePassword: ( currentPassword, newPassword ) => request( '/auth/password', {
+        method: 'PUT', body: s( { currentPassword, newPassword } )
+      } )
+    },
 
     persons: {
       list: () => request< PersonRecord[] >( '/person' ),
