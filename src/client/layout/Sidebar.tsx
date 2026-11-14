@@ -1,6 +1,5 @@
 import logo from '@/src/client/assets/logo.svg';
-import { useApi } from '@/src/client/context/ApiContext';
-import type { TranslationTree } from '@/src/shared/types/i18n';
+import { useI18n } from '@/src/client/hooks/useI18n';
 import type { LucideIcon } from 'lucide-react';
 import {
   BracesIcon, ChartColumnIcon, ChartPieIcon, ChevronLeftIcon, LayoutDashboardIcon,
@@ -15,7 +14,7 @@ interface SidebarProps {
 }
 
 
-const NAV: [ keyof TranslationTree[ 'nav' ], string, LucideIcon ][] = [
+const NAV: [ string, string, LucideIcon ][] = [
   [ 'dashboard', '/', LayoutDashboardIcon ], [ 'momentum', '/momentum', ChartColumnIcon ],
   [ 'assets', '/assets', WalletCardsIcon ], [ 'breakdown', '/breakdown', ChartPieIcon ],
   [ 'bookings', '/bookings', Table2Icon ], [ 'editor', '/editor', BracesIcon ]
@@ -27,7 +26,7 @@ const BTN = ( active = false ) =>
 
 
 export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
-  const { t } = useApi();
+  const t = useI18n();
 
 
   return (
