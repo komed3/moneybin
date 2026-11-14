@@ -1,5 +1,6 @@
 import logo from '@/src/client/assets/logo.svg';
-import i18n, { resources } from '@/src/client/lib/i18n';
+import { useApi } from '@/src/client/context/ApiContext';
+import type { TranslationTree } from '@/src/shared/types/i18n';
 import type { LucideIcon } from 'lucide-react';
 import {
   BracesIcon, ChartColumnIcon, ChartPieIcon, ChevronLeftIcon, LayoutDashboardIcon,
@@ -14,7 +15,7 @@ interface SidebarProps {
 }
 
 
-const NAV: [ keyof typeof resources.en.translation.nav, string, LucideIcon ][] = [
+const NAV: [ keyof TranslationTree[ 'nav' ], string, LucideIcon ][] = [
   [ 'dashboard', '/', LayoutDashboardIcon ], [ 'momentum', '/momentum', ChartColumnIcon ],
   [ 'assets', '/assets', WalletCardsIcon ], [ 'breakdown', '/breakdown', ChartPieIcon ],
   [ 'bookings', '/bookings', Table2Icon ], [ 'editor', '/editor', BracesIcon ]
@@ -26,6 +27,9 @@ const BTN = ( active = false ) =>
 
 
 export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
+  const { t } = useApi();
+
+
   return (
     <div
       className= {
@@ -55,7 +59,7 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
           >
             <Icon size= { 24 } className= 'w-12 shrink-0' />
             <span className= 'truncate text-[15px] font-medium'>
-              { i18n.t( $ => $.nav[ key ] ) }
+              { t.nav[ key ] }
             </span>
           </NavLink>
         ) ) }
@@ -65,7 +69,7 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
         <button
           onClick= { () => setSidebarOpen( ! sidebarOpen ) }
           className= { BTN() + ' justify-center size-12' }
-          title= { i18n.t( $ => $.sidebar[ sidebarOpen ? 'collapse' : 'expand' ] ) }
+          title= { t.sidebar[ sidebarOpen ? 'collapse' : 'expand' ] }
         >
           <ChevronLeftIcon
             size= { 34 }
@@ -80,7 +84,7 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
         <button
           onClick= { undefined }
           className= { BTN() + ' justify-center size-12' }
-          title= { i18n.t( $ => $.sidebar.logout ) }
+          title= { t.sidebar.logout }
         >
           <PowerIcon size= { 24 } />
         </button>
@@ -91,7 +95,7 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
         >
           <SettingsIcon size= { 24 } className= 'shrink-0' />
           <span className= 'text-[15px] font-medium'>
-            { i18n.t( $ => $.sidebar.settings ) }
+            { t.sidebar.settings }
           </span>
         </NavLink>
       </div>
