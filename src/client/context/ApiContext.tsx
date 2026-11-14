@@ -82,4 +82,19 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
       throw err;
     } );
   }, [ token ] );
+
+
+  const refreshSession = useCallback( async () => {
+    if ( ! token ) { setUser( null ), setLoading( false ); return }
+
+    try {
+      const result = await request< { user: UserRecord } >( '/auth/me' );
+      setUser( result.user );
+    } catch ( err ) {
+      if ( err instanceof ApiError && err.status === 401 ) setUser( null );
+      else setError( 'Could not verify session. Please check your connection.' );
+    } finally {
+      setLoading( false );
+    }
+  }, [ request, token ] );
 }
