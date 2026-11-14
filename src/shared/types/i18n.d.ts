@@ -1,14 +1,13 @@
 import type en from '@/src/client/locales/en';
 
 
-type TranslationSource = typeof en.translation;
-
+export type Translations = typeof en.translation;
 
 export type TranslationMap< T > = {
   [ K in keyof T ]: T[ K ] extends string ? string : TranslationMap< T[ K ] >
 };
 
-export type TranslationKey< T = TranslationSource > = {
+export type TranslationKey< T = Translations > = {
   [ K in keyof T & string ]: T[ K ] extends string ? K :
     T[ K ] extends object ? `${ K }.${ TranslationKey< T[ K ] > }` : never
 }[ keyof T & string ];
@@ -20,4 +19,4 @@ export type TranslationValue< T, K extends string > =
 
 export type TranslationFunction = {
   < K extends TranslationKey > ( key: K, ...args: unknown[] ): string;
-} & TranslationMap< TranslationSource >;
+} & TranslationMap< Translations >;
