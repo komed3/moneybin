@@ -72,7 +72,7 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
       <div className= 'shrink-0 flex items-center gap-4 h-20 px-4 border-t border-slate-200'>
         <button
           onClick= { () => setSidebarOpen( ! sidebarOpen ) }
-          className= { BTN() + ' justify-center size-12' }
+          className= { BTN() + ' justify-center size-12 bg-slate-50' }
           title= { t.sidebar[ sidebarOpen ? 'collapse' : 'expand' ] }
         >
           <ChevronLeftIcon
@@ -87,7 +87,7 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
 
         <button
           onClick= { undefined }
-          className= { BTN() + ' justify-center size-12' }
+          className= { BTN() + ' justify-center size-12 bg-slate-50' }
           title= { t.sidebar.logout }
         >
           <PowerIcon size= { 24 } />
@@ -95,7 +95,9 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
 
         <NavLink
           to= '/settings'
-          className= { ( { isActive } ) => BTN( isActive ) + ' flex-1 justify-center gap-3 pr-2' }
+          className= { ( { isActive } ) =>
+            BTN( isActive ) + ' flex-1 justify-center gap-3 pr-2 bg-slate-50'
+          }
         >
           <SettingsIcon size= { 24 } className= 'shrink-0' />
           <span className= 'text-[15px] font-medium'>
