@@ -1,6 +1,6 @@
 import logo from '@/src/client/assets/logo.svg';
-import i18n from '@/src/client/lib/i18n';
-import { ChevronLeftIcon } from 'lucide-react';
+import { ChevronLeftIcon, PowerIcon, SettingsIcon } from 'lucide-react';
+import { Link } from 'react-router';
 
 
 interface SidebarProps {
@@ -32,10 +32,10 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
 
       <div className= 'flex-1' />
 
-      <div className= 'shrink-0 flex items-center gap-4 h-20 px-5 border-t border-slate-200'>
+      <div className= 'shrink-0 flex items-center gap-4 h-20 px-4 border-t border-slate-200'>
         <button
           onClick= { () => setSidebarOpen( ! sidebarOpen ) }
-          className= 'inline-flex justify-center items-center size-10 bg-slate-100 rounded'
+          className= 'shrink-0 inline-flex justify-center items-center size-12 bg-slate-100 rounded'
         >
           <ChevronLeftIcon
             size= { 28 }
@@ -46,6 +46,21 @@ export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
             }
           />
         </button>
+
+        <button
+          onClick= { undefined }
+          className= 'shrink-0 inline-flex justify-center items-center size-12 bg-slate-100 rounded'
+        >
+          <PowerIcon size= { 22 } />
+        </button>
+
+        <Link
+          to= '/settings'
+          className= 'flex-1 inline-flex items-center gap-3 h-12 px-4 bg-slate-100 rounded'
+        >
+          <SettingsIcon size= { 22 } />
+          <span className= 'text-sm font-medium'>Settings</span>
+        </Link>
       </div>
     </div>
   );
