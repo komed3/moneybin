@@ -4,6 +4,7 @@ import { booking } from '@/src/server/api/endpoints/booking';
 import { daily } from '@/src/server/api/endpoints/daily';
 import { person } from '@/src/server/api/endpoints/person';
 import { portfolio } from '@/src/server/api/endpoints/portfolio';
+import { prefs } from '@/src/server/api/endpoints/prefs';
 import { stats } from '@/src/server/api/endpoints/stats';
 import { transaction } from '@/src/server/api/endpoints/transaction';
 import { values } from '@/src/server/api/endpoints/values';
@@ -18,6 +19,7 @@ api.get( '/health', ( _, res ) => res.json( { status: 'ok' } ) );
 api.use( '/auth', auth );
 
 api.use( requireAuth );
+api.use( '/prefs', prefs );
 api.use( '/person', person );
 api.use( '/portfolio', portfolio );
 api.use( '/asset', asset );
