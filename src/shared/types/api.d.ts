@@ -106,9 +106,9 @@ export interface Api {
 
   stats: {
     asset: ( assetId: string ) => Promise< YearlyRecord[] >;
-    assetYear: ( assetId: string, year: number ) => Promise< YearlyRecord >;
+    assetYear: ( assetId: string, year: number ) => Promise< YearlyRecord | null >;
     portfolio: ( portfolioId: string ) => Promise< PortfolioYearlyRecord[] >;
-    portfolioYear: ( portfolioId: string, year: number ) => Promise< PortfolioYearlyRecord >;
+    portfolioYear: ( portfolioId: string, year: number ) => Promise< PortfolioYearlyRecord | null >;
   };
 
   values: () => Promise< ApiValues >;
