@@ -212,9 +212,9 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
 
     stats: {
       asset: assetId => request< YearlyRecord[] >( `/stats/asset/${ e( assetId ) }` ),
-      assetYear: ( assetId, year ) => request< YearlyRecord >( `/stats/asset/${ e( assetId ) }/${ year }` ),
+      assetYear: ( assetId, year ) => request< YearlyRecord | null >( `/stats/asset/${ e( assetId ) }/${ year }` ),
       portfolio: portfolioId => request< PortfolioYearlyRecord[] >( `/stats/portfolio/${ e( portfolioId ) }` ),
-      portfolioYear: ( portfolioId, year ) => request< PortfolioYearlyRecord >(
+      portfolioYear: ( portfolioId, year ) => request< PortfolioYearlyRecord | null >(
         `/stats/portfolio/${ e( portfolioId ) }/${ year }`
       )
     },
