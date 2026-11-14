@@ -226,3 +226,10 @@ export function ApiProvider ( { children }: { children: ReactNode } ) {
     </ApiContext.Provider>
   );
 }
+
+
+export function useApi () : ApiContextValue {
+  const context = useContext( ApiContext );
+  if ( ! context ) throw new Error( 'useApi must be used within ApiProvider' );
+  return context;
+}
