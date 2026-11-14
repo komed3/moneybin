@@ -1,7 +1,10 @@
 import logo from '@/src/client/assets/logo.svg';
 import i18n from '@/src/client/lib/i18n';
 import type { LucideIcon } from 'lucide-react';
-import { ChevronLeftIcon, LayoutDashboardIcon, PowerIcon, SettingsIcon, Table2Icon, WalletCardsIcon } from 'lucide-react';
+import {
+  BracesIcon, ChartColumnIcon, ChartPieIcon, ChevronLeftIcon, LayoutDashboardIcon,
+  PowerIcon, SettingsIcon, Table2Icon, WalletCardsIcon
+} from 'lucide-react';
 import { Link, NavLink } from 'react-router';
 
 
@@ -13,13 +16,16 @@ interface SidebarProps {
 
 const NAV: [ string, string, LucideIcon ][] = [
   [ 'dashboard', '/', LayoutDashboardIcon ],
+  [ 'momentum', '/momentum', ChartColumnIcon ],
   [ 'assets', '/assets', WalletCardsIcon ],
-  [ 'bookings', '/bookings', Table2Icon ]
+  [ 'breakdown', '/breakdown', ChartPieIcon ],
+  [ 'bookings', '/bookings', Table2Icon ],
+  [ 'editor', '/editor', BracesIcon ]
 ] as const;
 
 const BTN = ( active = false ) =>
-  'shrink-0 flex items-center h-12 bg-slate-100 rounded-md overflow-hidden transition-colors ' +
-  'duration-100 ease-out ' + ( active ? 'text-white bg-theme' : 'hover:bg-slate-200' );
+  'shrink-0 flex items-center h-12 bg-slate-50 rounded-md overflow-hidden transition-colors ' +
+  'duration-100 ease-out ' + ( active ? 'text-white bg-theme' : 'hover:bg-slate-200/80' );
 
 
 export function Sidebar ( { sidebarOpen, setSidebarOpen }: SidebarProps ) {
