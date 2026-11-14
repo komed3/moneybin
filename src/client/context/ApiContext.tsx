@@ -25,3 +25,12 @@ export class ApiError extends Error {
 
 
 const ApiContext = createContext< ApiContextValue | null >( null );
+
+
+export function ApiProvider ( { children }: { children: ReactNode } ) {
+  const [ env, setEnv ] = useState< ApiEnv | null >( null );
+  const [ token, setToken ] = useState< string | null >( () => localStorage.getItem( TOKEN_KEY ) );
+  const [ user, setUser ] = useState< UserRecord | null >( null );
+  const [ loading, setLoading ] = useState( true );
+  const [ error, setError ] = useState< string | null >( null );
+}
