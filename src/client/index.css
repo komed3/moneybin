@@ -27,7 +27,7 @@
   }
 
   *, *::before, *::after {
-    @apply select-none;
+    @apply box-content select-none;
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
